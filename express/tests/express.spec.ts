@@ -4,6 +4,7 @@ const APP_HOME = 'http://127.0.0.1:3000/'
 const APP_API = APP_HOME+'api/hellocoop'
 
 import { test, expect } from '@playwright/test';
+import config from '../app/hello.config';
 
 const loggedOut = {isLoggedIn:false}
 const loggedIn = {
@@ -80,5 +81,63 @@ test.describe(`Testing ${APP_HOME}`, () => {
         delete json.iat
         expect(json).toEqual(loggedIn)
     })
-
+    test('login_hint', async ({ page }) => {
+        await page.goto(APP_API+'?op=login')
+        const loginHintParam = 'mailto:john.smith@me.com'
+        const response = await page.request.get(APP_API+'?op=login&login_hint=' + loginHintParam, {
+            maxRedirects: 0 //verify whether login_hint is included in authz request to mockin server
+        })
+        const authzReqUrl = new URL(response.headers().location) 
+        const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
+        expect(authzReqUrlParams.get('login_hint')).toEqual(loginHintParam)
+    })
+    test('invite', async ({ page }) => {
+        const appName = 'Test'
+        await page.goto(APP_API+'?op=login')
+        const response = await page.request.get(APP_API+'?op=invite&app_name=' + appName, {
+            maxRedirects: 0 //verify whether correct invite params is included in invite request
+        })
+        const inviteReqUrl = new URL(response.headers().location) 
+        const inviteReqUrlParams = new URLSearchParams(inviteReqUrl.search)
+        const inviter = inviteReqUrlParams.get('inviter')
+        expect(inviter).toEqual(loggedIn.sub)
+        const client_id = inviteReqUrlParams.get('client_id')
+        expect(client_id).toEqual(config.client_id)
+        const initiate_login_uri = inviteReqUrlParams.get('initiate_login_uri')
+        expect(initiate_login_uri).toEqual(APP_API)
+        const app_name = inviteReqUrlParams.get('app_name')
+        expect(app_name).toEqual(appName)
+        const prompt = inviteReqUrlParams.get('prompt')
+        expect(prompt).toEqual(`${loggedIn.name} has invited you to join ${appName}`)
+        const return_uri = inviteReqUrlParams.get('return_uri')
+        expect(return_uri).toEqual(APP_HOME)
+    })
+    test('provider inititated login', async ({ page }) => {
+        await page.goto(APP_API+'?op=login')
+        const loginHintParam = 'mailto:john.smith@me.com'
+        const issParam = 'https://issuer.hello.coop'
+        const response = await page.request.get(APP_API+'?iss=' + issParam + '&login_hint=' + loginHintParam, {
+            maxRedirects: 0 //verify authz redirect url
+        })
+        const authzReqUrl = new URL(response.headers().location) 
+        const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
+        const client_id = authzReqUrlParams.get('client_id')
+        expect(client_id).toEqual(config.client_id)
+        const redirect_uri = authzReqUrlParams.get('redirect_uri')
+        expect(redirect_uri).toEqual(APP_API)
+        const scope = authzReqUrlParams.get('scope')
+        expect(scope).toBeDefined
+        const response_type = authzReqUrlParams.get('response_type')
+        expect(response_type).toBeDefined
+        const response_mode = authzReqUrlParams.get('response_mode')
+        expect(response_mode).toBeDefined
+        const nonce = authzReqUrlParams.get('nonce')
+        expect(nonce).toBeDefined
+        const code_challenge = authzReqUrlParams.get('code_challenge')
+        expect(code_challenge).toBeDefined
+        const code_challenge_method = authzReqUrlParams.get('code_challenge_method')
+        expect(code_challenge_method).toBeDefined
+        const login_hint = authzReqUrlParams.get('login_hint')
+        expect(login_hint).toEqual(loginHintParam)
+    })
 });
