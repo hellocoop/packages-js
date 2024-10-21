@@ -88,6 +88,7 @@ export interface ICreateAuthRequest {
     nonce?: string;
     state?: string;
     login_hint?: string
+    domain_hint?: string
     provider_hint?: ProviderHint[];
 }
 
