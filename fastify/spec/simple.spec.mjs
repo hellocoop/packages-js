@@ -4,8 +4,7 @@ import Fastify from 'fastify'
 
 import { helloAuth } from '@hellocoop/fastify' // import from root node_modules 
 
-
-Add utils module to packages-js 
+// Add utils module to packages-js 
 
 const config = {
     client_id: '8c3a40a9-b235-4029-8d16-c70592ca94bb',
@@ -16,8 +15,9 @@ describe('Simple proof of concept API test', () => {
     let cookies = {}
 
     before( async () => {
-        fastify = await Fastify().ready()
+        fastify = Fastify()
         fastify.register(helloAuth, config)
+        await Fastify().ready()
         cookies = {}
     })
 
@@ -28,7 +28,7 @@ describe('Simple proof of concept API test', () => {
             url: '/api/hellocoop?op=auth',
             cookies,
         })
-        utils.harvestCookies(cookies, response)
+        // utils.harvestCookies(cookies, response)
         
         expect(response.statusCode).to.equal(200)
         const json = JSON.parse(response.body)
@@ -38,4 +38,3 @@ describe('Simple proof of concept API test', () => {
 
     })
 })
-
