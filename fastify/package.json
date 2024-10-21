@@ -37,7 +37,9 @@
     "watch": "tsc --watch --declaration",
     "build": "npm run build:clean && npm run build:src",
     "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration"
+    "build:src": "tsc --declaration",
+    "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
+    "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'"
   },
   "peerDependencies": {
     "fastify": "^4"
