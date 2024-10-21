@@ -33,6 +33,18 @@ services:
       - type: bind 
         source: ../../node_modules
         target: /usr/src/svr/node_modules
+
+      # @DICK - this is a hack!!! i dont know how to resolve symlinks inside docker
+      # the packages in node_modules/@hellocoop/* were a symlink to (relative path) '../../*'
+      - type: bind 
+        source: ../../api
+        target: /usr/src/svr/api
+      - type: bind 
+        source: ../../helper-server
+        target: /usr/src/svr/helper-server
+      - type: bind 
+        source: ../../constants
+        target: /usr/src/svr/constants
     ports:
       - "9229:9229"
     command: ["npm", "run", "spec"] 
