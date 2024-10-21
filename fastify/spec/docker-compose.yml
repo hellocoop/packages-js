@@ -32,7 +32,7 @@ services:
         target: /usr/src/svr  
       - type: bind 
         source: ../../node_modules
-        target: /usr/src/node_modules
+        target: /usr/src/svr/node_modules
     ports:
       - "9229:9229"
     command: ["npm", "run", "spec"] 
