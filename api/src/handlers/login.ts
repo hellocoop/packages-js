@@ -10,7 +10,7 @@ export const redirectURIs: Record<string, any> = {}
 // var callCount = 0 // DEBUG
 
 const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
-    const { provider_hint: providerParam, scope: scopeParam, target_uri, redirect_uri, nonce: providedNonce, prompt, account, login_hint, domain_hint } = req.query
+    const { provider_hint: providerParam, scope: scopeParam, target_uri, redirect_uri, nonce: providedNonce, prompt, login_hint, domain_hint } = req.query
     
     if (!config.clientId) {
         res.status(500)
@@ -60,8 +60,7 @@ const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
         provider_hint,
         login_hint,
         domain_hint,
-        prompt,
-        account,
+        prompt
     }
     if (providedNonce)
         request.nonce = providedNonce
