@@ -37,7 +37,6 @@ describe('login_hint', () => {
 
     it('authz request should have login_hint param', async () => {
         const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
-        console.log(loginRedirectParams)
         expect(loginRedirectParams.get('login_hint')).to.eql(loginHint)
     })
 })
