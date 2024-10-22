@@ -19,8 +19,7 @@
     promptLogin?: boolean,
     promptConsent?: boolean,
     loginHint?: string,
-    domainHint?: string,
-    account?: 'personal' | 'managed' | undefined
+    domainHint?: string
   }
 
   // All prop exports must still be typed standalone and in the $$Props interface
@@ -40,7 +39,6 @@
   export let promptConsent: boolean = false
   export let loginHint: string = ""
   export let domainHint: string = ""
-  export let account: 'personal' | 'managed' | undefined = undefined;
   
   let checkedForStylesheet: boolean = false
 
@@ -83,9 +81,6 @@
 
   if (domainHint)
     loginRoute.searchParams.set("login_hint", domainHint)
-
-  if (account)
-    loginRoute.searchParams.set("account", account)
 
   if(providerHint)
     loginRoute.searchParams.set("provider_hint", providerHint.join(" "))
