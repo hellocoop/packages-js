@@ -19,6 +19,7 @@
     promptLogin?: boolean,
     promptConsent?: boolean,
     loginHint?: string,
+    domainHint?: string,
     account?: 'personal' | 'managed' | undefined
   }
 
@@ -38,6 +39,7 @@
   export let promptLogin: boolean = false
   export let promptConsent: boolean = false
   export let loginHint: string = ""
+  export let domainHint: string = ""
   export let account: 'personal' | 'managed' | undefined = undefined;
   
   let checkedForStylesheet: boolean = false
@@ -78,6 +80,9 @@
 
   if (loginHint)
     loginRoute.searchParams.set("login_hint", loginHint)
+
+  if (domainHint)
+    loginRoute.searchParams.set("login_hint", domainHint)
 
   if (account)
     loginRoute.searchParams.set("account", account)
