@@ -40,7 +40,6 @@
     promptConsent?: boolean,
     loginHint?: string,
     domainHint?: string,
-    account?: 'personal' | 'managed' | undefined
   }
   
   const props = withDefaults(defineProps<Props>(), {
@@ -53,8 +52,7 @@
     promptLogin: false,
     promptConsent: false,
     loginHint: "",
-    domainHint: "",
-    account: undefined
+    domainHint: ""
   })
 
   const loginRoute = new URL(routeConfig.login, window.location.origin)
@@ -80,9 +78,6 @@
   
   if (props.domainHint)
     loginRoute.searchParams.set("login_hint", props.domainHint)
-
-  if (props.account)
-    loginRoute.searchParams.set("account", props.account)
 
   if(props.providerHint)
     loginRoute.searchParams.set("provider_hint", props.providerHint.join(" "))
