@@ -26,6 +26,7 @@ services:
     environment:
       HELLO_WALLET: 'http://mockin:3333'
       HELLO_COOKIE_SECRET: '66c71f55568f7b0c3b30cb6a8df9975b5125000caa775240b2e76eb96c43715e'
+      HOST: 'http://fastify-client'
     volumes: 
       - type: bind
         source: ../
