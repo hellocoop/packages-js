@@ -1,7 +1,7 @@
 import { HelloRequest, HelloResponse } from '../types'
 import config from './config'
 import { parse } from 'cookie'
-import { decryptObj, encryptObj } from '@hellocoop/core'
+import { decryptObj, encryptObj } from '@hellocoop/helper-server'
 
 const { cookies: { oidcName } } = config
 

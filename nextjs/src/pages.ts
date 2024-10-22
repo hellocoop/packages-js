@@ -21,7 +21,7 @@ import {
     isConfigured,
     configure,
     Config,
-} from '@hellocoop/router'
+} from '@hellocoop/api'
 
 import { parse } from 'url';
 
@@ -31,7 +31,7 @@ declare module 'next' {
     }
 }
 
-const convertToHelloRequest = (req: NextApiRequest): HelloRequest => {
+const convertToHelloRequest = (req: NextApiRequest, res: NextApiResponse): HelloRequest => {
     return {
         headers: () => req.headers as { [key: string]: string },
         query: req.query as { [key: string]: string } | {},
@@ -39,7 +39,14 @@ const convertToHelloRequest = (req: NextApiRequest): HelloRequest => {
         getAuth: () => req.auth,
         setAuth: (auth: Auth) => { req.auth = auth },
         method: req.method as string,
-        body: req.body as any
+        body: req.body as any,
+        frameWork: 'nextjs',
+        loginSyncWrapper: (loginSync, params) => { 
+            return loginSync({...params, req, res}) 
+        },
+        logoutSyncWrapper: (logoutSync) => { 
+            return logoutSync({req, res}) 
+        },
     }
 }
 
@@ -81,11 +88,12 @@ const convertToHelloResponse = (res: NextApiResponse): HelloResponse => {
 export const getServerSideProps = async function (context:GetServerSidePropsContext)
        : Promise<GetServerSidePropsResult<{auth:Auth}>> {
     const req = context.req as NextApiRequest
+    const res = context.res as NextApiResponse
     if (req.auth)
         return {
             props: {auth: req.auth}
         }
-    const helloReq = convertToHelloRequest(req)
+    const helloReq = convertToHelloRequest(req, res)
     const helloRes = convertToHelloResponse(context.res as NextApiResponse)
 
     const auth = await getAuthfromCookies( helloReq, helloRes)
@@ -97,7 +105,8 @@ export const getServerSideProps = async function (context:GetServerSidePropsCont
 export const getAuth = async function ( req: NextApiRequest): Promise<Auth> {
     if (req.auth)
         return req.auth
-    const helloReq = convertToHelloRequest(req)
+    const dummyResponse: NextApiResponse = {} as NextApiResponse
+    const helloReq = convertToHelloRequest(req, dummyResponse)
     const auth = await getAuthfromCookies( helloReq )
     return auth
 }
@@ -107,7 +116,7 @@ export const pageAuth = function ( config: Config): NextApiHandler {
         configure(config as Config)
     }
     const r = async (req: NextApiRequest, res: NextApiResponse ) => {
-        const helloReq = convertToHelloRequest(req)
+        const helloReq = convertToHelloRequest(req, res)
         const helloRes = convertToHelloResponse(res)
         await router(helloReq, helloRes)   
     }

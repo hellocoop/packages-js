@@ -1,6 +1,12 @@
 // creates an authorization request URL for Hellō
 
-import pkceChallenge from "./pkce"
+import { pkce, uuidv4 } from './pkce';
+import { 
+    Scope,
+    AuthResponseMode,
+    AuthResponseType,
+    ProviderHint,
+} from '@hellocoop/types'
 
 import { 
     VALID_SCOPES,   
@@ -11,22 +17,9 @@ import {
     DEFAULT_RESPONSE_TYPE,
     DEFAULT_RESPONSE_MODE,
     PRODUCTION_WALLET,
-} from '@hellocoop/constants'
+} from '@hellocoop/constants';
 
-export { 
-    VALID_SCOPES,   
-    VALID_RESPONSE_TYPE,
-    VALID_RESPONSE_MODE,
-    DEFAULT_PATH,
-    DEFAULT_SCOPE,
-    DEFAULT_RESPONSE_TYPE,
-    DEFAULT_RESPONSE_MODE,
-    PRODUCTION_WALLET,
-}
-
-import type { Scope, AuthResponseMode, AuthResponseType, ProviderHint } from '@hellocoop/types'
-
-export { Scope, AuthResponseMode, AuthResponseType, ProviderHint } 
+import { URLSearchParams } from 'url'
 
 export function isValidScope( scope: string ): boolean {
     return VALID_SCOPES.includes(scope as Scope)
@@ -46,7 +39,10 @@ export interface ICreateAuthRequest {
     nonce?: string;
     state?: string;
     login_hint?: string
+    domain_hint?: string
     provider_hint?: ProviderHint[];
+    prompt?: string;
+    account?: string;
 }
 
 export interface AuthenticationResponse {
@@ -83,7 +79,7 @@ export async function createAuthRequest(
         if (!VALID_RESPONSE_MODE.includes(config.response_mode))
             throw new Error('Invalid response_mode.');
     }
-    const nonce = config.nonce || crypto.randomUUID()
+    const nonce = config.nonce || uuidv4()
     let code_verifier: string = '' 
     const scopeArray = config.scope || DEFAULT_SCOPE
     const scope = scopeArray.join(' ')
@@ -95,14 +91,23 @@ export async function createAuthRequest(
         response_mode: config.response_mode || DEFAULT_RESPONSE_MODE,
         nonce,
     }
+    if (config.prompt) {
+        params.prompt = config.prompt
+    }
+    if (config.account) {
+        params.account = config.account
+    }
     if (params.response_type === 'code') {
-        const pkceMaterial  = await pkceChallenge()
+        const pkceMaterial  = await pkce()
         code_verifier = pkceMaterial.code_verifier
         params.code_challenge = pkceMaterial.code_challenge
         params.code_challenge_method = 'S256'
     }
     if (config.provider_hint) {
         params.provider_hint = config.provider_hint.join(' ')
+    }
+    if (config.login_hint) {
+        params.login_hint = config.login_hint
     }
 
     const url = (config.wallet || PRODUCTION_WALLET) 

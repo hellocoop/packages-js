@@ -13,7 +13,7 @@ import {
     configure,
     Config,
     configuration
-} from '@hellocoop/router'
+} from '@hellocoop/api'
 
 
 type ExpressLoginParams = {

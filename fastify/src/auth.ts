@@ -24,17 +24,25 @@ import {
     configure,
     configuration,
     Config,
-}  from '@hellocoop/router'
+}  from '@hellocoop/api'
 
-const convertToHelloRequest = ( req: FastifyRequest ): HelloRequest => {
+const convertToHelloRequest = ( req: FastifyRequest, res: FastifyReply ): HelloRequest => {
     return {
         headers: () => { return req.headers as { [key: string]: string }},
         query: req.query as { [key: string]: string } | {},
-        path: req.routeOptions.url,
+        path: req?.routeOptions?.url || '',
         getAuth: () => { return req.auth },
         setAuth: (auth: Auth) => {req.auth = auth},
         method: req.method,
-        body: req.body
+        body: req.body,
+        frameWork: 'fastify',
+        loginSyncWrapper: (loginSync, params) => { 
+            return loginSync({...params, req, res}) 
+        },
+        logoutSyncWrapper: (logoutSync) => { 
+            return logoutSync({req, res}) 
+        },
+
     }
 }
 
@@ -82,7 +90,8 @@ const helloPlugin: FastifyPluginAsync <HelloConfig> = async (instance, options) 
        configure(options)
     instance.decorateRequest('auth', undefined)
     instance.decorateRequest('getAuth', async function () { 
-        const helloReq = convertToHelloRequest(this)
+        const dummyResponse: FastifyReply = {} as FastifyReply
+        const helloReq = convertToHelloRequest(this, dummyResponse)
         this.auth = await getAuthfromCookies(helloReq)
         return this.auth  
      })
@@ -92,12 +101,12 @@ const helloPlugin: FastifyPluginAsync <HelloConfig> = async (instance, options) 
     })
 
     instance.get(configuration.apiRoute, async (req, res) => {
-      const helloReq = convertToHelloRequest(req)
+      const helloReq = convertToHelloRequest(req, res)
       const helloRes = convertToHelloResponse(res)
       return await router(helloReq, helloRes)
     })
     instance.post(configuration.apiRoute, async (req, res) => {
-        const helloReq = convertToHelloRequest(req)
+        const helloReq = convertToHelloRequest(req, res)
         const helloRes = convertToHelloResponse(res)
         return await router(helloReq, helloRes)
       })

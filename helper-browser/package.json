@@ -1,7 +1,7 @@
 {
-    "name": "@hellocoop/client",
-    "version": "1.1.6",
-    "description": "Hellō utility functions for the browser",
+    "name": "@hellocoop/helper-browser",
+    "version": "2.0.0",
+    "description": "Hellō helper functions for the browser",
     "source": "src/index.ts",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

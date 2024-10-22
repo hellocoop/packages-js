@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Auth } from '@hellocoop/types'
-import { configuration } from '@hellocoop/router'
+import { configuration } from '@hellocoop/api'
 
 
 export const redirect = function ( target:string ) {

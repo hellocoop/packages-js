@@ -6,8 +6,18 @@
 
 const HELLO_REGEX = new RegExp(`^[${HELLO_ALPHABET}]+$`);
 
-
 const checksum = (prefix, id) => {
+  const pb = Buffer.from(prefix);
+  const dib = Buffer.from(id);
+  const a = pb[0] + dib[0] + dib[3] + dib[6] + dib[9] + dib[12] + dib[15] + dib[18];
+  const b = pb[1] + dib[1] + dib[4] + dib[7] + dib[10] + dib[13] + dib[16] + dib[19];
+  const c = pb[2] + dib[2] + dib[5] + dib[8] + dib[11] + dib[14] + dib[17] + dib[20];
+  return HELLO_ALPHABET[a % 62] + HELLO_ALPHABET[b % 62] + HELLO_ALPHABET[c % 62];
+};
+
+// Doh! ... gen AI failed in picking the right indexes for the checksum calculation
+// some ids use this checksum calculation, so we need to keep it around
+const oldChecksum = (prefix, id) => {
   const pb = Buffer.from(prefix);
   const dib = Buffer.from(id);
   const a = pb[0] + dib[0] + dib[3] + dib[7] + dib[10] + dib[14] + dib[17] + dib[21];
@@ -38,7 +48,13 @@ const validate = (identifier) => {
 
   const calculatedChecksum = checksum(prefix, id);
 
-  return providedChecksum === calculatedChecksum;
+  let valid = providedChecksum === calculatedChecksum;
+  if (!valid) {
+    // try the old checksum calculation
+    valid = providedChecksum === oldChecksum(prefix, id);
+  }
+
+  return valid
 };
 
 const nano_id = (prefix) => {

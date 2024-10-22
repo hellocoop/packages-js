@@ -1,7 +1,7 @@
 // Helle router types
 
 import type { Claims, Scope, ProviderHint, Auth } from '@hellocoop/types'
-import type { CookieSerializeOptions } from 'cookie'
+import type { SerializeOptions } from 'cookie'
 
 // export type CallbackRequest = {
 //     getHeaders: () => Record<string, string>,
@@ -11,7 +11,7 @@ import type { CookieSerializeOptions } from 'cookie'
 // export type CallbackResponse = {
 //     getHeaders: () => Record<string, string>,
 //     setHeader: (key: string, value: string | string[]) => void,
-//     setCookie: (key: string, value: string, options: CookieSerializeOptions) => void,
+//     setCookie: (key: string, value: string, options: SerializeOptions) => void,
 // }
 
 export type GenericSync = (params: any) => Promise<any>
@@ -72,7 +72,7 @@ export type HelloResponse = {
     send: (data: string) => void;
     json: ( data : any ) => void;
     redirect: (url: string) => void;
-    setCookie: (name: string, value: string, options: CookieSerializeOptions) => void;
+    setCookie: (name: string, value: string, options: SerializeOptions) => void;
     setHeader: (name: string, value: string | string[]) => void;
     status: (statusCode: number) => { send: (data: any) => void };
     getHeaders: () => Record<string, string>

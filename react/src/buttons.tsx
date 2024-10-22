@@ -20,6 +20,7 @@ interface CommonButtonProps {
     promptLogin?: boolean,
     promptConsent?: boolean,
     loginHint?: string,
+    domainHint?: string,
     account?: 'personal' | 'managed'
 }
 
@@ -52,6 +53,7 @@ function BaseButton({
     promptLogin = false,
     promptConsent = false,
     loginHint,
+    domainHint,
     account
 } : BaseButtonProps) {
     //check if dev has added Hellō stylesheet to pages with Hellō buttons
@@ -90,6 +92,9 @@ function BaseButton({
 
     if (loginHint)
         loginRoute.searchParams.set("login_hint", loginHint)
+
+    if (domainHint)
+        loginRoute.searchParams.set("domain_hint", domainHint)
 
     if (account)
         loginRoute.searchParams.set("account", account)

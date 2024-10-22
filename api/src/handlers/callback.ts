@@ -1,7 +1,7 @@
 import { HelloRequest, HelloResponse } from '../types'
 import config from '../lib/config'
 import { getOidc, clearOidcCookie } from '../lib/oidc'
-import { fetchToken, parseToken, errorPage, ErrorPageParams, sameSiteCallback } from '@hellocoop/core'
+import { fetchToken, parseToken, errorPage, ErrorPageParams, sameSiteCallback } from '@hellocoop/helper-server'
 import { saveAuthCookie, clearAuthCookie } from '../lib/auth'
 import { Auth } from '@hellocoop/types'
 import { NotLoggedIn, VALID_IDENTITY_CLAIMS } from '@hellocoop/constants'
@@ -151,7 +151,9 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
         })
         if (config?.loginSync) {
             try {
+                if (config.logDebug) console.log('\n@hellocoop/api loginSync passing:\n',  JSON.stringify({ payload, target_uri },null,2))
                 const cb = await req.loginSyncWrapper( config.loginSync, { token, payload, target_uri} )
+                if (config.logDebug) console.log('\n@hellocoop/api loginSync returned:\n', JSON.stringify(cb,null,2))
                 target_uri = cb?.target_uri || target_uri
                 if (cb?.accessDenied) {
                     return sendErrorPage( {

@@ -1,74 +1,32 @@
 // creates an authorization request URL for Hellō
 
+import pkceChallenge from "./pkce"
 
-export const PRODUCTION_WALLET: string = 'https://wallet.hello.coop'
+import { 
+    VALID_SCOPES,   
+    VALID_RESPONSE_TYPE,
+    VALID_RESPONSE_MODE,
+    DEFAULT_PATH,
+    DEFAULT_SCOPE,
+    DEFAULT_RESPONSE_TYPE,
+    DEFAULT_RESPONSE_MODE,
+    PRODUCTION_WALLET,
+} from '@hellocoop/constants'
 
-export const DEFAULT_SCOPE: Scope[] = ['openid','name','email','picture']
-const DEFAULT_RESPONSE_TYPE: AuthResponseType = 'code'
-const DEFAULT_RESPONSE_MODE: AuthResponseMode = 'query'
-const DEFAULT_PATH: string = '/authorize?'
+export { 
+    VALID_SCOPES,   
+    VALID_RESPONSE_TYPE,
+    VALID_RESPONSE_MODE,
+    DEFAULT_PATH,
+    DEFAULT_SCOPE,
+    DEFAULT_RESPONSE_TYPE,
+    DEFAULT_RESPONSE_MODE,
+    PRODUCTION_WALLET,
+}
 
-import { pkce, uuidv4 } from './pkce';
+import type { Scope, AuthResponseMode, AuthResponseType, ProviderHint } from '@hellocoop/types'
 
-export const VALID_IDENTITY_CLAIMS = [
-    'name', 
-    'nickname',
-    'preferred_username',
-    'given_name',
-    'family_name',
-    'email', 
-    'phone', 
-    'picture',
-// Hellō extensions -- non-standard claims
-    'ethereum',
-    'discord',
-    'twitter',
-    'github',
-    'gitlab'
-] as const;
-
-
-export const VALID_SCOPES = [
-    ...VALID_IDENTITY_CLAIMS,
-    'openid', 
-// Hellō extensions -- non-standard scopes
-    'profile_update',
-] as const;
-export const VALID_RESPONSE_TYPE = ['id_token', 'code'] as const;    // Default: 'code'
-export const VALID_RESPONSE_MODE = ['fragment', 'query', 'form_post'] // Default: 'query'
-export const VALID_PROVIDER_HINT = [
-    // 'google' and 'email' are always in default
-    // 'apple' added if on Apple OS
-    // 'microsoft' added if on Microsoft OS
-    'apple', 
-    'discord',
-    'facebook',
-    'github',
-    'gitlab',
-    'google',
-    'twitch',
-    'twitter',
-    'tumblr',
-    'mastodon',
-    'microsoft',
-    'line',
-    'wordpress',
-    'yahoo',
-    'phone',
-    'ethereum',
-    'qrcode',
-    // the following will remove provider from recommended list
-    'apple--',
-    'microsoft--',
-    'google--',
-    'email--',
-    'passkey--',
-] as const;
-
-export type Scope = typeof VALID_SCOPES[number];
-export type AuthResponseType = typeof VALID_RESPONSE_TYPE[number]; 
-export type AuthResponseMode = typeof VALID_RESPONSE_MODE[number]; 
-export type ProviderHint = typeof VALID_PROVIDER_HINT[number]; 
+export { Scope, AuthResponseMode, AuthResponseType, ProviderHint } 
 
 export function isValidScope( scope: string ): boolean {
     return VALID_SCOPES.includes(scope as Scope)
@@ -88,6 +46,7 @@ export interface ICreateAuthRequest {
     nonce?: string;
     state?: string;
     login_hint?: string
+    domain_hint?: string
     provider_hint?: ProviderHint[];
 }
 
@@ -125,7 +84,7 @@ export async function createAuthRequest(
         if (!VALID_RESPONSE_MODE.includes(config.response_mode))
             throw new Error('Invalid response_mode.');
     }
-    const nonce = config.nonce || uuidv4()
+    const nonce = config.nonce || crypto.randomUUID()
     let code_verifier: string = '' 
     const scopeArray = config.scope || DEFAULT_SCOPE
     const scope = scopeArray.join(' ')
@@ -138,7 +97,7 @@ export async function createAuthRequest(
         nonce,
     }
     if (params.response_type === 'code') {
-        const pkceMaterial  = await pkce()
+        const pkceMaterial  = await pkceChallenge()
         code_verifier = pkceMaterial.code_verifier
         params.code_challenge = pkceMaterial.code_challenge
         params.code_challenge_method = 'S256'

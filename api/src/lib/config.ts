@@ -1,6 +1,6 @@
 import { Config, GenericSync } from '../types'
 import { Scope, ProviderHint } from '@hellocoop/types'
-import { checkSecret } from '@hellocoop/core'
+import { checkSecret } from '@hellocoop/helper-server'
 
 export interface IConfig {
     production: boolean,
@@ -32,7 +32,8 @@ export interface IConfig {
     // for internal testing
     helloDomain: string,
     helloWallet: string,
-    secret?: string
+    secret?: string,
+    logDebug?: boolean,
 }
 
 const HELLO_DOMAIN = process.env.HELLO_DOMAIN as string || 'hello.coop'
@@ -118,6 +119,9 @@ export const configure = function ( config: Config ) {
     else
         _configuration.provider_hint = config.provider_hint
 
+    if (process.env.HELLO_DEBUG)
+        _configuration.logDebug = true
+
     _configuration.sameSiteStrict = !!process.env.HELLO_SAME_SITE_STRICT || config.sameSiteStrict
     _configuration.cookieToken = !!process.env.HELLO_COOKIE_TOKEN || config.cookieToken
     
@@ -146,7 +150,7 @@ export const configure = function ( config: Config ) {
             resolve(_configuration);
       }
     if (config.logConfig)
-        console.log({config:_configuration})
+        console.log('\n@hellocoop/api config:\n',JSON.stringify({config:_configuration},null,2))
 
 }
 

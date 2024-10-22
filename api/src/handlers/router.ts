@@ -4,32 +4,23 @@ import config from '../lib/config'
 import handleCallback from './callback'
 import handleLogin from './login'
 import handleLogout from './logout'
+import handleInvite from './invite'
 import { handleAuth, handleCookieTokenVerify } from './auth'
 import handleWildcardConsole from './wildcard'
-import { NotLoggedIn } from '@hellocoop/constants'
-
-// const  translateHandlerErrors = (handler: Router): Router =>
-//     async (req: HelloRequest, res: HelloResponse, next: NextFunction) => {
-//         try {
-//             await handler(req, res, next)
-//             next()
-//         } catch (error: any) {
-//             console.error(error)
-//             res.status(error?.status || 500).send(error.message)
-//         }
-//     }     
-
-// // console.log('config\n',JSON.stringify(config,null,4))   
-
-// const router = translateHandlerErrors((req: HelloRequest, res: HelloResponse, next: NextFunction ) => {
-//         const { query } = req
-
-// // console.log({query})     
+import initiateLogin from './initiateLogin'
+import { NotLoggedIn } from '@hellocoop/constants'    
 
 const router = (req: HelloRequest, res: HelloResponse ) => {
     const { query, method } = req
 
-    if (!query || Object.keys(query).length === 0) {
+    const params = Object.keys(query).length 
+        ? query
+        : Object.keys(req.body).length ? req.body : null
+
+    if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, params }, null, 2))
+
+    if (!params) {
+        // Q: repurpose as returning configuration if content-type is application/json
         console.error(new Error('No query parameters'))
         return res.redirect( config.routes.loggedOut || '/')
     }
@@ -37,6 +28,12 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         if (query.op === 'verifyCookieToken') {
             return handleCookieTokenVerify(req, res)
         }
+        if (params.iss) {
+            return initiateLogin(req, res, params)
+        }
+
+        // FUTURE - add support for POST of invite event and provisioning events
+
         return res.status(400).send('Invalid op parameter')
     }
     if (method !== 'GET')
@@ -54,6 +51,9 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         }
         if (query.op === 'logout') {     // logout user
             return handleLogout(req, res)
+        }
+        if (query.op === 'invite') {    // start invite flow, redirect to Hellō
+            return handleInvite(req, res)
         }
         res.status(500)
         res.send('unknown op parameter:\n'+JSON.stringify(query,null,4))        
@@ -73,10 +73,10 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         return handleWildcardConsole(req, res)
     }
 
-    if (query.iss) {        // IdP (Hellō) initiated login
-        // https://openid.net/specs/openid-connect-core-1_0.html#ThirdPartyInitiatedLogin
-        throw new Error('unimplemented')
+    if (params.iss) {        // IdP (Hellō) initiated login
+        return initiateLogin(req, res, params)
     }
+
 
     res.status(500)
     res.send('unknown query:\n'+JSON.stringify(query,null,4))

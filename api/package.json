@@ -1,12 +1,12 @@
 {
-  "name": "@hellocoop/router",
-  "version": "1.14.0",
-  "description": "Generic router for Hellō https://hello.dev",
+  "name": "@hellocoop/api",
+  "version": "2.0.0",
+  "description": "Client API for Hellō https://hello.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hellocoop/packages.git"
   },
-  "homepage": "https://www.hello.dev/docs/sdks/router",
+  "homepage": "https://www.hello.dev/docs/apis/web-client/",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@hellocoop/types": "~1.1.6",
     "@tsconfig/node18": "^18.2.2",
-    "@types/cookie": "^0.5.2",
+    "@types/cookie": "^0.6.0",
     "rimraf": "^5.0.1",
     "typescript": "^5.2.2"
   },
@@ -47,8 +47,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/core": "~1.4.8",
     "@hellocoop/constants": "~1.1.6",
-    "cookie": "^0.5.0"
+    "@hellocoop/helper-server": "~2.0.0",
+    "cookie": "^1.0.1"
   }
 }

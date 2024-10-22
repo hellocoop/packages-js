@@ -46,11 +46,11 @@ A CLI and nodejs package to create or retrieve a Hellō `client_id`.
 
 [Quickstart CLI and API Documentation](https://www.hello.dev/docs/sdks/quickstart)
 
-## [@hellocoop/core](./core/)
+## [@hellocoop/helper-server](./helper-server/)
 
 A set of Node.js helper functions for the Hellō OpenID Connect Provider.
 
-## [@hellocoop/client](./client/)
+## [@hellocoop/helper-browser](./helper-browser/)
 
 A set of client side helper functions for the Hellō OpenID Connect Provider.
 

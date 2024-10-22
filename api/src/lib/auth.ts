@@ -1,4 +1,4 @@
-import { decryptObj, encryptObj } from '@hellocoop/core'
+import { decryptObj, encryptObj } from '@hellocoop/helper-server'
 import { Auth } from '@hellocoop/types'
 import { NotLoggedIn } from '@hellocoop/constants'
 
@@ -6,7 +6,7 @@ import { HelloRequest, HelloResponse } from '../types'
 
 import config from './config'
 
-import { parse, CookieSerializeOptions } from 'cookie'
+import { parse, SerializeOptions } from 'cookie'
 import { clearOidcCookie } from './oidc'
 
 const { cookies: {authName, oidcName} } = config 
@@ -42,7 +42,7 @@ export const clearAuthCookie = ( res: HelloResponse) =>  {
     res.setCookie( name, value, options )
 }
 
-export const clearAuthCookieParams = (): { name: string, value: string, options: CookieSerializeOptions } => {
+export const clearAuthCookieParams = (): { name: string, value: string, options: SerializeOptions } => {
     return {
         name: authName, 
         value: '', 
