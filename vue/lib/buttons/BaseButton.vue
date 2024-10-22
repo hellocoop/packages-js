@@ -39,6 +39,7 @@
     promptLogin?: boolean,
     promptConsent?: boolean,
     loginHint?: string,
+    domainHint?: string,
     account?: 'personal' | 'managed' | undefined
   }
   
@@ -52,6 +53,7 @@
     promptLogin: false,
     promptConsent: false,
     loginHint: "",
+    domainHint: "",
     account: undefined
   })
 
@@ -75,6 +77,9 @@
 
   if (props.loginHint)
     loginRoute.searchParams.set("login_hint", props.loginHint)
+  
+  if (props.domainHint)
+    loginRoute.searchParams.set("login_hint", props.domainHint)
 
   if (props.account)
     loginRoute.searchParams.set("account", props.account)
