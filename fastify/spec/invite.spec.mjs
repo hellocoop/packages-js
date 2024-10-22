@@ -121,7 +121,6 @@ describe('login', () => {
     it('invite request has correct params', async () => {
         const inviteReqUrl = new URL(inviteRedirect) 
         const inviteReqUrlParams = new URLSearchParams(inviteReqUrl.search)
-        console.log(inviteReqUrlParams)
         const app_name = inviteReqUrlParams.get('app_name')
         const prompt = inviteReqUrlParams.get('prompt')
         expect(prompt).to.eql(`${loggedIn.name} has invited you to join ${appName}`)
@@ -130,6 +129,6 @@ describe('login', () => {
         expect(inviter).to.eql(loggedIn.sub)
         const client_id = inviteReqUrlParams.get('client_id')
         expect(client_id).to.eql(config.client_id)
-        //tbd - other assertions?
+        //tbd - other assertions
     })  
 })
