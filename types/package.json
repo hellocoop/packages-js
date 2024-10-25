@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/types",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Types for Hellō packages",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "node": ">=18"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "@hellocoop/constants": "~1.1.6"
+    "@hellocoop/constants": "^1.1.7",
+    "rimraf": "^5.0.1"
   }
 }

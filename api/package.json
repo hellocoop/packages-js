@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/api",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Client API for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -37,7 +37,7 @@
     "build:src": "tsc"
   },
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
+    "@hellocoop/types": "^1.1.7",
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
     "rimraf": "^5.0.1",
@@ -47,8 +47,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6",
-    "@hellocoop/helper-server": "~2.0.0",
+    "@hellocoop/constants": "^1.1.7",
+    "@hellocoop/helper-server": "^2.0.1",
     "cookie": "^1.0.1"
   }
 }

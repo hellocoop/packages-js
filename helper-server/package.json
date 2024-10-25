@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/helper-server",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Hellō helper functions for server",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -37,7 +37,7 @@
   },
   "homepage": "https://www.hello.dev/docs/sdks/core-client",
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
+    "@hellocoop/types": "^1.1.7",
     "@types/node": "*",
     "typescript": "^5.2.2"
   },
@@ -45,6 +45,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6"
+    "@hellocoop/constants": "^1.1.7"
   }
 }
