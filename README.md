@@ -65,3 +65,8 @@ A set of client side helper functions for the Hellō OpenID Connect Provider.
 setup with 
 
 `npx lerna init --independent`
+
+`lerna publish from-package` will only publish packages that have a different version then what is published
+
+`lerna publish` will prompt to update the version of the package as well
+
