@@ -14,7 +14,7 @@ export const VALID_IDENTITY_STRING_CLAIMS = [
 ] as const;
 
 export const VALID_IDENTITY_ACCOUNT_CLAIMS = [
-  'discord', 'twitter', 'github', 'gitlab', 'org'
+  'discord', 'twitter', 'github', 'gitlab'
 ] as const;
 
 export const ORG_CLAIM = 'org' as const;
