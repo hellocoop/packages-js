@@ -12,7 +12,9 @@
     "identifier",
     "nextjs",
     "quickstart",
-    "react"
+    "react",
+    "vue",
+    "svelte"
   ],
   "repository": {
     "type": "git",
