@@ -61,8 +61,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/api": "~2.0.0",
-    "@hellocoop/helper-server": "~2.0.0",
+    "@hellocoop/api": "2.0.0",
+    "@hellocoop/helper-server": "2.0.0",
     "@hellocoop/react": "^3.0.2",
     "cookie": "^1.0.1",
     "cors": "^2.8.5",
