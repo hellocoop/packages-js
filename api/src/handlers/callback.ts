@@ -148,6 +148,9 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
             if (value)
                 (auth as any)[claim] = value
         })
+        if (auth.isLoggedIn && payload.org)
+            auth.org = payload.org 
+                
         if (config?.loginSync) {
             try {
                 if (config.logDebug) console.log('\n@hellocoop/api loginSync passing:\n',  JSON.stringify({ payload, target_uri },null,2))

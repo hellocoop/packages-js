@@ -14,12 +14,15 @@ export const VALID_IDENTITY_STRING_CLAIMS = [
 ] as const;
 
 export const VALID_IDENTITY_ACCOUNT_CLAIMS = [
-  'discord', 'twitter', 'github', 'gitlab'
+  'discord', 'twitter', 'github', 'gitlab', 'org'
 ] as const;
+
+export const ORG_CLAIM = 'org' as const;
 
 export const VALID_IDENTITY_CLAIMS = [
   ...VALID_IDENTITY_STRING_CLAIMS, 
   ...VALID_IDENTITY_ACCOUNT_CLAIMS, 
+  'org',
   'email_verified', 'phone_verified'
 ] as const;
 
@@ -62,7 +65,13 @@ type OptionalAccountClaims = {
   };
 };
 
-export type Claims = OptionalStringClaims & OptionalAccountClaims & { sub: string };
+type OptionalOrgClaim = {
+  org?: {
+    id: string;
+    domain: string;
+  }
+}
+export type Claims = OptionalStringClaims & OptionalAccountClaims & OptionalOrgClaim & { sub: string };
 
 type AuthCookie = {
     sub: string;
@@ -78,7 +87,7 @@ export type Auth = {
     cookieToken?: string;
 } & AuthCookie);
 
-export type TokenPayload = OptionalStringClaims & OptionalAccountClaims & {
+export type TokenPayload = OptionalStringClaims & OptionalAccountClaims & OptionalOrgClaim & {
     iss: string;
     aud: string;
     nonce: string;
