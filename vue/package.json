@@ -1,0 +1,53 @@
+{
+	"name": "@hellocoop/vue",
+	"version": "2.1.0",
+	"description": "Svelte SDK for Hellō https://hello.dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/hellocoop/packages.git"
+	},
+	"homepage": "https://www.hello.dev/docs/sdks/vue",
+	"keywords": [
+		"vuejs",
+		"vue",
+		"vue.js",
+		"hello",
+		"openid",
+		"oidc",
+		"sso"
+	],
+	"author": {
+		"name": "Hello Identity Co-op",
+		"email": "contact@hello.coop",
+		"url": "https://hello.coop"
+	},
+	"main": "./dist/index.umd.js",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.umd.js"
+		}
+	},
+	"unpkg": "dist/index.umd.min.js",
+	"types": "./dist/index.d.ts",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/hellocoop/packages/issues"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "vite build"
+	},
+	"dependencies": {
+		"@vitejs/plugin-vue": "^5.1.2",
+		"swrv": "^1.0.4",
+		"vue": "^3.0.5"
+	},
+	"devDependencies": {
+		"typescript": "^5.2.2",
+		"vite-plugin-dts": "^3.6.3"
+	}
+}

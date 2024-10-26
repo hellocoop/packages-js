@@ -11,7 +11,6 @@ export const routeConfig: RouteConfig = {
     logout: '/api/hellocoop?op=logout',
 }
 
-
 const HelloContext = createContext(undefined)
 
 const HelloProvider = ({ children, auth, config} : any) => { //TBD any
