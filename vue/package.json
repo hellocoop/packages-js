@@ -39,7 +39,8 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "vite build"
+		"build": "vite build",
+		"prebuild": "rimraf dist node_modules"
 	},
 	"dependencies": {
 		"@vitejs/plugin-vue": "^5.1.2",
