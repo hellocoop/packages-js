@@ -56,5 +56,6 @@
     "@hellocoop/api": "~2.0.0",
     "dotenv": "^16.3.1",
     "fastify-plugin": "^4.5.1"
-  }
+  },
+  "gitHead": "018e57826706471620d6ac09e66121e53877c87e"
 }

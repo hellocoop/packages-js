@@ -57,11 +57,12 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@hellocoop/api": "~2.0.0",
     "@hellocoop/definitions": "1.0.0",
     "@hellocoop/helper-server": "~2.0.0",
-    "@hellocoop/api": "~2.0.0",
     "cookie": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1"
-  }
+  },
+  "gitHead": "018e57826706471620d6ac09e66121e53877c87e"
 }
