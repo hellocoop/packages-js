@@ -1,5 +1,5 @@
 {
-  "name": "@hellocoop/constants",
+  "name": "@hellocoop/definitions",
   "version": "1.1.6",
   "description": "Constants for Hellō https://hello.dev",
   "repository": {
@@ -32,13 +32,14 @@
   },
   "scripts": {
     "watch": "tsc --watch --declaration",
-    "build": "rimraf dist/ && tsc --declaration"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
+    "@hellocoop/definitions": "1.0.0",
     "rimraf": "^5.0.1"
   }
 }

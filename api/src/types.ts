@@ -1,6 +1,6 @@
 // Helle router types
 
-import type { Claims, Scope, ProviderHint, Auth } from '@hellocoop/types'
+import type { Claims, Scope, ProviderHint, Auth } from '@hellocoop/definitions'
 import type { SerializeOptions } from 'cookie'
 
 // export type CallbackRequest = {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { Auth } from '@hellocoop/types'
+import { Auth } from '@hellocoop/definitions'
 import { configuration } from '@hellocoop/api'
 
 

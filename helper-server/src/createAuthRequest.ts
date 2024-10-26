@@ -6,9 +6,6 @@ import {
     AuthResponseMode,
     AuthResponseType,
     ProviderHint,
-} from '@hellocoop/types'
-
-import { 
     VALID_SCOPES,   
     VALID_RESPONSE_TYPE,
     VALID_RESPONSE_MODE,
@@ -17,7 +14,7 @@ import {
     DEFAULT_RESPONSE_TYPE,
     DEFAULT_RESPONSE_MODE,
     PRODUCTION_WALLET,
-} from '@hellocoop/constants';
+} from '@hellocoop/definitions';
 
 import { URLSearchParams } from 'url'
 

@@ -36,9 +36,8 @@
   },
   "scripts": {
     "watch": "tsc --watch --declaration",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
   },
   "peerDependencies": {
     "next": ">=10",
@@ -46,7 +45,7 @@
     "react-dom": ">=17"
   },
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
+    "@hellocoop/definitions": "1.0.0",
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
     "@types/cors": "^2.8.14",

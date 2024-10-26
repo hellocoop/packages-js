@@ -36,16 +36,14 @@
   "scripts": {
     "test": "npm run build && npx playwright test",
     "watch": "tsc --watch --declaration",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
   },
   "peerDependencies": {
     "express": "^4"
   },
   "devDependencies": {
     "@hellocoop/mockin": "^1.0.4",
-    "@hellocoop/types": "~1.1.6",
     "@playwright/test": "^1.42.1",
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
@@ -59,7 +57,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6",
+    "@hellocoop/definitions": "1.0.0",
     "@hellocoop/helper-server": "~2.0.0",
     "@hellocoop/api": "~2.0.0",
     "cookie": "^1.0.1",

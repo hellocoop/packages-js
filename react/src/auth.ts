@@ -1,6 +1,6 @@
 
 import useSWR from 'swr'
-import type { Auth } from '@hellocoop/types'
+import type { Auth } from '@hellocoop/definitions'
 
 import { useHelloProviderContext, routeConfig } from "./provider"
 

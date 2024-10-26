@@ -1,15 +1,19 @@
 {
-  "name": "@hellocoop/types",
-  "version": "1.1.6",
-  "description": "Types for Hellō packages",
+  "name": "@hellocoop/definitions",
+  "version": "1.0.0",
+  "description": "Constants and Types for packages-js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hellocoop/packages.git"
   },
   "homepage": "https://www.hello.dev/docs/sdks/types",
-  "types": "./dist/types.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
   "files": [
-    "./dist/types.d.ts"
+    "./dist/index.d.ts",
+    "./dist/index.js"
   ],
   "keywords": [
     "hello",
@@ -28,13 +32,13 @@
   },
   "scripts": {
     "watch": "tsc --watch --declaration",
-    "build": "rimraf dist/ && tsc --declaration"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "@hellocoop/constants": "~1.1.6"
+    "rimraf": "^5.0.1"
   }
 }

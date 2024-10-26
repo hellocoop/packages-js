@@ -10,7 +10,7 @@
     ],
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist/",
+        "prebuild": "rimraf dist node_modules",
         "build": "esbuild src/index.ts --bundle --outdir=dist --format=esm && tsc --emitDeclarationOnly --outDir dist",
         "test": "node --test"
     },
@@ -37,12 +37,11 @@
     },
     "homepage": "https://www.hello.dev/docs/sdks/core-client",
     "devDependencies": {
-        "@hellocoop/types": "~1.1.6",
         "esbuild": "^0.19.5",
         "rimraf": "^5.0.5",
         "typescript": "^5.2.2"
     },
     "dependencies": {
-        "@hellocoop/constants": "~1.1.6"
+        "@hellocoop/definitions": "1.0.0"
     }
 }

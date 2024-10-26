@@ -2,7 +2,7 @@
 // parseToken - parses an ID token and returns the header and payload
 //
 
-import type { TokenPayload, TokenHeader } from '@hellocoop/types'
+import type { TokenPayload, TokenHeader } from '@hellocoop/definitions'
 
 
 // https://stackoverflow.com/a/38552302/9747630

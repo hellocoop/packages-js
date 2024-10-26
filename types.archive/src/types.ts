@@ -7,7 +7,7 @@ import {
     VALID_RESPONSE_TYPE,
     VALID_RESPONSE_MODE,
     VALID_PROVIDER_HINT,
-} from '@hellocoop/constants'
+} from '@hellocoop/definitions'
 
 
 export type Scope = typeof VALID_SCOPES[number];

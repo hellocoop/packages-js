@@ -32,12 +32,10 @@
   },
   "scripts": {
     "watch": "tsc --watch",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc"
   },
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
     "rimraf": "^5.0.1",
@@ -47,7 +45,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6",
+    "@hellocoop/definitions": "1.0.0",
     "@hellocoop/helper-server": "~2.0.0",
     "cookie": "^1.0.1"
   }

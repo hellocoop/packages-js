@@ -8,7 +8,7 @@ import handleInvite from './invite'
 import { handleAuth, handleCookieTokenVerify } from './auth'
 import handleWildcardConsole from './wildcard'
 import initiateLogin from './initiateLogin'
-import { NotLoggedIn } from '@hellocoop/constants'    
+import { NotLoggedIn } from '@hellocoop/definitions'    
 
 const router = (req: HelloRequest, res: HelloResponse ) => {
     const { query, method } = req

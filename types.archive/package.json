@@ -1,0 +1,40 @@
+{
+  "name": "@hellocoop/definitions",
+  "version": "1.1.6",
+  "description": "Types for Hellō packages",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hellocoop/packages.git"
+  },
+  "homepage": "https://www.hello.dev/docs/sdks/types",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "./dist/types.d.ts"
+  ],
+  "keywords": [
+    "hello",
+    "openid",
+    "oidc",
+    "sso"
+  ],
+  "author": {
+    "name": "Hello Identity Co-op",
+    "email": "contact@hello.coop",
+    "url": "https://hello.coop"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hellocoop/packages/issues"
+  },
+  "scripts": {
+    "watch": "tsc --watch --declaration",
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+  }
+}

@@ -3,7 +3,7 @@
 import { serialize } from 'cookie'
 import { NextRequest, NextResponse } from 'next/server';
 
-import { Auth } from '@hellocoop/types'
+import { Auth } from '@hellocoop/definitions'
 
 import { 
     router,

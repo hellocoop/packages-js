@@ -18,6 +18,7 @@
   },
   "types": "./dist/identifier.d.ts",
   "scripts": {
+    "prebuild": "rimraf dist node_modules",
     "build": "node src/build.js",
     "test": "mocha --require esm test/**/*"
   },

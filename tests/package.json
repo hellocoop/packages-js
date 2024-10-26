@@ -7,5 +7,6 @@
     "test:express": "docker compose -f docker-compose.yml -f docker-compose.express.yml up --attach playwright --exit-code-from playwright",
     "test:fastify": "docker compose -f docker-compose.yml -f docker-compose.fastify.yml up --attach playwright --exit-code-from playwright",
     "test": "run-s test:*"
-  }
+  },
+  "private": true
 }

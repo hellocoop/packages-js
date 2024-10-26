@@ -4,7 +4,7 @@
   "description": "Monorepo JS package management",
   "workspaces": [
     "api",
-    "constants",
+    "definitions",
     "express",
     "fastify",
     "helper-browser",
@@ -12,24 +12,19 @@
     "identifier",
     "nextjs",
     "quickstart",
-    "react",
-    "types"
+    "react"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hellocoop/packages.git"
   },
   "scripts": {
-    "clean": "rimraf helper-browser/node_modules helper-servr/node_modules express/node_modules nextjs/node_modules quickstart/node_modules react/node_modules types/node_modules constants/node_modules",
-    "build": "npm run clean && npm run build --workspaces",
-    "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next",
-    "watch:client": "npm run watch --workspace client",
-    "watch:core": "npm run watch --workspace core",
-    "watch:express": "npm run watch --workspace express",
-    "watch:nextjs": "npm run watch --workspace nextjs",
-    "watch:react": "npm run watch --workspace react",
-    "watch:types": "npm run watch --workspace types",
-    "watch": "npm-run-all -p watch:*"
+    "clean": "npm run prebuild --workspaces",
+    "build": "lerna run build --sort",
+    "publish": "lerna publish from-package",
+    "publish:dry": "lerna publish from-package --no-push --no-git-tag-version",
+    "---": "-following may be out of date--",
+    "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next"
   },
   "author": {
     "name": "Hello Identity Co-op",
@@ -41,15 +36,14 @@
   },
   "homepage": "https://github.com/hellocoop/packages#readme",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "chai": "^5.1.1",
     "esm": "^3.2.25",
     "mocha": "^10.6.0",
     "npm-run-all": "^4.1.5",
-    "rimraf": "^5.0.5"
-  },
-  "devDependencies": {
+    "rimraf": "^5.0.5",
     "lerna": "^8.1.8",
     "wait-on": "^8.0.1"
-  }
+  },
+  "private": true
 }

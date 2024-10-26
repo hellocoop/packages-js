@@ -1,6 +1,6 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { Auth } from '@hellocoop/types'
+import { Auth } from '@hellocoop/definitions'
 import { configuration } from '@hellocoop/api'
 
 declare module 'fastify' {

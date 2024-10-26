@@ -10,7 +10,7 @@ import type {
     NextApiResponse 
 } from 'next'
 
-import { Auth } from '@hellocoop/types'
+import { Auth } from '@hellocoop/definitions'
 
 import { 
     router,

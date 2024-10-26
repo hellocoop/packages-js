@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "watch": "tsc --watch --declaration",
+    "prebuild": "rimraf dist node_modules",
     "build": "tsc --declaration",
     "test": "node --test"
   },
@@ -37,7 +38,6 @@
   },
   "homepage": "https://www.hello.dev/docs/sdks/core-client",
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
     "@types/node": "*",
     "typescript": "^5.2.2"
   },
@@ -45,6 +45,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6"
+    "@hellocoop/definitions": "1.0.0"
   }
 }

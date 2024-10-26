@@ -3,7 +3,7 @@ export type {
     LoginSyncResponse, 
     LogoutSyncResponse,
 } from '@hellocoop/api'
-export type { Auth } from '@hellocoop/types'
+export type { Auth } from '@hellocoop/definitions'
 
 // pageAuth is synonym for pagesAuth
 export { getAuth, getServerSideProps, pageAuth, pagesAuth } from './pages'
