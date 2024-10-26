@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/api",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Client API for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -45,8 +45,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/definitions": "^1.0.4",
-    "@hellocoop/helper-server": "^2.0.4",
+    "@hellocoop/definitions": "^1.0.5",
+    "@hellocoop/helper-server": "^2.0.5",
     "cookie": "^1.0.1"
   },
   "gitHead": "b418b4e249a7fe7025d467688e52132848b465a2"
