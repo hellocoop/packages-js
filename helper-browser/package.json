@@ -43,5 +43,6 @@
     },
     "dependencies": {
         "@hellocoop/definitions": "^1.0.4"
-    }
+    },
+    "gitHead": "b418b4e249a7fe7025d467688e52132848b465a2"
 }
