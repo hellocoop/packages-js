@@ -13,8 +13,8 @@
     "nextjs",
     "quickstart",
     "react",
-    "vue",
-    "svelte"
+    "svelte",
+    "vue"
   ],
   "repository": {
     "type": "git",
