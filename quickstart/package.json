@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/quickstart",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "description": "A CLI and module to start the Hello Quickstart web app and return a client_id",
   "main": "index.js",
   "bin": {
