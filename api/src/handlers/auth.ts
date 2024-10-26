@@ -2,7 +2,7 @@ import { HelloRequest, HelloResponse } from '../types'
 
 import { getAuthfromCookies, saveAuthCookie, clearAuthCookie } from '../lib/auth'
 
-import { Auth, Claims } from '@hellocoop/types'
+import { Auth, Claims } from '@hellocoop/definitions'
 import { decryptObj } from '@hellocoop/helper-server'
 import config from '../lib//config'
 

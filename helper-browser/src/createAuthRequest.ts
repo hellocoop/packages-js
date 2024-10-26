@@ -11,7 +11,7 @@ import {
     DEFAULT_RESPONSE_TYPE,
     DEFAULT_RESPONSE_MODE,
     PRODUCTION_WALLET,
-} from '@hellocoop/constants'
+} from '@hellocoop/definitions'
 
 export { 
     VALID_SCOPES,   
@@ -24,7 +24,7 @@ export {
     PRODUCTION_WALLET,
 }
 
-import type { Scope, AuthResponseMode, AuthResponseType, ProviderHint } from '@hellocoop/types'
+import type { Scope, AuthResponseMode, AuthResponseType, ProviderHint } from '@hellocoop/definitions'
 
 export { Scope, AuthResponseMode, AuthResponseType, ProviderHint } 
 

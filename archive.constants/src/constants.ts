@@ -1,4 +1,4 @@
-import { Auth, AuthResponseMode, AuthResponseType, Scope } from "@hellocoop/types";
+import { Auth, AuthResponseMode, AuthResponseType, Scope } from "@hellocoop/definitions";
 
 export const PRODUCTION_WALLET: string = 'https://wallet.hello.coop'
 

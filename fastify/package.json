@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/fastify",
-  "version": "1.13.0",
+  "version": "1.13.3",
   "description": "Fastify SDK for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -35,9 +35,8 @@
   },
   "scripts": {
     "watch": "tsc --watch --declaration",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration",
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration",
     "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
     "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'"
   },
@@ -54,8 +53,9 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/api": "~2.0.0",
+    "@hellocoop/api": "^2.0.3",
     "dotenv": "^16.3.1",
     "fastify-plugin": "^4.5.1"
-  }
+  },
+  "gitHead": "018e57826706471620d6ac09e66121e53877c87e"
 }

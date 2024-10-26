@@ -2,7 +2,7 @@
 // parseToken - parses an ID token and returns the header and payload
 //
 
-import { TokenHeader, TokenPayload } from '@hellocoop/types'
+import { TokenHeader, TokenPayload } from '@hellocoop/definitions'
 
 export function parseToken( token: string): { header: TokenHeader; payload: TokenPayload} {
 

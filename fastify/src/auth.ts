@@ -13,7 +13,7 @@ import {
 
 import { serialize } from 'cookie'
 
-import { Auth } from '@hellocoop/types'
+import { Auth } from '@hellocoop/definitions'
 import { 
     router,
     HelloResponse, 

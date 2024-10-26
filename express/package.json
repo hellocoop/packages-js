@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/express",
-  "version": "1.15.0",
+  "version": "1.15.3",
   "description": "Express SDK for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -36,16 +36,14 @@
   "scripts": {
     "test": "npm run build && npx playwright test",
     "watch": "tsc --watch --declaration",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration"
+    "prebuild": "rimraf dist node_modules",
+    "build": "tsc --declaration"
   },
   "peerDependencies": {
     "express": "^4"
   },
   "devDependencies": {
     "@hellocoop/mockin": "^1.0.4",
-    "@hellocoop/types": "~1.1.6",
     "@playwright/test": "^1.42.1",
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
@@ -59,11 +57,12 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6",
-    "@hellocoop/helper-server": "~2.0.0",
-    "@hellocoop/api": "~2.0.0",
+    "@hellocoop/api": "^2.0.3",
+    "@hellocoop/definitions": "^1.0.3",
+    "@hellocoop/helper-server": "^2.0.3",
     "cookie": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1"
-  }
+  },
+  "gitHead": "018e57826706471620d6ac09e66121e53877c87e"
 }

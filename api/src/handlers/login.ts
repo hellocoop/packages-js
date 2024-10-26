@@ -1,6 +1,6 @@
 import { HelloRequest, HelloResponse } from '../types'
 import { createAuthRequest, redirectURIBounce, ICreateAuthRequest } from '@hellocoop/helper-server'
-import { Scope, ProviderHint } from '@hellocoop/types'
+import { Scope, ProviderHint } from '@hellocoop/definitions'
 
 import config from '../lib/config'
 import { saveOidc } from '../lib/oidc'

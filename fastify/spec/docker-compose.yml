@@ -44,8 +44,8 @@ services:
         source: ../../helper-server
         target: /usr/src/svr/helper-server
       - type: bind 
-        source: ../../constants
-        target: /usr/src/svr/constants
+        source: ../../definitions
+        target: /usr/src/svr/definitions
     ports:
       - "9229:9229"
     command: ["npm", "run", "spec"] 

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction, text } from 'express'
 import { serialize } from 'cookie'
-import { Auth, Claims } from '@hellocoop/types'
+import { Auth, Claims } from '@hellocoop/definitions'
 import { 
     router,
     HelloResponse, 

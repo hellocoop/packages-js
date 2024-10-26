@@ -1,5 +1,5 @@
 import { Config, GenericSync } from '../types'
-import { Scope, ProviderHint } from '@hellocoop/types'
+import { Scope, ProviderHint } from '@hellocoop/definitions'
 import { checkSecret } from '@hellocoop/helper-server'
 
 export interface IConfig {

@@ -55,3 +55,18 @@ A set of Node.js helper functions for the Hellō OpenID Connect Provider.
 A set of client side helper functions for the Hellō OpenID Connect Provider.
 
 [Hellō core / client SDK documentation](https://www.hello.dev/docs/sdks/quickstart/core-client)
+
+
+# Publishing New Versions
+
+- make updates and commit changes to repo
+- `npx lerna version` will then see which workspaces have changes and prompt to update the version, and all dependent versions
+
+setup with 
+
+`npx lerna init --independent`
+
+`lerna publish from-package` will only publish packages that have a different version then what is published
+
+`lerna publish` will prompt to update the version of the package as well
+

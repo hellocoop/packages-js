@@ -1,9 +1,8 @@
 
-import { Auth } from '@hellocoop/types'
+import { Auth, NotLoggedIn } from '@hellocoop/definitions'
 import { configuration } from '@hellocoop/api'
 import { cookies } from 'next/headers'
 import { decryptObj } from '@hellocoop/helper-server'
-import { NotLoggedIn} from '@hellocoop/constants'
 
 // TODO cache decryption
 // import { unstable_cache } from 'next/cache';

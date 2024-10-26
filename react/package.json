@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/react",
-  "version": "3.1.0",
+  "version": "3.1.3",
   "description": "React SDK for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -32,16 +32,14 @@
   },
   "scripts": {
     "watch": "tsc --watch --declaration",
-    "build": "npm run build:clean && npm run build:src",
-    "build:clean": "rimraf dist/",
-    "build:src": "tsc --declaration"
+    "prebuild": "rimraf dist/",
+    "build": "tsc --declaration"
   },
   "peerDependencies": {
     "react": ">=17",
     "react-dom": ">=17"
   },
   "devDependencies": {
-    "@hellocoop/types": "~1.1.6",
     "@types/react": "^18.2.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -52,7 +50,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/constants": "~1.1.6",
+    "@hellocoop/definitions": "^1.0.3",
     "swr": "^2.2.2"
   }
 }

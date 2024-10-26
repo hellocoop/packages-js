@@ -1,19 +1,19 @@
 {
-  "name": "@hellocoop/api",
-  "version": "2.0.3",
-  "description": "Client API for Hellō https://hello.dev",
+  "name": "@hellocoop/definitions",
+  "version": "1.0.3",
+  "description": "Constants and Types for packages-js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hellocoop/packages.git"
   },
-  "homepage": "https://www.hello.dev/docs/apis/web-client/",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "homepage": "https://www.hello.dev/docs/sdks/types",
   "exports": {
     ".": "./dist/index.js"
   },
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist/"
+    "./dist/index.d.ts",
+    "./dist/index.js"
   ],
   "keywords": [
     "hello",
@@ -31,22 +31,14 @@
     "url": "https://github.com/hellocoop/packages/issues"
   },
   "scripts": {
-    "watch": "tsc --watch",
+    "watch": "tsc --watch --declaration",
     "prebuild": "rimraf dist node_modules",
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "@tsconfig/node18": "^18.2.2",
-    "@types/cookie": "^0.6.0",
-    "rimraf": "^5.0.1",
-    "typescript": "^5.2.2"
+    "build": "tsc --declaration"
   },
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "@hellocoop/definitions": "^1.0.3",
-    "@hellocoop/helper-server": "^2.0.3",
-    "cookie": "^1.0.1"
+  "devDependencies": {
+    "rimraf": "^5.0.1"
   }
 }
