@@ -43,7 +43,7 @@
 		"prebuild": "rimraf dist node_modules"
 	},
 	"dependencies": {
-		"@vitejs/plugin-vue": "^5.1.2",
+		"@vitejs/plugin-vue": "^5.1.4",
 		"swrv": "^1.0.4",
 		"vue": "^3.0.5"
 	},
