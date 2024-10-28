@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/helper-server",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Hellō helper functions for server",
   "source": "src/index.ts",
   "main": "dist/index.js",
@@ -45,7 +45,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/definitions": "^1.0.5"
+    "@hellocoop/definitions": "^1.0.6"
   },
   "gitHead": "2890e885168a5a0333b7ef610536fb8ad15703a5"
 }
