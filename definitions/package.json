@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/definitions",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Constants and Types for packages-js",
   "repository": {
     "type": "git",

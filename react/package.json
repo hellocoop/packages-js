@@ -1,6 +1,6 @@
 {
   "name": "@hellocoop/react",
-  "version": "3.1.7",
+  "version": "3.1.8",
   "description": "React SDK for Hellō https://hello.dev",
   "repository": {
     "type": "git",
@@ -50,7 +50,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@hellocoop/definitions": "^1.0.7",
+    "@hellocoop/definitions": "^1.0.8",
     "swr": "^2.2.2"
   },
   "gitHead": "f04a59ac821e23c4e65ae4ae5314eb058724be3e"
