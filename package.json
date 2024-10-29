@@ -1,7 +1,7 @@
 {
-  "name": "packages",
+  "name": "packages-js",
   "version": "0.2.0",
-  "description": "Monorepo JS package management",
+  "description": "Monorepo of JS packages",
   "workspaces": [
     "api",
     "definitions",
