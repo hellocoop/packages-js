@@ -73,9 +73,9 @@ export function errorPage( { error, error_description, error_uri, target_uri }: 
                 <header>Hellō</header>
                 <main>
                     <h1>Error: ${error}</h1>
-                    ${error_description && `<p>${error_description}</p>`}
-                    ${error_uri && `<a href="${error_uri}">Learn more</a><br/>`}
-                    <a href="${target_uri}" class="link-btn">Continue</a>
+                    ${error_description ? `<p>${error_description}</p>` : ''}
+                    ${error_uri ? `<a href="${error_uri}">Learn more</a><br/>` : ''}
+                    ${target_uri ? `<a href="${target_uri}" class="link-btn">Continue</a>` : ''}
                 </main>
             </body>
         </html>
