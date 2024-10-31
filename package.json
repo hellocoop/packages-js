@@ -23,8 +23,8 @@
   "scripts": {
     "clean": "npm run prebuild --workspaces",
     "build": "lerna run build --sort",
-    "publish": "lerna publish from-package",
-    "publish:dry": "lerna publish from-package --no-push --no-git-tag-version",
+    "publish": "npm run build && lerna publish",
+    "publish:dry": "lerna publish --no-push --no-git-tag-version",
     "---": "-following may be out of date--",
     "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next"
   },
