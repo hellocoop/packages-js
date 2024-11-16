@@ -46,17 +46,17 @@ export const updateAuth = async function ( req: HelloRequest, res: HelloResponse
     return null
 }
 
-export const handleCookieTokenVerify = async function ( req: HelloRequest, res: HelloResponse) {
-    const cookieToken = req.body
-    if (!cookieToken)
-        return res.status(400).send('Invalid request')
-    try {
-        const auth = await decryptObj( cookieToken, config.secret as string) as Auth | undefined 
-        if (auth) {
-            return res.json(auth)
-        }
-    } catch( e ) {
-        console.error(e)
-    }
-    return res.status(401).send('Unauthorized')
-}
+// export const handleCookieTokenVerify = async function ( req: HelloRequest, res: HelloResponse) {
+//     const cookieToken = req.body
+//     if (!cookieToken)
+//         return res.status(400).send('Invalid request')
+//     try {
+//         const auth = await decryptObj( cookieToken, config.secret as string) as Auth | undefined 
+//         if (auth) {
+//             return res.json(auth)
+//         }
+//     } catch( e ) {
+//         console.error(e)
+//     }
+//     return res.status(401).send('Unauthorized')
+// }

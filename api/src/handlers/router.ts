@@ -5,7 +5,8 @@ import handleCallback from './callback'
 import handleLogin from './login'
 import handleLogout from './logout'
 import handleInvite from './invite'
-import { handleAuth, handleCookieTokenVerify } from './auth'
+// import { handleAuth, handleCookieTokenVerify } from './auth'
+import { handleAuth } from './auth'
 import handleWildcardConsole from './wildcard'
 import initiateLogin from './initiateLogin'
 import { NotLoggedIn } from '@hellocoop/definitions'    
@@ -13,20 +14,16 @@ import { NotLoggedIn } from '@hellocoop/definitions'
 const router = (req: HelloRequest, res: HelloResponse ) => {
     const { query, method } = req
 
-    const params = Object.keys(query).length 
-        ? query
-        : Object.keys(req.body).length ? req.body : null
+    if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, query, params: req.body }, null, 2))
 
-    if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, params }, null, 2))
-
-    if (!params) {
-        // Q: repurpose as returning configuration if content-type is application/json
-        console.error(new Error('No query parameters'))
-        return res.redirect( config.routes.loggedOut || '/')
-    }
     if (method === 'POST') {
-        if (query.op === 'verifyCookieToken') {
-            return handleCookieTokenVerify(req, res)
+        // if (query.op === 'verifyCookieToken') {
+        //     return handleCookieTokenVerify(req, res)
+        // }
+        const params = req.body
+        if (!params) {
+            console.log('Invalid request')
+            return res.status(400).send('Invalid request')
         }
         if (params.iss) {
             return initiateLogin(req, res, params)
@@ -36,6 +33,13 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
 
         return res.status(400).send('Invalid op parameter')
     }
+
+    if (!query) {
+        // Q: repurpose as returning configuration if content-type is application/json
+        console.error(new Error('No query parameters'))
+        return res.redirect( config.routes.loggedOut || '/')
+    }
+
     if (method !== 'GET')
         return res.status(400).send('Method not allowed')
     if (query.op) { // not a protocol flow
@@ -73,8 +77,8 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         return handleWildcardConsole(req, res)
     }
 
-    if (params.iss) {        // IdP (Hellō) initiated login
-        return initiateLogin(req, res, params)
+    if (query.iss) {        // IdP (Hellō) initiated login
+        return initiateLogin(req, res, query as any)
     }
 
 
