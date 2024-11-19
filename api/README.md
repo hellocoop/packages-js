@@ -85,7 +85,7 @@ If a successful login at Hellō, the endpoint receives an authorization code que
 2. exchange the `code`, `redirect_uri`, `code_verifier` for the `id_token` at the Hellō token endpoint (`https://wallet.hello.coop/)
 3. verify the `id_token` contains the `nonce` and perform standard `id_token` verification
 4. call the `loginSync` function if configured
-5. set the `hellocoop_auth` cookie // @DICK -- review
+5. set the `hellocoop_auth` cookie
 6. redirect the user to the `target_uri`
 
 If the user is an administrator of the Hellō application and it is running at a dynamic endpoint and the `wildcard_console` parameter is returned, 
