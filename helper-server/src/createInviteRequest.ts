@@ -12,6 +12,7 @@ export interface ICreateInviteRequest {
     role?: string,
     tenant?: string,
     state?: string,
+    events_uri?: string,
     wallet?: string;
 }
 
@@ -53,6 +54,9 @@ export function createInviteRequest(
     }
     if (config.state) {
         url.searchParams.set('state', config.state)
+    }
+    if (config.events_uri) {
+        url.searchParams.set('events_uri', config.events_uri)
     }
     return { url: url.href }
 }
