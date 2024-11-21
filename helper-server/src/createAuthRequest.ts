@@ -100,7 +100,10 @@ export async function createAuthRequest(
         params.provider_hint = config.provider_hint.join(' ')
     }
     if (config.login_hint) {
-        params.login_hint = config.login_hint
+        params.login_hint = config.login_hint;
+    }
+    if (config.domain_hint) {
+        params.domain_hint = config.domain_hint;
     }
 
     const url = (config.wallet || PRODUCTION_WALLET) 
