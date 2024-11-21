@@ -51,7 +51,7 @@ export interface ICreateAuthRequest {
     prompt?: string;
 }
 
-export interface AuthenticationResponse {
+export interface AuthResponse {
     url: string;
     nonce: string;
     code_verifier: string;
@@ -59,7 +59,7 @@ export interface AuthenticationResponse {
 
 export async function createAuthRequest( 
         config: ICreateAuthRequest
-    ): Promise<AuthenticationResponse> {
+    ): Promise<AuthResponse> {
   // Ensure client_id is provided (required)
     if (!config.client_id) {
         throw new Error('client_id is required in the authorization request.');
