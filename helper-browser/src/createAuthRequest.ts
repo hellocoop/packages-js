@@ -48,6 +48,7 @@ export interface ICreateAuthRequest {
     login_hint?: string
     domain_hint?: string
     provider_hint?: ProviderHint[];
+    prompt?: string;
 }
 
 export interface AuthenticationResponse {
@@ -95,6 +96,9 @@ export async function createAuthRequest(
         response_type: config.response_type || DEFAULT_RESPONSE_TYPE,
         response_mode: config.response_mode || DEFAULT_RESPONSE_MODE,
         nonce,
+    }
+    if (config.prompt) {
+        params.prompt = config.prompt
     }
     if (params.response_type === 'code') {
         const pkceMaterial  = await pkceChallenge()
