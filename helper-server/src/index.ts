@@ -2,6 +2,7 @@
 
 export * from './errorPage'
 export * from './createAuthRequest'
+export * from './createInviteRequest'
 export * from './fetchToken'
 export * from './parseToken'
 export * from './redirectURIBounce'
