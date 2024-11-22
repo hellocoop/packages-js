@@ -59,7 +59,7 @@
   "dependencies": {
     "@hellocoop/api": "^2.0.11",
     "@hellocoop/definitions": "^1.0.9",
-    "@hellocoop/helper-server": "^2.0.10",
+    "@hellocoop/helper-server": "^2.1.0",
     "cookie": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1"

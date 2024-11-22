@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@hellocoop/definitions": "^1.0.9",
-    "@hellocoop/helper-server": "^2.0.10",
+    "@hellocoop/helper-server": "^2.1.0",
     "cookie": "^1.0.1"
   },
   "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
