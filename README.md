@@ -54,7 +54,7 @@ A set of Node.js helper functions for the Hellō OpenID Connect Provider.
 
 A set of client side helper functions for the Hellō OpenID Connect Provider.
 
-[Hellō core / client SDK documentation](https://www.hello.dev/docs/sdks/quickstart/core-client)
+[Hellō core / client SDK documentation](https://www.hello.dev/docs/sdks/helper/)
 
 
 # Publishing New Versions
