@@ -51,7 +51,7 @@ const handleInvite = async (req: HelloRequest, res: HelloResponse) => {
         initiate_login_uri: redirectURI,
         return_uri: target_uri || defaultTargetURI,
     }
-    const url = `https://hello.${config.helloDomain}/invite?${new URLSearchParams(request as any)}`
+    const url = `https://wallet.${config.helloDomain}/invite?${new URLSearchParams(request as any)}`
     res.redirect(url)
 }
 
