@@ -34,6 +34,7 @@ export interface IConfig {
     helloWallet: string,
     secret?: string,
     logDebug?: boolean,
+    cacheRedirectURIs?: boolean,
 }
 
 const HELLO_DOMAIN = process.env.HELLO_DOMAIN as string || 'hello.coop'
@@ -64,6 +65,9 @@ const _configuration: IConfig = {
         :  process.env.HELLO_WALLET as string
         || 'https://wallet.'+HELLO_DOMAIN,
 }
+
+if (!HOST && !process.env.HELLO_NO_REDIRECT_URIS_CACHE)
+    _configuration.cacheRedirectURIs = true
 
 export let isConfigured: boolean = false
 

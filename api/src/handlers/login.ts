@@ -38,7 +38,9 @@ const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
 //                     res.send(err)
 //                     return 
 //                 }
-                redirectURIs[host] = redirectURI = redirect_uri as string
+                redirectURI = redirect_uri as string
+                if (config.cacheRedirectURIs)
+                    redirectURIs[host] = redirect_uri as string
                 console.log(`Hellō: RedirectURI for ${host} => ${redirectURI}`)
             } else {            
                 console.log('Hellō: Discovering API RedirectURI route ...')
