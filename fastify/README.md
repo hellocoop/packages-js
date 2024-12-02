@@ -4,4 +4,4 @@
 
 This [Fastify](https://fastify.dev/) package provides an endpoint that handles all protocol interactions and sets an encrypted cookie with the logged in user's information. The cookie contents are decrypted and available as `req.getAuth()`.
 
-See the [Fastify Quickstart documentation](https://www.hello.dev/docs/quickstarts/fastiify) for how to add Hellō to your Fastify app in minutes, and the [Fastify SDK documentation](https://www.hello.dev/docs/sdks/fastiify) for details.
+See the [Fastify Quickstart documentation](https://www.hello.dev/docs/quickstarts/fastify) for how to add Hellō to your Fastify app in minutes, and the [Fastify SDK documentation](https://www.hello.dev/docs/sdks/fastify) for details.
