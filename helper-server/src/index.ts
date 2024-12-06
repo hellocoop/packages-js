@@ -1,12 +1,12 @@
 // wrapper all modules
 
 export * from './errorPage'
-export * from './createAuthRequest'
-export * from './createInviteRequest'
-export * from './fetchToken'
-export * from './parseToken'
+export * from '@helper/createAuthRequest'
+export * from '@helper/createInviteRequest'
+export * from '@helper/fetchToken'
+export * from '@helper/parseToken'
 export * from './redirectURIBounce'
 export * from './wildcardConsole'
-export * from './pkce'
+export * from '@helper/pkce'
 export * from './crypto'
 export * from './sameSite'

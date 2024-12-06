@@ -1,14 +1,18 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
-  "include": ["src"],
+  "include": ["src", "../helper/src"],
   "exclude": ["node_modules", "./**/dist"],
   "compilerOptions": {
       "lib": ["dom"],
       "declarationMap": true,
       "declaration": true,
-      "baseUrl": "./src/",
+      "baseUrl": ".",
       "target": "es2019",
       "strict": true,
-      "outDir": "./dist"
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist",
+      "paths": {
+        "@helper/*": ["../helper/src/*"]
+      }
   }
 }
