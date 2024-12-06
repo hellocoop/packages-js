@@ -1,0 +1,49 @@
+{
+    "name": "@hellocoop/helper",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Hellō helper functions",
+    "source": "src/index.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist/"
+    ],
+    "scripts": {
+        "watch": "tsc --watch --declaration",
+        "prebuild": "rimraf dist node_modules",
+        "build": "esbuild src/index.ts --bundle --outdir=dist --format=esm && tsc --emitDeclarationOnly --outDir dist",
+        "test": "node --test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "keywords": [
+        "hello",
+        "Hellō",
+        "PKCE",
+        "OIDC",
+        "OAuth",
+        "OpenID Connect"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "homepage": "https://www.hello.dev/docs/sdks/helper/",
+    "devDependencies": {
+        "esbuild": "^0.19.5",
+        "rimraf": "^5.0.5",
+        "typescript": "^5.2.2"
+    },
+    "dependencies": {
+        "@hellocoop/definitions": "^1.0.9"
+    },
+    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+}

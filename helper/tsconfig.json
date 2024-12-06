@@ -1,0 +1,16 @@
+{
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "include": ["src"],
+    "exclude": ["node_modules", "./**/dist"],
+    "compilerOptions": {
+        "paths": {
+            "utils": ["./src/index.ts"]
+        },
+        "lib": ["dom"],
+        "declaration": true,
+        "baseUrl": "./src/",
+        "target": "es2019",
+        "strict": true,
+        "outDir": "./dist"
+    }
+  }
