@@ -1,6 +1,6 @@
 {
     "extends": "@tsconfig/node18/tsconfig.json",
-    "include": ["src"],
+    "include": ["src", "../helper-common/src"],
     "exclude": ["node_modules", "./**/dist"],
     "compilerOptions": {
         "paths": {
