@@ -58,7 +58,7 @@ export async function generateChallenge(code_verifier: string) {
  * @param length Length of the verifer (between 43-128). Defaults to 43.
  * @returns PKCE challenge pair
  */
-export default async function pkceChallenge(length?: number): Promise<{
+export async function pkceChallenge(length?: number): Promise<{
   code_verifier: string;
   code_challenge: string;
 }> {

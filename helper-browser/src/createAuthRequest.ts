@@ -1,6 +1,6 @@
 // creates an authorization request URL for Hellō
 
-import pkceChallenge from "./pkce"
+import { pkceChallenge } from "./pkce"
 
 import { 
     VALID_SCOPES,   
