@@ -1,6 +1,6 @@
 // creates an invite request URL for Hellō
 
-import {  PRODUCTION_WALLET } from '@hellocoop/definitions'
+import { PRODUCTION_WALLET } from '@hellocoop/definitions'
 
 export interface ICreateInviteRequest {
     inviter: string,
