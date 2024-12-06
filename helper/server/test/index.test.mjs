@@ -1,5 +1,6 @@
 
 import test from 'node:test';
+import assert from 'node:assert';
 
 import { pkce, verifyChallenge, generateChallenge } from "../dist/server/index.js ";
 
