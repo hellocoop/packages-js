@@ -12,7 +12,7 @@ export * from './sameSite'
 
 
 // crypto wrapper for PKCE
-import * as crypto from 'crypto';
+import * as _crypto from 'crypto';
 import { generateChallenge, pkce, verifyChallenge, setCrypto} from '../common/pkce';
-setCrypto(crypto);
-export { generateChallenge, verifyChallenge, pkce }
+setCrypto(_crypto);
+export { generateChallenge, verifyChallenge, pkce, pkce as pkceChallenge }
