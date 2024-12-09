@@ -2,7 +2,7 @@
     "name": "@hellocoop/helper-browser",
     "version": "2.4.4",
     "description": "Hellō helper functions for the browser",
-    "main": "dist/browser/index.js",
+    "main": "dist/index.js",
     "files": [
         "dist/"
     ],

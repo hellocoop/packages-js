@@ -1,7 +1,7 @@
 export * from '../common/createAuthRequest'
 export * from '../common/createInviteRequest'
 export * from '../common/fetchToken'
-export * from '../common/parseToken'
+export * from './parseToken'
 export * from './validateToken'
 
 // crypto wrapper for PKCE

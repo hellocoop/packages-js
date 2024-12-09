@@ -10,7 +10,7 @@ export var uuidv4: any
 
 export const setCrypto = function (c:any ) {
   crypto = c
-  uuidv4 = crypto.randomUUID
+  uuidv4 = c.randomUUID.bind(c) // bind method to the crypto object
 }
 
 const VERIFIER_LENGTH = 43
