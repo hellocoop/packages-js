@@ -3,13 +3,21 @@
 */
 
 
-import * as crypto from 'crypto';
+// we will get the crypto object from the parent package
+
+var crypto: any
+export var uuidv4: any
+
+export const setCrypto = function (c:any ) {
+  crypto = c
+  uuidv4 = c.randomUUID.bind(c) // bind method to the crypto object
+}
 
 const VERIFIER_LENGTH = 43
 
 
 // export const uuidv4 = crypto.randomUUID
-export { randomUUID as uuidv4 } from 'crypto';
+
 
 /** Generate cryptographically strong random string
  * @param size The desired length of the string

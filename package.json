@@ -7,8 +7,8 @@
     "definitions",
     "express",
     "fastify",
-    "helper-browser",
-    "helper-server",
+    "helper/browser",
+    "helper/server",
     "identifier",
     "nextjs",
     "quickstart",
@@ -25,6 +25,7 @@
     "build": "lerna run build --sort",
     "publish": "npm run build && lerna publish",
     "publish:dry": "lerna publish --no-push --no-git-tag-version",
+    "publish:canary": "npm run build && lerna publish --canary",
     "---": "-following may be out of date--",
     "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next"
   },

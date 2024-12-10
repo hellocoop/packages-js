@@ -1,5 +1,10 @@
 // creates an authorization request URL for Hellō
 
+// var URLSearchParams 
+
+// export const setURLSearchParams = (u) => {
+
+
 import { pkce, uuidv4 } from './pkce';
 import { 
     Scope,
@@ -16,7 +21,7 @@ import {
     PRODUCTION_WALLET,
 } from '@hellocoop/definitions';
 
-import { URLSearchParams } from 'url'
+// import { URLSearchParams } from 'url'
 
 export function isValidScope( scope: string ): boolean {
     return VALID_SCOPES.includes(scope as Scope)

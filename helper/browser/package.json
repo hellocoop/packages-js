@@ -2,16 +2,14 @@
     "name": "@hellocoop/helper-browser",
     "version": "2.4.4",
     "description": "Hellō helper functions for the browser",
-    "source": "src/index.ts",
     "main": "dist/index.js",
-    "types": "dist/index.d.ts",
     "files": [
         "dist/"
     ],
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist node_modules",
-        "build": "esbuild src/index.ts --bundle --outdir=dist --format=esm && tsc --emitDeclarationOnly --outDir dist",
+        "prebuild": "rimraf dist",
+        "build": "esbuild ../src/browser/index.ts --bundle --outdir=dist --format=esm && tsc --emitDeclarationOnly --outDir dist",
         "test": "node --test"
     },
     "repository": {

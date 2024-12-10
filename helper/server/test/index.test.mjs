@@ -1,7 +1,8 @@
 
 import test from 'node:test';
+import assert from 'node:assert';
 
-import { pkce, verifyChallenge, generateChallenge } from "../dist/pkce.js ";
+import { pkce, verifyChallenge, generateChallenge } from "../dist/server/index.js ";
 
 test("default verifier length is 43", async () => {
   const result = await pkce();
