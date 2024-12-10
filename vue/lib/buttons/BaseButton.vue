@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { routeConfig } from "../provider.js"
-  import { Button, type ProviderHint, type Scope } from '../types'
+  import { Button, type ProviderHint, type Scope } from '../types' // tbd use @hellocoop/definitions (currently, some esm import errors)
   import { onMounted } from 'vue'
 
   let checkedForStylesheet = false;
