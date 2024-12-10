@@ -42,14 +42,14 @@
 		"build": "vite build",
 		"prebuild": "rimraf dist node_modules"
 	},
-	"dependencies": {
-		"@vitejs/plugin-vue": "^4.2.3",
-		"swrv": "^1.0.4",
-		"vue": "^3.0.5"
-	},
 	"devDependencies": {
-		"typescript": "^5.2.2",
-		"vite-plugin-dts": "^3.6.3"
+		"typescript": "^5.7.2",
+		"vite-plugin-dts": "^4.3.0"
 	},
-	"gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+	"gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8",
+	"dependencies": {
+		"@vitejs/plugin-vue": "^5.2.1",
+		"swrv": "^1.0.4",
+		"vue": "^3.5.13"
+	}
 }
