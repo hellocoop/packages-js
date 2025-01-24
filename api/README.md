@@ -2,7 +2,7 @@
 
 This npm package is a TypeScript implementation of the Hellō Web Client API that is used by:
 - [@hellocoop/express](https://www.npmjs.com/package/@hellocoop/express)
-- [@hellocoop/fastidy](https://www.npmjs.com/package/@hellocoop/fastidy)
+- [@hellocoop/fastify](https://www.npmjs.com/package/@hellocoop/fastify)
 - [@hellocoop/nextjs](https://www.npmjs.com/package/@hellocoop/nextjs)
 - [@hellocoop/cdk-client](https://www.npmjs.com/package/@hellocoop/cdk-client)
 
