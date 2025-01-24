@@ -7,9 +7,10 @@ const config = {
     client_id: '8c3a40a9-b235-4029-8d16-c70592ca94bb',
 }
 
-const loginHint = 'johnsmith@me.com'
+const loginHint = 'johnsmith@rsandh.com'
+const domainHint = 'rsandh.com'
 
-describe('provider initiated login', () => {
+describe('provider initiated login with login_hint & provider_hint', () => {
     let fastify = null
     let cookies = {}
 
@@ -24,7 +25,7 @@ describe('provider initiated login', () => {
         const issParam = 'https://issuer.hello.coop'
         const response = await fastify.inject({
             method: 'GET',
-            url: '/api/hellocoop?iss=' + issParam,
+            url: '/api/hellocoop?iss=' + issParam + '&login_hint=' + loginHint + '&domain_hint=' + domainHint,
             cookies,
         })
 
@@ -32,6 +33,7 @@ describe('provider initiated login', () => {
         const authzReqUrl = new URL(response.headers.location) 
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         const client_id = authzReqUrlParams.get('client_id')
+        expect(client_id).to.exist
         expect(client_id).to.eql(config.client_id)
         const scope = authzReqUrlParams.get('scope')
         expect(scope).to.exist
@@ -45,6 +47,11 @@ describe('provider initiated login', () => {
         expect(code_challenge).to.exist
         const code_challenge_method = authzReqUrlParams.get('code_challenge_method')
         expect(code_challenge_method).to.exist
-        //tbd - other assertions
+        const loginHintParam = authzReqUrlParams.get('login_hint')
+        expect(loginHintParam).to.exist
+        expect(loginHintParam).to.eql(loginHint)
+        const domainHintParam = authzReqUrlParams.get('domain_hint')
+        expect(domainHintParam).to.exist
+        expect(domainHintParam).to.eql(domainHint)
     })
 })
