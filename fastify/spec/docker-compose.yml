@@ -41,8 +41,8 @@ services:
         source: ../../api
         target: /usr/src/svr/api
       - type: bind 
-        source: ../../helper-server
-        target: /usr/src/svr/helper-server
+        source: ../../helper/server
+        target: /usr/src/svr/helper/server
       - type: bind 
         source: ../../definitions
         target: /usr/src/svr/definitions
