@@ -5,6 +5,7 @@ import handleCallback from './callback'
 import handleLogin from './login'
 import handleLogout from './logout'
 import handleInvite from './invite'
+import handleCommand from './command'
 // import { handleAuth, handleCookieTokenVerify } from './auth'
 import { handleAuth } from './auth'
 import handleWildcardConsole from './wildcard'
@@ -21,12 +22,19 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         //     return handleCookieTokenVerify(req, res)
         // }
         const params = req.body
+
+        // TODO -- do we need to parse body?
+        // it is `application/x-www-form-urlencoded` encoded
+
         if (!params) {
             console.log('Invalid request')
             return res.status(400).send('Invalid request')
         }
         if (params.iss) {
             return initiateLogin(req, res, params)
+        }
+        if (params.command_token) {
+            return handleCommand(req, res, params)
         }
 
         // FUTURE - add support for POST of invite event and provisioning events

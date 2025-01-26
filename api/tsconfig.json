@@ -4,12 +4,13 @@
   "include": ["src/*.ts"],
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "declarationMap": true,
-      "declaration": true,
-      "baseUrl": "./src/",
-      "lib": ["dom", "dom.iterable", "esnext"],
-      "target": "ES2022",
-      "strict": true,
-      "outDir": "./dist"
+    "declaration": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES2022",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
   }
 }

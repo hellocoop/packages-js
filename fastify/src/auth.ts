@@ -2,14 +2,12 @@
 
 import { 
     FastifyPluginAsync,
- } from 'fastify'
-import fp from 'fastify-plugin'
-
-import { 
     FastifyRequest,
     FastifyReply,
     FastifyPluginOptions
-} from 'fastify'
+ } from 'fastify'
+import fp from 'fastify-plugin'
+import fastifyFormbody from '@fastify/formbody';
 
 import { serialize } from 'cookie'
 
@@ -88,6 +86,7 @@ export interface HelloConfig extends FastifyPluginOptions, Config {}
 const helloPlugin: FastifyPluginAsync <HelloConfig> = async (instance, options) => {
     if (!isConfigured)
        configure(options)
+    instance.register(fastifyFormbody)
     instance.decorateRequest('auth', undefined)
     instance.decorateRequest('getAuth', async function () { 
         const dummyResponse: FastifyReply = {} as FastifyReply
