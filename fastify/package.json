@@ -53,6 +53,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@fastify/formbody": "^8.0.2",
     "@hellocoop/api": "^2.1.2",
     "dotenv": "^16.3.1",
     "fastify-plugin": "^4.5.1"

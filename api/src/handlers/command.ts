@@ -85,6 +85,12 @@ const handleCommand = async (req: HelloRequest, res: HelloResponse, params:  {[k
         }
     }
 
+    if (!claims) {
+        res.status(400)
+        console.error('invalid command token', command_token)
+        return res.json({error: 'invalid_request', error_description: 'invalid command token'})
+    }
+
     const { command } = claims as CommandClaims
 
     const commandsConfigured = config.commandHandler
