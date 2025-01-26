@@ -16,10 +16,10 @@ const initiateLogin = async (req: HelloRequest, res: HelloResponse, params: Init
     const { iss, login_hint, domain_hint, target_link_uri } = params
 
     const issuer = `https://issuer.${config.helloDomain}`
-    if (iss !== issuer) {
+    if (iss && (iss !== issuer)) {
         return res.send(`Passed iss '${iss}' must be '${issuer}'`)
     }
-    req.query = {
+    req.query = { // override query params
         target_uri: target_link_uri,
     }
     if (login_hint) {

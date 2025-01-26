@@ -30,7 +30,7 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
             console.log('Invalid request')
             return res.status(400).send('Invalid request')
         }
-        if (params.iss) {
+        if (params.iss || params.domain_hint || params.login_hint) {
             return initiateLogin(req, res, params)
         }
         if (params.command_token) {
@@ -85,7 +85,7 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         return handleWildcardConsole(req, res)
     }
 
-    if (query.iss) {        // IdP (Hellō) initiated login
+    if (query.iss || query.domain_hint || query.login_hint) {        // IdP initiated login
         return initiateLogin(req, res, query as any)
     }
 

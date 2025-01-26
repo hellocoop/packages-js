@@ -39,18 +39,8 @@ describe('metadata command', () => {
         const json = JSON.parse(response.body)
         expect(json).to.exist
 
-        // test metadata response
+// console.log('metadata', json)  
 
-        // context: {
-        //     package_name: name,
-        //     package_version: version,
-        //     iss,
-        // },
-        // commands_uri: config.redirectURI || '', // might not be set
-        // commands_supported: ['metadata'],
-        // commands_ttl: 0,
-        // client_id: config.clientId || ''
-        
         expect(json.context).to.exist
         // expect(json.context.package_name).to.eql()
         expect(json.context.package_version).to.exist
@@ -63,8 +53,6 @@ describe('metadata command', () => {
         expect(json.commands_ttl).to.eql(0)
         expect(json.client_id).to.exist
         expect(json.client_id).to.eql(config.client_id)
-
-
 
     })
 })
