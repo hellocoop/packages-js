@@ -2,7 +2,7 @@
 
 import { HelloRequest, HelloResponse, CommandHandler, Command, CommandClaims } from '../types'
 import config from '../lib//config'
-import { PackageMetadata } from '../lib/PackageMetadata';
+import { PackageMetadata } from '../lib/packageMetadata';
 
 // TODO -- design pluggable command handler interface
 

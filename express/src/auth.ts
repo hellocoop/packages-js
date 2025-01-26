@@ -12,9 +12,14 @@ import {
     isConfigured,
     configure,
     Config,
-    configuration
+    configuration,
+    PackageMetadata,
 } from '@hellocoop/api'
 
+// set name and version to provide in metadata
+import parentPackageJson from '../package.json'
+const { name, version } = parentPackageJson;
+PackageMetadata.setMetadata(name, version);
 
 type ExpressLoginParams = {
     token: string,
