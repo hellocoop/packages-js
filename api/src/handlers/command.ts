@@ -1,18 +1,17 @@
 // process OP Commands
 
 import { HelloRequest, HelloResponse, CommandHandler, Command, CommandClaims } from '../types'
-import jwt from 'jsonwebtoken'
 import config from '../lib//config'
+import { PackageMetadata } from '../lib/PackageMetadata';
 
+// TODO -- design pluggable command handler interface
 
-// TODO - fetch jwks from Hello server
-
-type DescribeResponse = {
+type MetadataResponse = {
     context: {
+        package_name: string,
+        package_version: string,
         iss: string,
-        org?: {
-            id: string
-        }
+        tenant?: string
     },
     commands_uri: string,
     commands_supported: Command[],
@@ -20,21 +19,36 @@ type DescribeResponse = {
     client_id: string
 }
 
-const handleDescribe: CommandHandler = async (req, res, claims) => {
-    const { iss, org } = claims
-    const describeResponse: DescribeResponse = {
+const handleMetadata: CommandHandler = async (res, claims) => {
+    const { iss, tenant } = claims
+    const { name, version } = PackageMetadata.getMetadata()
+    const metadataResponse: MetadataResponse = {
         context: {
+            package_name: name,
+            package_version: version,
             iss,
         },
         commands_uri: config.redirectURI || '', // might not be set
-        commands_supported: ['describe'],
+        commands_supported: ['metadata'],
         commands_ttl: 0,
         client_id: config.clientId || ''
     }
-    if (org?.id)
-        describeResponse.context.org = { id: org.id }
-    return res.json(describeResponse)
+    if (tenant)
+        metadataResponse.context.tenant = tenant
+    return res.json(metadataResponse)
 }
+
+function getClaims(payload: string) {
+    // Convert URL-safe Base64 to standard Base64
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+  
+    // Decode Base64 to text
+    const buffer = Buffer.from(base64, 'base64');
+    const jsonString = buffer.toString('utf-8');
+    const json = JSON.parse(jsonString);
+    return json
+  }
+
 
 const handleCommand = async (req: HelloRequest, res: HelloResponse, params:  {[key: string]: string }) => {
     const { command_token } = params
@@ -43,29 +57,48 @@ const handleCommand = async (req: HelloRequest, res: HelloResponse, params:  {[k
         return res.status(500)
     }
 
-    // TODO - validate command token
+    var claims = null
 
-    const token = jwt.decode(command_token, {complete: true})
-    const claims = token?.payload as CommandClaims
+    //NOTE: we are not verifying the command token in testing
 
-    const { iss, sub, command, org, groups } = claims
-
-    const commandsConfigured = config.commandHandler && config.commandsSupported?.length
+    // TODO -- add genrating a mock metadata command token to mockin 
+    // TODO -- add command token verification to Hello and mockin 
+    // parse header to get the issuer so we know where to call
+    // check we can actually process command before calling to verify the token
     
-    if (!commandsConfigured || ((command === 'describe') && !config.commandsSupported?.includes('describe'))) {
-        return handleDescribe(req, res, claims)
+    if (true) { // testing for now | call Hh to verify the token if no command handler
+        const parts = command_token.split('.')
+
+        if (parts.length !== 3) {
+            res.status(400)
+            console.error('invalid command token - not 3 parts', command_token)
+            return res.json({error: 'invalid_request', error_description: 'invalid command token - not 3 parts'})
+        }
+
+        try {
+            claims = getClaims(parts[1])
+        }
+        catch (e) {
+            res.status(400)
+            console.error('invalid command token JSON', command_token)
+            return res.json({error: 'invalid_request', error_description: 'invalid command token JSON'})
+        }
     }
-    if (!config.commandsSupported?.includes(command)) {
-        res.status(400)
-        return res.json({error: 'unsupported command'})
+
+    const { command } = claims as CommandClaims
+
+    const commandsConfigured = config.commandHandler
+    
+    if (!commandsConfigured && (command === 'metadata')) {
+        return handleMetadata(res, claims)
     }
 
     if (config.commandHandler) {
-        return config.commandHandler(req, res, claims)
+        return config.commandHandler(res, claims)
     }           
 
     res.status(400)
-    return res.json({error: 'unsupported command'})
+    return res.json({error: 'unsupported_command'})
 }
 
 export default handleCommand

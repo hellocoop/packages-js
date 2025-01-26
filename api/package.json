@@ -39,9 +39,7 @@
     "@tsconfig/node18": "^18.2.2",
     "@types/cookie": "^0.6.0",
     "rimraf": "^5.0.1",
-    "typescript": "^5.2.2",
-    "@types/jsonwebtoken": "^9.0.7"
-
+    "typescript": "^5.2.2"
   },
   "engines": {
     "node": ">=18"
@@ -49,8 +47,7 @@
   "dependencies": {
     "@hellocoop/definitions": "^1.0.9",
     "@hellocoop/helper-server": "^2.2.1",
-    "cookie": "^1.0.1",
-    "jsonwebtoken": "^9.0.2"
+    "cookie": "^1.0.1"
   },
   "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }

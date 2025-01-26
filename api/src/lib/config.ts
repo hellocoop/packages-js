@@ -20,7 +20,6 @@ export interface IConfig {
     loginSync?: GenericSync,
     logoutSync?: GenericSync,
     commandHandler?: CommandHandler,
-    commandsSupported?: Command[],
     cookieToken?: boolean, // include encrypted cookie in auth response
     // built from HELLO_API_ROUTE
     apiRoute: string,

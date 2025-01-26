@@ -80,27 +80,27 @@ export type HelloResponse = {
 
 
 export type Command
-    = 'describe' 
+    = 'metadata' 
     | 'unauthorize' 
-    | 'groups' 
     | 'activate' 
     | 'suspend' 
     | 'reactivate' 
     | 'archive' 
     | 'restore' 
     | 'delete' 
-    | 'audit'
+    | 'audit_tenant'
+    | 'unauthorize_tenant'
+    | 'suspend_tenant'
+    | 'archive_tenant'
+    | 'delete_tenant'
 
 export type CommandClaims = {
     iss: string,
     sub: string,
     command: Command,
-    org: { 
-        id: string,
-        domain?: string
-    },
+    tenant?: string,
     groups?: string[]
     // add in all other identity claims from Hellō
 }
 
-export type CommandHandler = ( req: HelloRequest, res: HelloResponse, claims: CommandClaims  ) => void
+export type CommandHandler = ( res: HelloResponse, claims: CommandClaims  ) => void
