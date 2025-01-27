@@ -72,7 +72,7 @@ export default defineConfig({
   webServer: [{
     command: 'cd app && node express.js',
     url: 'http://127.0.0.1:3000',
-    // stdout: 'pipe',
+    stdout: 'pipe',
     timeout: 10000,
     reuseExistingServer: !process.env.CI,
   },{
