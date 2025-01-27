@@ -6,6 +6,7 @@ networks:
 services:
 
   mockin:
+    # image: mockin:latest
     image: hellocoop/mockin:latest
     networks:
       - mock

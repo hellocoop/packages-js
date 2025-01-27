@@ -19,6 +19,58 @@ type MetadataResponse = {
     client_id: string
 }
 
+interface OpenIDProviderMetadata {
+    issuer: string;
+    introspection_endpoint: string;
+    jwks_uri: string;
+}
+
+const issuers: Record<string, OpenIDProviderMetadata> = {};
+
+const verifyCommandToken = async (command_token: string) => {
+
+    const [ encodedHeader, encodedPayload, signature ] = command_token.split('.')
+    if (!encodedHeader || !encodedPayload || !signature) {
+        return false
+    }
+    try {
+        const header = JSON.parse(Buffer.from(encodedHeader, 'base64url').toString())
+        const iss = header?.iss
+        if (!iss) {
+            return false
+        }
+        if (!issuers[iss]) {
+            const configURI = iss+'.well-known/openid-configuration'
+            const response = await fetch(configURI)
+            if (!response.ok) {
+                return false
+            }
+            issuers[iss] = await response.json()
+        }
+        const introspection_endpoint = issuers[iss].introspection_endpoint
+        if (!introspection_endpoint) {
+            return false
+        }
+        const data = new URLSearchParams()
+        data.append('token', command_token)
+        data.append('client_id', config.clientId || 'test-app')
+        const response = await fetch(introspection_endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: data.toString()
+        })
+        if (!response.ok) {
+            return false
+        }
+        const json = await response.json()
+        return json
+    }
+    catch (e) {
+        console.error('error verifying command token', e)
+        return false
+    }
+}
+
 const handleMetadata: CommandHandler = async (res, claims) => {
     const { iss, tenant } = claims
     const { name, version } = PackageMetadata.getMetadata()
@@ -57,33 +109,7 @@ const handleCommand = async (req: HelloRequest, res: HelloResponse, params:  {[k
         return res.status(500)
     }
 
-    var claims = null
-
-    //NOTE: we are not verifying the command token in testing
-
-    // TODO -- add genrating a mock metadata command token to mockin 
-    // TODO -- add command token verification to Hello and mockin 
-    // parse header to get the issuer so we know where to call
-    // check we can actually process command before calling to verify the token
-    
-    if (true) { // testing for now | call Hh to verify the token if no command handler
-        const parts = command_token.split('.')
-
-        if (parts.length !== 3) {
-            res.status(400)
-            console.error('invalid command token - not 3 parts', command_token)
-            return res.json({error: 'invalid_request', error_description: 'invalid command token - not 3 parts'})
-        }
-
-        try {
-            claims = getClaims(parts[1])
-        }
-        catch (e) {
-            res.status(400)
-            console.error('invalid command token JSON', command_token)
-            return res.json({error: 'invalid_request', error_description: 'invalid command token JSON'})
-        }
-    }
+    var claims = await verifyCommandToken(command_token)
 
     if (!claims) {
         res.status(400)

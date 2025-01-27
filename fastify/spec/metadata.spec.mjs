@@ -9,17 +9,27 @@ const config = {
 
 const appName = 'Test'
 
-const command_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ5b3VyLWFwcCIsInN1YiI6IjEyMzQ1Njc4OTAiLCJhdWQiOiJ5b3VyLWF1ZGllbmNlIiwiZXhwIjoxNjgzMDg4ODAwLCJpYXQiOjE2ODMwODUyMDAsImNvbW1hbmQiOiJtZXRhZGF0YSJ9.Pv1nvWmVpUcs54JkUj9W7HtXQ9Ieqwhr5q_GgFMeIvs'
+
+const fetchToken = async () => {
+    const results = await fetch('http://mockin:3333/command/mock?client_id='+appName)
+    if (!results.ok)
+        throw new Error('Failed to fetch command token')
+    const json = await results.json()
+    return json.command_token
+}
+
 
 describe('metadata command', () => {
     let fastify = null
     let cookies = {}
+    let command_token = null
 
     before( async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
         cookies = {}
+        command_token = await fetchToken()
     })
 
     it('should get metadata', async () => {
