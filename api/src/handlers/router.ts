@@ -23,6 +23,11 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         // }
         const params = req.body
 
+    console.log('params:', params)
+    console.log('headers', req.headers())
+    console.log('req.body:', req.body)
+    console.log('', )
+
         // TODO -- do we need to parse body?
         // it is `application/x-www-form-urlencoded` encoded
 
