@@ -92,7 +92,7 @@ test.describe(`Testing ${APP_HOME}`, () => {
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         expect(authzReqUrlParams.get('login_hint')).toEqual(loginHintParam)
     })
-    test('IdP initiated login w/ GET login_hint ', async ({page}) => {
+    test('IdP initiated login w/ GET login_hint', async ({page}) => {
         const login_hint = 'mailto:john.smith@me.com'
         const data = new URLSearchParams({ login_hint });
         await page.goto(APP_API + '?' + data)
@@ -103,10 +103,11 @@ test.describe(`Testing ${APP_HOME}`, () => {
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         expect(authzReqUrlParams.get('login_hint')).toEqual(login_hint)
     })
-    test('IdP initiated login w/ POST login_hint ', async ({page}) => {
+    test('IdP initiated login w/ POST login_hint', async ({page}) => {
         const loginHintParam = 'mailto:john.smith@me.com'
         const data = new URLSearchParams({ login_hint: loginHintParam })
         const response = await page.request.post(APP_API, {
+            maxRedirects: 0, //verify whether login_hint is included in authz request to mockin server
             headers: {
                 'content-type': 'application/x-www-form-urlencoded'
             },
@@ -115,6 +116,46 @@ test.describe(`Testing ${APP_HOME}`, () => {
         const authzReqUrl = new URL(response.headers().location) 
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         expect(authzReqUrlParams.get('login_hint')).toEqual(loginHintParam)
+    })
+    test('IdP initiated login w/ GET login_hint & iss', async ({page}) => {
+        const login_hint = 'mailto:john.smith@me.com'
+        const iss = 'https://issuer.hello.coop'
+        const data = new URLSearchParams({ login_hint, iss });
+        await page.goto(APP_API + '?' + data)
+        const response = await page.request.get(APP_API + '?' + data, {
+            maxRedirects: 0 //verify whether login_hint is included in authz request to mockin server
+        })
+        const authzReqUrl = new URL(response.headers().location) 
+        const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
+        expect(authzReqUrlParams.get('login_hint')).toEqual(login_hint)
+    })
+    test('IdP initiated login w/ POST login_hint & iss', async ({page}) => {
+        const login_hint = 'mailto:john.smith@me.com'
+        const iss = 'https://issuer.hello.coop'
+        const data = new URLSearchParams({ login_hint, iss });
+        const response = await page.request.post(APP_API, {
+            maxRedirects: 0, //verify whether login_hint is included in authz request to mockin server
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            data: data.toString(),
+        }); 
+        const authzReqUrl = new URL(response.headers().location) 
+        const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
+        expect(authzReqUrlParams.get('login_hint')).toEqual(login_hint)
+    })
+    test('IdP initiated login w/ GET login_hint & domain_hint', async ({page}) => {
+        const login_hint = 'mailto:john.smith@me.com'
+        const domain_hint = 'me.com'
+        const data = new URLSearchParams({ login_hint, domain_hint });
+        await page.goto(APP_API + '?' + data)
+        const response = await page.request.get(APP_API + '?' + data, {
+            maxRedirects: 0 //verify whether login_hint is included in authz request to mockin server
+        })
+        const authzReqUrl = new URL(response.headers().location) 
+        const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
+        expect(authzReqUrlParams.get('login_hint')).toEqual(login_hint)
+        expect(authzReqUrlParams.get('login_hint')).toBeUndefined
     })
     test('invite', async ({ page }) => {
         const appName = 'Test'
