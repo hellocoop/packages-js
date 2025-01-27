@@ -17,6 +17,7 @@ const port = 3000; // default port to listen
 // const credentials = { key: privateKey, cert: certificate };
 
 app.use(helloAuth(config));
+app.use(express.urlencoded({ extended: true }));
 
 app.get( "/", async ( req, res ) => {
     res.json( await req.getAuth()) 
