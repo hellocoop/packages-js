@@ -18,18 +18,7 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
     if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, query, params: req.body }, null, 2))
 
     if (method === 'POST') {
-        // if (query.op === 'verifyCookieToken') {
-        //     return handleCookieTokenVerify(req, res)
-        // }
         const params = req.body
-
-    console.log('params:', params)
-    console.log('headers', req.headers())
-    console.log('req.body:', req.body)
-    console.log('', )
-
-        // TODO -- do we need to parse body?
-        // it is `application/x-www-form-urlencoded` encoded
 
         if (!params) {
             console.log('Invalid request')
@@ -41,8 +30,6 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         if (params.command_token) {
             return handleCommand(req, res, params)
         }
-
-        // FUTURE - add support for POST of invite event and provisioning events
 
         return res.status(400).send('Invalid op parameter')
     }
