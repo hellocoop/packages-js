@@ -1,6 +1,7 @@
 
 
 const APP_HOME = 'http://127.0.0.1:3000/'
+const MOCKIN = 'http://127.0.0.1:3333/'
 const APP_API = APP_HOME + 'api/hellocoop'
 
 import { test, expect } from '@playwright/test';
@@ -271,4 +272,31 @@ test.describe(`Testing ${APP_HOME}`, () => {
         const login_hint = authzReqUrlParams.get('login_hint')
         expect(login_hint).toEqual(loginHintParam)
     })
+    test('should get metadata' , async ({ page }) => {
+        const appName = 'Test'
+        const commandTokenRes = await page.request.get(MOCKIN + 'command/mock?client_id=' + appName)
+        const { command_token } = await commandTokenRes.json()
+        expect(command_token).toBeDefined
+        const data = new URLSearchParams({command_token});
+        const response = await page.request.post(APP_API, {
+            maxRedirects: 0, //verify whether domain_hint is included in authz request to mockin server
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            data: data.toString(),
+        });
+        const metadata = await response.json()
+        expect(metadata).toBeDefined
+        expect(metadata.context).toBeDefined();
+        // expect(metadata.context.package_name).toBe();
+        expect(metadata.context.package_version).toBeDefined();
+        // expect(metadata.context.package_version).toBe('0.0.1');
+        expect(metadata.context.iss).toBeDefined();
+        expect(metadata.commands_uri).toBeDefined();
+        expect(metadata.commands_supported).toBeDefined();
+        expect(metadata.commands_supported).toEqual(['metadata']);
+        expect(metadata.commands_ttl).toBeDefined();
+        expect(metadata.commands_ttl).toEqual(0);
+        expect(metadata.client_id).toBeDefined();
+        expect(metadata.client_id).toEqual(config.client_id);  })
 });
