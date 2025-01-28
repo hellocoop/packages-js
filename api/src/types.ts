@@ -17,7 +17,7 @@ import type { SerializeOptions } from 'cookie'
 export type GenericSync = (params: any) => Promise<any>
 
 
-type LoginSyncParams = {
+export type LoginSyncParams = {
     token: string,
     payload: Claims,
     target_uri: string,

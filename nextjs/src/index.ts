@@ -2,6 +2,7 @@ export type {
     Config as HelloConfig, 
     LoginSyncResponse, 
     LogoutSyncResponse,
+    LoginSyncParams,
 } from '@hellocoop/api'
 export type { Auth } from '@hellocoop/definitions'
 
