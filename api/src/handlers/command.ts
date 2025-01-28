@@ -22,10 +22,23 @@ type MetadataResponse = {
 interface OpenIDProviderMetadata {
     issuer: string;
     introspection_endpoint: string;
-    jwks_uri: string;
+    jwks_uri?: string;
 }
 
-const issuers: Record<string, OpenIDProviderMetadata> = {};
+const issuers: Record<string, OpenIDProviderMetadata> = {
+    'http://mockin:3333': { // mock issuer
+        issuer: 'http://mockin:3333',
+        introspection_endpoint: 'http://mockin:3333/oauth/introspect',
+    },
+    'http://127.0.0.1:3333': { // test issuer
+        issuer: 'http://127.0.0.1:3333',
+        introspection_endpoint: 'http://127.0.0.1:3333/oauth/introspect',
+    },
+    'https://issuer.hello.coop': { // production issuer
+        issuer: 'https://issuer.hello.coop',
+        introspection_endpoint: 'https://issuer.hello.coop/oauth/introspect',
+    }
+};
 
 const verifyCommandToken = async (command_token: string) => {
 
@@ -34,23 +47,17 @@ const verifyCommandToken = async (command_token: string) => {
         return false
     }
     try {
-        const header = JSON.parse(Buffer.from(encodedHeader, 'base64url').toString())
-        const iss = header?.iss
+        const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString())
+        const iss = payload?.iss
         if (!iss) {
+            console.error('commands.verifyCommandToken: missing issuer', payload)
             return false
         }
         if (!issuers[iss]) {
-            const configURI = iss+'.well-known/openid-configuration'
-            const response = await fetch(configURI)
-            if (!response.ok) {
-                return false
-            }
-            issuers[iss] = await response.json()
-        }
-        const introspection_endpoint = issuers[iss].introspection_endpoint
-        if (!introspection_endpoint) {
+            console.error('commands.verifyCommandToken: unknown issuer', iss)
             return false
         }
+        const introspection_endpoint = issuers[iss].introspection_endpoint
         const data = new URLSearchParams()
         data.append('token', command_token)
         data.append('client_id', config.clientId || 'test-app')
@@ -80,27 +87,15 @@ const handleMetadata: CommandHandler = async (res, claims) => {
             package_version: version,
             iss,
         },
-        commands_uri: config.redirectURI || '', // might not be set
+        commands_uri: config.redirectURI || 'unknown', // might not be set
         commands_supported: ['metadata'],
         commands_ttl: 0,
-        client_id: config.clientId || ''
+        client_id: config.clientId || 'unknown'
     }
     if (tenant)
         metadataResponse.context.tenant = tenant
     return res.json(metadataResponse)
 }
-
-function getClaims(payload: string) {
-    // Convert URL-safe Base64 to standard Base64
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-  
-    // Decode Base64 to text
-    const buffer = Buffer.from(base64, 'base64');
-    const jsonString = buffer.toString('utf-8');
-    const json = JSON.parse(jsonString);
-    return json
-  }
-
 
 const handleCommand = async (req: HelloRequest, res: HelloResponse, params:  {[key: string]: string }) => {
     const { command_token } = params

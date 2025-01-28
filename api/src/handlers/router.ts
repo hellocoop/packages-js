@@ -21,7 +21,7 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         const params = req.body
 
         if (!params) {
-            console.log('Invalid request')
+            console.error('Invalid request')
             return res.status(400).send('Invalid request')
         }
         if (params.iss || params.domain_hint || params.login_hint) {
