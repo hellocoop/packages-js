@@ -36,7 +36,7 @@ const issuers: Record<string, OpenIDProviderMetadata> = {
     },
     'https://issuer.hello.coop': { // production issuer
         issuer: 'https://issuer.hello.coop',
-        introspection_endpoint: 'https://issuer.hello.coop/oauth/introspect',
+        introspection_endpoint: 'https://wallet.hello.coop/oauth/introspect',
     }
 };
 
@@ -66,7 +66,15 @@ const verifyCommandToken = async (command_token: string) => {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: data.toString()
         })
+
+        try {
+            const json = await response.json()
+            console.log('commands.verifyCommandToken: introspection response', json)
+        } catch (e) {
+            console.error('commands.verifyCommandToken: introspection response error', e)
+        }
         if (!response.ok) {
+            console.error('commands.verifyCommandToken: introspection failed', response.status)
             return false
         }
         const json = await response.json()
