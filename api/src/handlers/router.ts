@@ -20,18 +20,21 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
     if (method === 'POST') {
         const params = req.body
 
-        if (!params) {
-            console.error('Invalid request')
-            return res.status(400).send('Invalid request')
-        }
         if (params.iss || params.domain_hint || params.login_hint) {
             return initiateLogin(req, res, params)
         }
         if (params.command_token) {
             return handleCommand(req, res, params)
         }
-
-        return res.status(400).send('Invalid op parameter')
+        // we don't know how to process the POST
+        const keys = Object.keys(params)
+        if (!keys || keys.length === 0) {
+            console.error('No POST parameters found')
+            return res.status(400).send('Invalid request')
+        }
+        const message = 'Unknown POST parameters: '+JSON.stringify(keys)
+        console.error(message)
+        return res.status(400).send(message)
     }
 
     if (!query) {
