@@ -2,14 +2,12 @@
 
 import { 
     FastifyPluginAsync,
- } from 'fastify'
-import fp from 'fastify-plugin'
-
-import { 
     FastifyRequest,
     FastifyReply,
     FastifyPluginOptions
-} from 'fastify'
+ } from 'fastify'
+import fp from 'fastify-plugin'
+import fastifyFormbody from '@fastify/formbody';
 
 import { serialize } from 'cookie'
 
@@ -24,7 +22,13 @@ import {
     configure,
     configuration,
     Config,
+    PackageMetadata,
 }  from '@hellocoop/api'
+
+// set name and version to provide in metadata
+import parentPackageJson from '../package.json'
+const { name, version } = parentPackageJson;
+PackageMetadata.setMetadata(name, version);
 
 const convertToHelloRequest = ( req: FastifyRequest, res: FastifyReply ): HelloRequest => {
     return {
@@ -88,6 +92,7 @@ export interface HelloConfig extends FastifyPluginOptions, Config {}
 const helloPlugin: FastifyPluginAsync <HelloConfig> = async (instance, options) => {
     if (!isConfigured)
        configure(options)
+    instance.register(fastifyFormbody)
     instance.decorateRequest('auth', undefined)
     instance.decorateRequest('getAuth', async function () { 
         const dummyResponse: FastifyReply = {} as FastifyReply

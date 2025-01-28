@@ -1,4 +1,4 @@
-import { Config, GenericSync } from '../types'
+import { Config, GenericSync, CommandHandler, Command } from '../types'
 import { Scope, ProviderHint } from '@hellocoop/definitions'
 import { checkSecret } from '@hellocoop/helper-server'
 
@@ -19,6 +19,7 @@ export interface IConfig {
     },
     loginSync?: GenericSync,
     logoutSync?: GenericSync,
+    commandHandler?: CommandHandler,
     cookieToken?: boolean, // include encrypted cookie in auth response
     // built from HELLO_API_ROUTE
     apiRoute: string,

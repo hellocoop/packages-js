@@ -1,8 +1,13 @@
 
 import { Auth, NotLoggedIn } from '@hellocoop/definitions'
-import { configuration } from '@hellocoop/api'
+import { configuration, PackageMetadata } from '@hellocoop/api'
 import { cookies } from 'next/headers'
 import { decryptObj } from '@hellocoop/helper-server'
+
+// set name and version to provide in metadata
+import parentPackageJson from '../package.json'
+const { name, version } = parentPackageJson;
+PackageMetadata.setMetadata(name, version);
 
 // TODO cache decryption
 // import { unstable_cache } from 'next/cache';

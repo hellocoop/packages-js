@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction, text } from 'express'
+import { Router, Request, Response, NextFunction, text, urlencoded } from 'express'
 import { serialize } from 'cookie'
 import { Auth, Claims } from '@hellocoop/definitions'
 import { 
@@ -12,9 +12,14 @@ import {
     isConfigured,
     configure,
     Config,
-    configuration
+    configuration,
+    PackageMetadata,
 } from '@hellocoop/api'
 
+// set name and version to provide in metadata
+import parentPackageJson from '../package.json'
+const { name, version } = parentPackageJson;
+PackageMetadata.setMetadata(name, version);
 
 type ExpressLoginParams = {
     token: string,
@@ -127,6 +132,7 @@ export const auth = function ( config: Config): Router {
 console.log({isConfigured,configuration})
 
     const r = Router()
+    r.use(urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
     r.use(async (req: Request, res: Response, next: NextFunction) => {
         const helloReq = convertToHelloRequest(req,res)
         req.getAuth = async () => { 

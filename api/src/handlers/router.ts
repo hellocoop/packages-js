@@ -5,6 +5,7 @@ import handleCallback from './callback'
 import handleLogin from './login'
 import handleLogout from './logout'
 import handleInvite from './invite'
+import handleCommand from './command'
 // import { handleAuth, handleCookieTokenVerify } from './auth'
 import { handleAuth } from './auth'
 import handleWildcardConsole from './wildcard'
@@ -17,19 +18,18 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
     if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, query, params: req.body }, null, 2))
 
     if (method === 'POST') {
-        // if (query.op === 'verifyCookieToken') {
-        //     return handleCookieTokenVerify(req, res)
-        // }
         const params = req.body
+
         if (!params) {
-            console.log('Invalid request')
+            console.error('Invalid request')
             return res.status(400).send('Invalid request')
         }
-        if (params.iss) {
+        if (params.iss || params.domain_hint || params.login_hint) {
             return initiateLogin(req, res, params)
         }
-
-        // FUTURE - add support for POST of invite event and provisioning events
+        if (params.command_token) {
+            return handleCommand(req, res, params)
+        }
 
         return res.status(400).send('Invalid op parameter')
     }
@@ -77,7 +77,7 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         return handleWildcardConsole(req, res)
     }
 
-    if (query.iss) {        // IdP (Hellō) initiated login
+    if (query.iss || query.domain_hint || query.login_hint) {        // IdP initiated login
         return initiateLogin(req, res, query as any)
     }
 

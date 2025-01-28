@@ -38,7 +38,9 @@
     "prebuild": "rimraf dist node_modules",
     "build": "tsc --declaration",
     "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
-    "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'"
+    "test:debug": "npm run build && docker compose -f ./spec/docker-compose.yml -f ./spec/docker-compose.debug.yml up --build --abort-on-container-exit",
+    "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'",
+    "spec:debug": "wait-on http://mockin:3333/mock && node --inspect-brk=0.0.0.0  ./node_modules/.bin/mocha './spec/**/*.spec.mjs'"
   },
   "peerDependencies": {
     "fastify": "^4"
@@ -53,6 +55,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@fastify/formbody": "^8.0.2",
     "@hellocoop/api": "^2.1.2",
     "dotenv": "^16.3.1",
     "fastify-plugin": "^4.5.1"
