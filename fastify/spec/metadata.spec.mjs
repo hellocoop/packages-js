@@ -7,11 +7,8 @@ const config = {
     client_id: '8c3a40a9-b235-4029-8d16-c70592ca94bb',
 }
 
-const appName = 'Test'
-
-
 const fetchToken = async () => {
-    const results = await fetch('http://mockin:3333/command/mock?client_id='+appName)
+    const results = await fetch('http://mockin:3333/command/mock?client_id='+config.client_id)
     if (!results.ok)
         throw new Error('Failed to fetch command token')
     const json = await results.json()

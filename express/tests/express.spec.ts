@@ -273,8 +273,7 @@ test.describe(`Testing ${APP_HOME}`, () => {
         expect(login_hint).toEqual(loginHintParam)
     })
     test('should get metadata' , async ({ page }) => {
-        const appName = 'Test'
-        const commandTokenRes = await page.request.get(MOCKIN + 'command/mock?client_id=' + appName)
+        const commandTokenRes = await page.request.get(MOCKIN + 'command/mock?client_id=' + config.client_id)
         const { command_token } = await commandTokenRes.json()
         expect(command_token).toBeDefined
         const data = new URLSearchParams({command_token});
