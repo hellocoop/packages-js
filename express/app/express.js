@@ -33,6 +33,34 @@ app.get( "/unauthorized", unauthorized, async ( req, res ) => {
 app.get( "/setAuth", setAuth, ( req, res ) => {
     res.json( req.auth) 
 } );
+
+app.get('/post-test', (req, res) => {
+    const params = Object.entries(req.query).map(([key, value]) => 
+        `<input type="hidden" name="${key}" value="${value}">`
+    ).join('');
+    
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Auto Submit Form</title>
+        </head>
+        <body>
+            <form id="autoForm" action="http://127.0.0.1:3000/api/hellocoop" method="POST">
+                ${params}
+            </form>
+            
+            <script>
+                window.onload = function() {
+                    document.getElementById("autoForm").submit();
+                };
+            </script>
+        </body>
+        </html>
+    `);
+});
 // Create HTTP server
 app.listen(port, () => {
     console.log(`HTTP server listening on port:${port}`);
