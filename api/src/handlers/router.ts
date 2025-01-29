@@ -12,7 +12,7 @@ import handleWildcardConsole from './wildcard'
 import initiateLogin from './initiateLogin'
 import { NotLoggedIn } from '@hellocoop/definitions'    
 
-const router = (req: HelloRequest, res: HelloResponse ) => {
+const router = async (req: HelloRequest, res: HelloResponse ) => {
     const { query, method } = req
 
     if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, query, params: req.body }, null, 2))
@@ -21,10 +21,10 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
         const params = req.body
 
         if (params.iss || params.domain_hint || params.login_hint) {
-            return initiateLogin(req, res, params)
+            return res.redirect(config.apiRoute+'/?'+new URLSearchParams(params as any))
         }
         if (params.command_token) {
-            return handleCommand(req, res, params)
+            return await handleCommand(req, res, params)
         }
         // we don't know how to process the POST
         const keys = Object.keys(params)
@@ -50,17 +50,17 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
             if (config.error) {
                 return res.json(NotLoggedIn)    
             } else {
-                return handleAuth(req, res)                 
+                return await handleAuth(req, res)                 
             } 
         }
         if (query.op === 'login') { // start login flow, redirect to Hellō
-            return handleLogin(req, res)
+            return await handleLogin(req, res)
         }
         if (query.op === 'logout') {     // logout user
-            return handleLogout(req, res)
+            return await handleLogout(req, res)
         }
         if (query.op === 'invite') {    // start invite flow, redirect to Hellō
-            return handleInvite(req, res)
+            return await handleInvite(req, res)
         }
         res.status(500)
         res.send('unknown op parameter:\n'+JSON.stringify(query,null,4))        
@@ -73,15 +73,15 @@ const router = (req: HelloRequest, res: HelloResponse ) => {
     }
 
     if (query.code || query.error) { // authorization response
-        return handleCallback(req, res)
+        return await handleCallback(req, res)
     }
 
     if (query.wildcard_console) {
-        return handleWildcardConsole(req, res)
+        return await handleWildcardConsole(req, res)
     }
 
     if (query.iss || query.domain_hint || query.login_hint) {        // IdP initiated login
-        return initiateLogin(req, res, query as any)
+        return await initiateLogin(req, res, query as any)
     }
 
 
