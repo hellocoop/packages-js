@@ -66,13 +66,6 @@ const verifyCommandToken = async (command_token: string) => {
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: data.toString()
         })
-
-        try {
-            const json = await response.json()
-            console.log('commands.verifyCommandToken: introspection response', json)
-        } catch (e) {
-            console.error('commands.verifyCommandToken: introspection response error', e)
-        }
         if (!response.ok) {
             console.error('commands.verifyCommandToken: introspection failed', response.status)
             return false
