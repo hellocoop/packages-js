@@ -15,7 +15,7 @@ const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
         return
     }
 
-    let redirectURI = config.redirectURI || redirect_uri as string
+    const redirectURI = config.redirectURI || redirect_uri as string
     if (!redirectURI) {
         console.log('Hellō: Discovering API RedirectURI route ...')
         return res.send(redirectURIBounce())        

@@ -3,7 +3,6 @@
 
 import { HelloRequest, HelloResponse } from '../types'
 import { getAuthfromCookies} from '../lib/auth'
-import { redirectURIs } from './login'
 import { redirectURIBounce } from '@hellocoop/helper-server'
 
 import config from '../lib/config'
@@ -21,21 +20,12 @@ const handleInvite = async (req: HelloRequest, res: HelloResponse) => {
     if (!auth.name)       return res.status(401).send('Missing name in auth')
     if(!app_name)         return res.status(400).send('Missing app_name')
 
-    let redirectURI = config.redirectURI as string
-    let host = req.headers()?.host as string
+    const redirectURI = config.redirectURI || redirect_uri as string
     if (!redirectURI) {
-        if (redirectURIs[host]) {
-            redirectURI = redirectURIs[host]
-        } else {
-            if (redirect_uri) {
-                redirectURIs[host] = redirectURI = redirect_uri as string
-                console.log(`Hellō: RedirectURI for ${host} => ${redirectURI}`)
-            } else {            
-                console.log('Hellō: Discovering API RedirectURI route ...')
-                return res.send(redirectURIBounce())        
-            }
-        }
-    }
+        console.log('Hellō: Discovering API RedirectURI route ...')
+        return res.send(redirectURIBounce())        
+    }    
+    
     const parsedRedirectURI = new URL(redirectURI)
     const defaultTargetURI = parsedRedirectURI.origin + '/'
     const defaultPrompt = `${auth.name} has invited you to join ${app_name}`
