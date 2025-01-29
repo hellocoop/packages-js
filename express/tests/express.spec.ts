@@ -275,9 +275,6 @@ test.describe(`Testing ${APP_HOME}`, () => {
     test('should get metadata' , async ({ page }) => {
         const commandTokenRes = await page.request.get(MOCKIN + 'command/mock?client_id=' + config.client_id)
         const { command_token } = await commandTokenRes.json()
-
-console.log({command_token})
-
         expect(command_token).toBeDefined
         const data = new URLSearchParams({command_token});
         const response = await page.request.post(APP_API, {
@@ -289,9 +286,6 @@ console.log({command_token})
         });
         const metadata = await response.json()
         expect(metadata).toBeDefined
-
-    console.log({metadata})
-
         expect(metadata.context).toBeDefined();
         // expect(metadata.context.package_name).toBe();
         expect(metadata.context.package_version).toBeDefined();
