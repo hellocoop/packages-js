@@ -15,6 +15,7 @@ const identifierTypeDescriptions = {
   non: 'Hellō nonce identifier',
   cod: "Hellō authorization code",
   org: "Hellō organization identifier",
+  req: "Internal HTTP request identifier",
   // Admin internal
   pub: 'Hellō publisher identifier',
 };
