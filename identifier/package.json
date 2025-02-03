@@ -20,7 +20,7 @@
   "scripts": {
     "prebuild": "rimraf dist node_modules",
     "build": "node src/build.js",
-    "test": "mocha --require esm test/**/*"
+    "test": "mocha test/**/*"
   },
   "keywords": [
     "identifier",
@@ -31,5 +31,8 @@
   "license": "MIT",
   "dependencies": {
     "nanoid": "^5.0.7"
+  },
+  "devDependencies": {
+    "mocha": "^11.1.0"
   }
 }
