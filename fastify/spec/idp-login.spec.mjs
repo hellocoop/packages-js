@@ -49,7 +49,7 @@ describe('provider initiated login', () => {
 describe('provider initiated login with login_hint', () => {
     let fastify = null
     let cookies = {}
-    const loginHint = 'johnsmith@rsandh.com'
+    const loginHint = 'dan.brown@example.net'
 
     before( async () => {
         fastify = Fastify()
