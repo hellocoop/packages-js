@@ -7,8 +7,6 @@ import {
 } from '../lib/auth'
 
 import { Auth, Claims } from '@hellocoop/definitions'
-// import { decryptObj } from '@hellocoop/helper-server'
-// import config from '../lib//config'
 
 // export type AuthHelloRequest = HelloRequest & {
 //     auth?: Auth
