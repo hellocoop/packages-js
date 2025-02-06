@@ -104,6 +104,6 @@ const onClickHandler = (): void => {
         :style="style"
         @click="onClickHandler"
     >
-        <span v-html="label"></span>
+        <span v-html="label" />
     </button>
 </template>

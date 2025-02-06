@@ -3,10 +3,12 @@ import sveltePlugin from 'eslint-plugin-svelte'
 import * as svelteParser from 'svelte-eslint-parser'
 import tseslint from 'typescript-eslint'
 import globals from 'globals'
+import prettierConfig from 'eslint-config-prettier'
 
 export default [
     ...baseConfig,
     ...sveltePlugin.configs['flat/recommended'],
+    prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
         languageOptions: {
             globals: {
