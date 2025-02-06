@@ -2,13 +2,11 @@ import eslint from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import reactPlugin from 'eslint-plugin-react'
 import vuePlugin from 'eslint-plugin-vue'
 
 export default [
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
-    reactPlugin.configs.flat.recommended,
     ...vuePlugin.configs['flat/recommended'],
     prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
@@ -32,13 +30,6 @@ export default [
             globals: globals.browser,
             parserOptions: {
                 parser: tseslint.parser,
-            },
-        },
-    },
-    {
-        settings: {
-            react: {
-                version: 'detect',
             },
         },
     },
