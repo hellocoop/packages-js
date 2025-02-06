@@ -27,7 +27,9 @@
         "publish:dry": "lerna publish --no-push --no-git-tag-version",
         "publish:canary": "npm run build && lerna publish --canary",
         "---": "-following may be out of date--",
-        "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next"
+        "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next",
+        "format": "prettier --write .",
+        "lint": "prettier --check . && eslint . --fix"
     },
     "author": {
         "name": "Hello Identity Co-op",
@@ -41,11 +43,19 @@
     "license": "MIT",
     "devDependencies": {
         "chai": "^5.1.1",
+        "eslint": "^8.57.1",
+        "eslint-config-prettier": "^10.0.1",
+        "eslint-plugin-react": "^7.37.4",
+        "eslint-plugin-svelte": "^2.46.1",
+        "eslint-plugin-vue": "^9.32.0",
         "esm": "^3.2.25",
         "lerna": "^8.1.8",
         "mocha": "^10.6.0",
         "npm-run-all": "^4.1.5",
+        "prettier": "^3.4.2",
+        "prettier-plugin-svelte": "^3.3.3",
         "rimraf": "^5.0.5",
+        "typescript-eslint": "^8.23.0",
         "wait-on": "^8.0.1"
     },
     "private": true
