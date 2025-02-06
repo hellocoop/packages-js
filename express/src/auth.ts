@@ -1,14 +1,21 @@
-import { Router, Request, Response, NextFunction, text, urlencoded } from 'express'
+import {
+    Router,
+    Request,
+    Response,
+    NextFunction,
+    text,
+    urlencoded,
+} from 'express'
 import { serialize } from 'cookie'
 import { Auth, Claims } from '@hellocoop/definitions'
-import { 
+import {
     router,
-    HelloResponse, 
+    HelloResponse,
     HelloRequest,
-    LoginSyncResponse, 
+    LoginSyncResponse,
     LogoutSyncResponse,
     clearAuthCookieParams,
-    getAuthfromCookies, 
+    getAuthfromCookies,
     isConfigured,
     configure,
     Config,
@@ -18,29 +25,33 @@ import {
 
 // set name and version to provide in metadata
 import parentPackageJson from '../package.json'
-const { name, version } = parentPackageJson;
-PackageMetadata.setMetadata(name, version);
+const { name, version } = parentPackageJson
+PackageMetadata.setMetadata(name, version)
 
 type ExpressLoginParams = {
-    token: string,
-    payload: Claims,
-    target_uri: string,
-    req: Request,
+    token: string
+    payload: Claims
+    target_uri: string
+    req: Request
     res: Response
 }
 
 type ExpressLogoutParams = {
-    req: Request,
+    req: Request
     res: Response
 }
 
-type ExpressLoginSync = (params: ExpressLoginParams) => Promise<LoginSyncResponse>
-type ExpressLogoutSync = (params: ExpressLogoutParams) => Promise<LogoutSyncResponse>
+type ExpressLoginSync = (
+    params: ExpressLoginParams,
+) => Promise<LoginSyncResponse>
+type ExpressLogoutSync = (
+    params: ExpressLogoutParams,
+) => Promise<LogoutSyncResponse>
 
 export type HelloConfig = Omit<Config, 'loginSync' | 'logoutSync'> & {
-    loginSync: ExpressLoginSync;
-    logoutSync: ExpressLogoutSync;
-};
+    loginSync: ExpressLoginSync
+    logoutSync: ExpressLogoutSync
+}
 
 const convertToHelloRequest = (req: Request, res: Response): HelloRequest => {
     return {
@@ -48,15 +59,17 @@ const convertToHelloRequest = (req: Request, res: Response): HelloRequest => {
         query: req.query as { [key: string]: string } | {},
         path: req.path,
         getAuth: () => req.auth,
-        setAuth: (auth: Auth) => { req.auth = auth },
+        setAuth: (auth: Auth) => {
+            req.auth = auth
+        },
         method: req.method,
         body: req.body,
         frameWork: 'express',
-        loginSyncWrapper: (loginSync, params) => { 
-            return loginSync({...params, req, res}) 
+        loginSyncWrapper: (loginSync, params) => {
+            return loginSync({ ...params, req, res })
         },
-        logoutSyncWrapper: (logoutSync) => { 
-            return logoutSync({req, res}) 
+        logoutSyncWrapper: (logoutSync) => {
+            return logoutSync({ req, res })
         },
     }
 }
@@ -76,36 +89,37 @@ const convertToHelloResponse = (res: Response): HelloResponse => {
         setHeader: (name: string, value: string | string[]) => {
             if (Array.isArray(value)) {
                 if (name.toLowerCase() === 'set-cookie') {
-                    value.forEach(val => res.setHeader(name, val)); // Append each cookie individually
+                    value.forEach((val) => res.setHeader(name, val)) // Append each cookie individually
                 } else {
-                    res.setHeader(name, value.join(', ')); // Combine array values into a single string separated by commas
+                    res.setHeader(name, value.join(', ')) // Combine array values into a single string separated by commas
                 }
             } else {
-                res.setHeader(name, value);
+                res.setHeader(name, value)
             }
-        },    
-        getHeaders: () => { throw( new Error('getHeaders not implemented')) }, // not implemented    
-        status: (statusCode: number) => { 
+        },
+        getHeaders: () => {
+            throw new Error('getHeaders not implemented')
+        }, // not implemented
+        status: (statusCode: number) => {
             res.status(statusCode)
             return {
-                send: (data: any) => res.send(data)
+                send: (data: any) => res.send(data),
             }
         },
     }
 }
 
-
 declare global {
     namespace Express {
-      interface Request {
-        auth?: Auth;
-        getAuth(): Promise<Auth>;
-      }
-      interface Response {
-        clearAuth(): void;
-      }
+        interface Request {
+            auth?: Auth
+            getAuth(): Promise<Auth>
+        }
+        interface Response {
+            clearAuth(): void
+        }
     }
-  }
+}
 
 // // Express middleware for auth
 // app.use( async (req: Request, res: Response, next: NextFunction) => {
@@ -123,20 +137,19 @@ declare global {
 
 // Configure plugin options if needed
 
-
-export const auth = function ( config: Config): Router {
+export const auth = function (config: Config): Router {
     if (!isConfigured) {
         configure(config as Config)
     }
 
-console.log({isConfigured,configuration})
+    console.log({ isConfigured, configuration })
 
     const r = Router()
-    r.use(urlencoded({ extended: true })); // Parse application/x-www-form-urlencoded
+    r.use(urlencoded({ extended: true })) // Parse application/x-www-form-urlencoded
     r.use(async (req: Request, res: Response, next: NextFunction) => {
-        const helloReq = convertToHelloRequest(req,res)
-        req.getAuth = async () => { 
-            req.auth = await getAuthfromCookies(helloReq) 
+        const helloReq = convertToHelloRequest(req, res)
+        req.getAuth = async () => {
+            req.auth = await getAuthfromCookies(helloReq)
             return req.auth
         }
         res.clearAuth = () => {
@@ -145,18 +158,25 @@ console.log({isConfigured,configuration})
         }
         next()
     })
-    
-    r.post(configuration.apiRoute, text(), async (req: Request, res: Response ) => {
-        const helloReq = convertToHelloRequest(req,res)
-        const helloRes = convertToHelloResponse(res)
-        await router(helloReq, helloRes)   
-    })
 
-    r.get(configuration.apiRoute, text(), async (req: Request, res: Response ) => {
-        const helloReq = convertToHelloRequest(req,res)
-        const helloRes = convertToHelloResponse(res)
-        await router(helloReq, helloRes)   
-    })
+    r.post(
+        configuration.apiRoute,
+        text(),
+        async (req: Request, res: Response) => {
+            const helloReq = convertToHelloRequest(req, res)
+            const helloRes = convertToHelloResponse(res)
+            await router(helloReq, helloRes)
+        },
+    )
+
+    r.get(
+        configuration.apiRoute,
+        text(),
+        async (req: Request, res: Response) => {
+            const helloReq = convertToHelloRequest(req, res)
+            const helloRes = convertToHelloResponse(res)
+            await router(helloReq, helloRes)
+        },
+    )
     return r
 }
-

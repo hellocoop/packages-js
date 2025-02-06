@@ -7,7 +7,7 @@ const defaultOptions = {
     suffix: ' Fastify App',
 }
 
-const fastify = async ( options ) => {
+const fastify = async (options) => {
     await express({ ...defaultOptions, ...options }, 'fastify')
 }
 

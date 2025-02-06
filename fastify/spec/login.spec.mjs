@@ -8,23 +8,23 @@ const config = {
 }
 
 const loggedOut = {
-    isLoggedIn: false
+    isLoggedIn: false,
 }
 const loggedIn = {
     isLoggedIn: true,
-    sub: "00000000-0000-0000-0000-00000000",
-    name: "John Smith",
+    sub: '00000000-0000-0000-0000-00000000',
+    name: 'John Smith',
     iat: 123,
-    email: "john.smith@example.com",
-    picture: "https://pictures.hello.coop/mock/portrait-of-john-smith.jpeg",
-    email_verified: true
+    email: 'john.smith@example.com',
+    picture: 'https://pictures.hello.coop/mock/portrait-of-john-smith.jpeg',
+    email_verified: true,
 }
 
 describe('login', () => {
     let fastify = null
     let cookies = {}
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -44,7 +44,7 @@ describe('login', () => {
         expect(json).to.eql(loggedOut)
     })
 
-    let loginRedirect;
+    let loginRedirect
     it('start op=login', async () => {
         const response = await fastify.inject({
             method: 'GET',
@@ -59,16 +59,20 @@ describe('login', () => {
         loginRedirect = response.headers.location
     })
 
-    let loginResponseParameters;
+    let loginResponseParameters
     it('log in to mockin', async () => {
         try {
-            const response = await fetch(loginRedirect+'&mock=clayton', { redirect: 'manual'})
+            const response = await fetch(loginRedirect + '&mock=clayton', {
+                redirect: 'manual',
+            })
             const location = response.headers.get('location')
             const redirectURL = new URL(location)
-            loginResponseParameters = Object.fromEntries(redirectURL.searchParams.entries())
+            loginResponseParameters = Object.fromEntries(
+                redirectURL.searchParams.entries(),
+            )
         } catch (e) {
             console.error('Error fetching loginRedirect', e)
-            return {error: e}
+            return { error: e }
         }
         expect(loginResponseParameters).to.exist
     })
@@ -76,7 +80,9 @@ describe('login', () => {
     it('complete login', async () => {
         const response = await fastify.inject({
             method: 'GET',
-            url: '/api/hellocoop?' + new URLSearchParams(loginResponseParameters).toString(),
+            url:
+                '/api/hellocoop?' +
+                new URLSearchParams(loginResponseParameters).toString(),
             cookies,
         })
         utils.harvestCookies(cookies, response)
@@ -99,7 +105,7 @@ describe('login', () => {
         expect(response.statusCode).to.eql(200)
         const json = JSON.parse(response.body)
         expect(json).to.exist
-        json.iat = 123; //reset
+        json.iat = 123 //reset
         expect(json).to.eql(loggedIn)
     })
 })

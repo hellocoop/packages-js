@@ -17,4 +17,8 @@ export * from './logout.js'
 
 //Provider
 // @ts-ignore tbd - has no exported member?
-export { default as HelloProvider, routeConfig, getHelloProviderContext } from './Provider.svelte'
+export {
+    default as HelloProvider,
+    routeConfig,
+    getHelloProviderContext,
+} from './Provider.svelte'

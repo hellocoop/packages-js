@@ -16,11 +16,11 @@ interface CommonButtonProps {
     theme?: Button.Theme
     hover?: Button.Hover
     targetURI?: string
-    providerHint?: ProviderHint[] | string,
-    promptLogin?: boolean,
-    promptConsent?: boolean,
-    loginHint?: string,
-    domainHint?: string,
+    providerHint?: ProviderHint[] | string
+    promptLogin?: boolean
+    promptConsent?: boolean
+    loginHint?: string
+    domainHint?: string
 }
 
 export interface BaseButtonProps extends CommonButtonProps {
@@ -36,7 +36,6 @@ export interface UpdateButtonProps extends CommonButtonProps {
     update?: boolean
 }
 
-
 function BaseButton({
     scope,
     update = false,
@@ -44,26 +43,30 @@ function BaseButton({
     providerHint,
     label,
     style,
-    color = "black",
-    theme = "ignore-light",
-    hover = "pop",
+    color = 'black',
+    theme = 'ignore-light',
+    hover = 'pop',
     showLoader = false,
     disabled = false,
     promptLogin = false,
     promptConsent = false,
     loginHint,
-    domainHint
-} : BaseButtonProps) {
+    domainHint,
+}: BaseButtonProps) {
     //check if dev has added Hellō stylesheet to pages with Hellō buttons
     if (typeof window != 'undefined' && !checkedForStylesheet) {
-        const hasStylesheet = Array.from(document.head.getElementsByTagName('link')).find(
+        const hasStylesheet = Array.from(
+            document.head.getElementsByTagName('link'),
+        ).find(
             (element) =>
                 element.getAttribute('rel') === 'stylesheet' &&
-                element.getAttribute('href')?.startsWith(Button.STYLES_URL)
+                element.getAttribute('href')?.startsWith(Button.STYLES_URL),
         )
 
-        if(!hasStylesheet)
-            console.warn('Could not find Hellō stylesheet. Please add to pages with Hellō buttons. See http://hello.dev/docs/buttons/#stylesheet for more info.')
+        if (!hasStylesheet)
+            console.warn(
+                'Could not find Hellō stylesheet. Please add to pages with Hellō buttons. See http://hello.dev/docs/buttons/#stylesheet for more info.',
+            )
 
         checkedForStylesheet = true
     }
@@ -72,41 +75,40 @@ function BaseButton({
 
     const [clicked, setClicked] = useState(false)
 
-    const loginRoute = new URL(routeConfig.login, "https://example.com") // hack so we can use URL()
+    const loginRoute = new URL(routeConfig.login, 'https://example.com') // hack so we can use URL()
 
     if (scope) {
-        if(typeof scope == 'string')
-            loginRoute.searchParams.set("scope", scope)
-        else
-            loginRoute.searchParams.set("scope", scope.join(" "))
+        if (typeof scope == 'string')
+            loginRoute.searchParams.set('scope', scope)
+        else loginRoute.searchParams.set('scope', scope.join(' '))
     }
 
-    targetURI = targetURI || (typeof window != 'undefined' && window.location.pathname) || ""
-                             //window can be undefined when running server-side
-    loginRoute.searchParams.set("target_uri", targetURI)
-    
-    if (update)
-        loginRoute.searchParams.set("prompt", "consent")
+    targetURI =
+        targetURI ||
+        (typeof window != 'undefined' && window.location.pathname) ||
+        ''
+    //window can be undefined when running server-side
+    loginRoute.searchParams.set('target_uri', targetURI)
 
-    if (loginHint)
-        loginRoute.searchParams.set("login_hint", loginHint)
+    if (update) loginRoute.searchParams.set('prompt', 'consent')
 
-    if (domainHint)
-        loginRoute.searchParams.set("domain_hint", domainHint)
+    if (loginHint) loginRoute.searchParams.set('login_hint', loginHint)
+
+    if (domainHint) loginRoute.searchParams.set('domain_hint', domainHint)
 
     if (providerHint) {
-        if(typeof providerHint == 'string')
-            loginRoute.searchParams.set("provider_hint", providerHint)
+        if (typeof providerHint == 'string')
+            loginRoute.searchParams.set('provider_hint', providerHint)
         else
-            loginRoute.searchParams.set("provider_hint", providerHint.join(" "))
+            loginRoute.searchParams.set('provider_hint', providerHint.join(' '))
     }
 
     if (promptLogin && promptConsent) {
-        loginRoute.searchParams.set("prompt", "login consent")
+        loginRoute.searchParams.set('prompt', 'login consent')
     } else if (promptLogin) {
-        loginRoute.searchParams.set("prompt", "login")
+        loginRoute.searchParams.set('prompt', 'login')
     } else if (promptConsent) {
-        loginRoute.searchParams.set("prompt", "consent")
+        loginRoute.searchParams.set('prompt', 'consent')
     }
 
     const onClickHandler = (): void => {
@@ -116,20 +118,35 @@ function BaseButton({
     }
 
     return (
-        <button onClick={onClickHandler} disabled={disabled || clicked} style={style} className={`hello-btn ${helloBtnClass} ${Button.HOVER_MAPPING[hover]} ${(showLoader || clicked) ? 'hello-btn-loader' : ''}`}>
+        <button
+            onClick={onClickHandler}
+            disabled={disabled || clicked}
+            style={style}
+            className={`hello-btn ${helloBtnClass} ${Button.HOVER_MAPPING[hover]} ${showLoader || clicked ? 'hello-btn-loader' : ''}`}
+        >
             {label}
         </button>
     )
 }
 
 export function ContinueButton(props: LoginButtonProps) {
-    return <BaseButton label="ō&nbsp;&nbsp;&nbsp;Continue with Hellō" {...props} />
+    return (
+        <BaseButton label="ō&nbsp;&nbsp;&nbsp;Continue with Hellō" {...props} />
+    )
 }
 
 export function LoginButton(props: LoginButtonProps) {
-    return <BaseButton label="ō&nbsp;&nbsp;&nbsp;Log in with Hellō" {...props} />
+    return (
+        <BaseButton label="ō&nbsp;&nbsp;&nbsp;Log in with Hellō" {...props} />
+    )
 }
 
 export function UpdateProfileButton(props: UpdateButtonProps) {
-    return <BaseButton label="ō&nbsp;&nbsp;&nbsp;Update Profile with Hellō" {...props} update={true} />
+    return (
+        <BaseButton
+            label="ō&nbsp;&nbsp;&nbsp;Update Profile with Hellō"
+            {...props}
+            update={true}
+        />
+    )
 }

@@ -10,18 +10,24 @@ import handleCommand from './command'
 import { handleAuth } from './auth'
 import handleWildcardConsole from './wildcard'
 import initiateLogin from './initiateLogin'
-import { NotLoggedIn } from '@hellocoop/definitions'    
+import { NotLoggedIn } from '@hellocoop/definitions'
 
-const router = async (req: HelloRequest, res: HelloResponse ) => {
+const router = async (req: HelloRequest, res: HelloResponse) => {
     const { query, method } = req
 
-    if (config.logDebug) console.log('\n@hellocoop/api:\n', JSON.stringify({ method, query, params: req.body }, null, 2))
+    if (config.logDebug)
+        console.log(
+            '\n@hellocoop/api:\n',
+            JSON.stringify({ method, query, params: req.body }, null, 2),
+        )
 
     if (method === 'POST') {
         const params = req.body
 
         if (params.iss || params.domain_hint || params.login_hint) {
-            return res.redirect(config.apiRoute+'/?'+new URLSearchParams(params as any))
+            return res.redirect(
+                config.apiRoute + '/?' + new URLSearchParams(params as any),
+            )
         }
         if (params.command_token) {
             return await handleCommand(req, res, params)
@@ -32,7 +38,7 @@ const router = async (req: HelloRequest, res: HelloResponse ) => {
             console.error('No POST parameters found')
             return res.status(400).send('Invalid request')
         }
-        const message = 'Unknown POST parameters: '+JSON.stringify(keys)
+        const message = 'Unknown POST parameters: ' + JSON.stringify(keys)
         console.error(message)
         return res.status(400).send(message)
     }
@@ -40,39 +46,46 @@ const router = async (req: HelloRequest, res: HelloResponse ) => {
     if (!query) {
         // Q: repurpose as returning configuration if content-type is application/json
         console.error(new Error('No query parameters'))
-        return res.redirect( config.routes.loggedOut || '/')
+        return res.redirect(config.routes.loggedOut || '/')
     }
 
-    if (method !== 'GET')
-        return res.status(400).send('Method not allowed')
-    if (query.op) { // not a protocol flow
+    if (method !== 'GET') return res.status(400).send('Method not allowed')
+    if (query.op) {
+        // not a protocol flow
         if (query.op === 'auth' || query.op === 'getAuth') {
             if (config.error) {
-                return res.json(NotLoggedIn)    
+                return res.json(NotLoggedIn)
             } else {
-                return await handleAuth(req, res)                 
-            } 
+                return await handleAuth(req, res)
+            }
         }
-        if (query.op === 'login') { // start login flow, redirect to Hellō
+        if (query.op === 'login') {
+            // start login flow, redirect to Hellō
             return await handleLogin(req, res)
         }
-        if (query.op === 'logout') {     // logout user
+        if (query.op === 'logout') {
+            // logout user
             return await handleLogout(req, res)
         }
-        if (query.op === 'invite') {    // start invite flow, redirect to Hellō
+        if (query.op === 'invite') {
+            // start invite flow, redirect to Hellō
             return await handleInvite(req, res)
         }
         res.status(500)
-        res.send('unknown op parameter:\n'+JSON.stringify(query,null,4))        
+        res.send('unknown op parameter:\n' + JSON.stringify(query, null, 4))
         return
     }
-    if (config.error) { // not able to process requests
+    if (config.error) {
+        // not able to process requests
         res.status(500)
-        res.send('Missing configuration:\n'+JSON.stringify(config.error,null,4))
+        res.send(
+            'Missing configuration:\n' + JSON.stringify(config.error, null, 4),
+        )
         return
     }
 
-    if (query.code || query.error) { // authorization response
+    if (query.code || query.error) {
+        // authorization response
         return await handleCallback(req, res)
     }
 
@@ -80,13 +93,13 @@ const router = async (req: HelloRequest, res: HelloResponse ) => {
         return await handleWildcardConsole(req, res)
     }
 
-    if (query.iss || query.domain_hint || query.login_hint) {        // IdP initiated login
+    if (query.iss || query.domain_hint || query.login_hint) {
+        // IdP initiated login
         return await initiateLogin(req, res, query as any)
     }
 
-
     res.status(500)
-    res.send('unknown query:\n'+JSON.stringify(query,null,4))
+    res.send('unknown query:\n' + JSON.stringify(query, null, 4))
 }
 
 export default router

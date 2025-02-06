@@ -1,18 +1,16 @@
-
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-  "include": ["src"],
-  "exclude": ["node_modules", "./**/dist"],
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "declarationMap": true,
-    "declaration": true,
-    "rootDir": "./src",
-    "target": "ES2022",
-    "strict": true,
-    "outDir": "./dist",
-    "module": "CommonJS",           // Use CommonJS for module system
-    "moduleResolution": "node"      // Set moduleResolution to "node" for compatibility with Node.js 18
-  }
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "include": ["src"],
+    "exclude": ["node_modules", "./**/dist"],
+    "compilerOptions": {
+        "resolveJsonModule": true,
+        "declarationMap": true,
+        "declaration": true,
+        "rootDir": "./src",
+        "target": "ES2022",
+        "strict": true,
+        "outDir": "./dist",
+        "module": "CommonJS", // Use CommonJS for module system
+        "moduleResolution": "node" // Set moduleResolution to "node" for compatibility with Node.js 18
+    }
 }
-

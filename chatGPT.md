@@ -9,13 +9,13 @@ In your `shared` directory, set up a `tsconfig.json` that allows it to be refere
 ```json
 // shared/tsconfig.json
 {
-  "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "outDir": "./dist",
-    // Other necessary options...
-  },
-  "include": ["src/**/*"]
+    "compilerOptions": {
+        "composite": true,
+        "declaration": true,
+        "outDir": "./dist"
+        // Other necessary options...
+    },
+    "include": ["src/**/*"]
 }
 ```
 
@@ -28,17 +28,15 @@ Add references to the shared directory in your `nextjs` and `express` projects' 
 ```json
 // nextjs/tsconfig.json and express/tsconfig.json
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/dist/*"]
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@shared/*": ["../shared/dist/*"]
+        }
+        // Other necessary options...
     },
-    // Other necessary options...
-  },
-  "references": [
-    { "path": "../shared" }
-  ],
-  "include": ["src/**/*"]
+    "references": [{ "path": "../shared" }],
+    "include": ["src/**/*"]
 }
 ```
 
@@ -63,7 +61,7 @@ When you run `npm run build`, it will compile the shared directory first, then c
 When you import from the shared directory within your `nextjs` and `express` packages, use the path alias set up in `tsconfig.json`. For example:
 
 ```typescript
-import { sharedUtility } from '@shared/sharedUtility';
+import { sharedUtility } from '@shared/sharedUtility'
 ```
 
 TypeScript and the build process will take care of pulling in the necessary files.
@@ -83,8 +81,7 @@ This setup allows for:
 
 With this structure, the compiled JavaScript files that are output from the `shared` package will not be duplicated across the `dist` directories of `nextjs` and `express`. Instead, they will be included in the build output of each consuming package based on actual usage, which is managed by TypeScript's project references and build system.
 
-
----------
+---
 
 Yes, you can use `--watch` with the `--build` mode in TypeScript to watch for file changes and recompile as necessary. When you use `--watch` (or `-w`) with `--build` (or `-b`), TypeScript will monitor all specified projects and their dependencies for changes and perform an incremental rebuild when needed.
 
@@ -102,15 +99,13 @@ Here's an example of how you might set it in your `tsconfig.json`:
 
 ```json
 {
-  "compilerOptions": {
-    "declaration": true,
-    "outDir": "./dist",
-    // other options...
-  },
-  "include": [
-    "src/**/*"
-  ],
-  // references if you are using project references...
+    "compilerOptions": {
+        "declaration": true,
+        "outDir": "./dist"
+        // other options...
+    },
+    "include": ["src/**/*"]
+    // references if you are using project references...
 }
 ```
 
@@ -120,7 +115,7 @@ It's worth noting that in `--build` mode, TypeScript will automatically rebuild 
 
 Always refer to the version of TypeScript you're using, as the behavior and available flags can change over time, and newer versions might have added features or changed how some of the flags work.
 
--------
+---
 
 To reconfigure your `tsconfig.json` for the `express` package to use project references and share code from the `shared` package, you can modify it as follows:
 
@@ -140,25 +135,23 @@ Here's how your `tsconfig.json` could look:
 
 ```json
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-  "compilerOptions": {
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "baseUrl": ".", // Changed from "./src/" to "."
-    "target": "ES2019",
-    "strict": true,
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "outDir": "./dist",
-    // If you need other paths you can still include them
-    "paths": {
-      "@shared/*": ["../shared/dist/*"]
-    }
-  },
-  "references": [
-    { "path": "../shared" }
-  ]
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "compilerOptions": {
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "baseUrl": ".", // Changed from "./src/" to "."
+        "target": "ES2019",
+        "strict": true,
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "outDir": "./dist",
+        // If you need other paths you can still include them
+        "paths": {
+            "@shared/*": ["../shared/dist/*"]
+        }
+    },
+    "references": [{ "path": "../shared" }]
 }
 ```
 
@@ -168,7 +161,7 @@ Please note that the shared package must be built before you build your express 
 
 After making these changes, you should be able to build your express package with project references by running `tsc -b`. If you want to watch for changes and rebuild automatically during development, you can use `tsc -b --watch`.
 
------------
+---
 
 Your `package.json` looks well-structured for a typical TypeScript project. Since you're looking to integrate a shared package and utilize TypeScript project references, here are the modifications and considerations for your `scripts` and possibly other fields:
 
@@ -186,6 +179,7 @@ Your `package.json` looks well-structured for a typical TypeScript project. Sinc
 ```
 
 With the above setup:
+
 - `clean` removes the `dist` directory to ensure a fresh build.
 - `build:shared` will build the shared directory first.
 - `prebuild` runs before `build` and will clean and then build the shared code.

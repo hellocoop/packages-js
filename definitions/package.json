@@ -1,45 +1,45 @@
 {
-  "name": "@hellocoop/definitions",
-  "version": "1.0.9",
-  "description": "Constants and Types for packages-js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hellocoop/packages.git"
-  },
-  "homepage": "https://www.hello.dev/docs/sdks/types",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "./dist/index.d.ts",
-    "./dist/index.js"
-  ],
-  "keywords": [
-    "hello",
-    "openid",
-    "oidc",
-    "sso"
-  ],
-  "author": {
-    "name": "Hello Identity Co-op",
-    "email": "contact@hello.coop",
-    "url": "https://hello.coop"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hellocoop/packages/issues"
-  },
-  "scripts": {
-    "watch": "tsc --watch --declaration",
-    "prebuild": "rimraf dist node_modules",
-    "build": "tsc --declaration"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "devDependencies": {
-    "rimraf": "^5.0.1"
-  },
-  "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+    "name": "@hellocoop/definitions",
+    "version": "1.0.9",
+    "description": "Constants and Types for packages-js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://www.hello.dev/docs/sdks/types",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "types": "./dist/index.d.ts",
+    "files": [
+        "./dist/index.d.ts",
+        "./dist/index.js"
+    ],
+    "keywords": [
+        "hello",
+        "openid",
+        "oidc",
+        "sso"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "watch": "tsc --watch --declaration",
+        "prebuild": "rimraf dist node_modules",
+        "build": "tsc --declaration"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "devDependencies": {
+        "rimraf": "^5.0.1"
+    },
+    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }

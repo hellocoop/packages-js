@@ -7,7 +7,6 @@ import type { SerializeOptions } from 'cookie'
 //     getHeaders: () => Record<string, string>,
 // }
 
-
 // export type CallbackResponse = {
 //     getHeaders: () => Record<string, string>,
 //     setHeader: (key: string, value: string | string[]) => void,
@@ -16,78 +15,79 @@ import type { SerializeOptions } from 'cookie'
 
 export type GenericSync = (params: any) => Promise<any>
 
-
 export type LoginSyncParams = {
-    token: string,
-    payload: Claims,
-    target_uri: string,
+    token: string
+    payload: Claims
+    target_uri: string
 }
 
 export type LoginSyncResponse = {
-    accessDenied?: boolean,
-    target_uri?: string,
-    updatedAuth?: {[key: string]: any}
+    accessDenied?: boolean
+    target_uri?: string
+    updatedAuth?: { [key: string]: any }
 }
 
 export type LogoutSyncResponse = null | Error
 
+type LoginSyncWrapper = (
+    loginSync: GenericSync,
+    params: LoginSyncParams,
+) => Promise<LoginSyncResponse>
 
-type LoginSyncWrapper = (loginSync: GenericSync, params: LoginSyncParams) => Promise<LoginSyncResponse>
-
-
-type LogoutSyncWrapper = (logoutSync: GenericSync) => Promise<LogoutSyncResponse>
+type LogoutSyncWrapper = (
+    logoutSync: GenericSync,
+) => Promise<LogoutSyncResponse>
 
 export interface Config {
-    client_id?: string,
-    scope?: Scope[],
-    provider_hint?: ProviderHint[],
-    sameSiteStrict?: boolean,
-    loginSync?: GenericSync,
-    logoutSync?: GenericSync,
+    client_id?: string
+    scope?: Scope[]
+    provider_hint?: ProviderHint[]
+    sameSiteStrict?: boolean
+    loginSync?: GenericSync
+    logoutSync?: GenericSync
     routes?: {
-        loggedIn?: string,
-        loggedOut?: string,
+        loggedIn?: string
+        loggedOut?: string
         error?: string
-    },
-    cookieToken?: boolean,
-    logConfig?: boolean,
-    apiRoute?: string,
+    }
+    cookieToken?: boolean
+    logConfig?: boolean
+    apiRoute?: string
 }
 
 export type HelloRequest = {
-    getAuth: () => Auth | undefined,
-    headers: () => { [key: string]: string };
-    path: string;
-    query: { [key: string]: string };
-    setAuth: ( auth: Auth) => void,
-    method: string,
-    body: any,
-    loginSyncWrapper: LoginSyncWrapper,
-    logoutSyncWrapper: LogoutSyncWrapper,
-    frameWork: string,
-};
-  
+    getAuth: () => Auth | undefined
+    headers: () => { [key: string]: string }
+    path: string
+    query: { [key: string]: string }
+    setAuth: (auth: Auth) => void
+    method: string
+    body: any
+    loginSyncWrapper: LoginSyncWrapper
+    logoutSyncWrapper: LogoutSyncWrapper
+    frameWork: string
+}
+
 export type HelloResponse = {
-    clearAuth: () => void,
-    send: (data: string) => void;
-    json: ( data : any ) => void;
-    redirect: (url: string) => void;
-    setCookie: (name: string, value: string, options: SerializeOptions) => void;
-    setHeader: (name: string, value: string | string[]) => void;
-    status: (statusCode: number) => { send: (data: any) => void };
+    clearAuth: () => void
+    send: (data: string) => void
+    json: (data: any) => void
+    redirect: (url: string) => void
+    setCookie: (name: string, value: string, options: SerializeOptions) => void
+    setHeader: (name: string, value: string | string[]) => void
+    status: (statusCode: number) => { send: (data: any) => void }
     getHeaders: () => Record<string, string>
-};
+}
 
-
-export type Command
-    = 'metadata' 
-    | 'unauthorize' 
-    | 'activate' 
-    | 'suspend' 
-    | 'reactivate' 
-    | 'archive' 
-    | 'restore' 
-    | 'delete' 
+export type Command =
+    | 'metadata'
+    | 'unauthorize'
+    | 'activate'
+    | 'suspend'
+    | 'reactivate'
+    | 'archive'
+    | 'restore'
+    | 'delete'
     | 'audit_tenant'
     | 'unauthorize_tenant'
     | 'suspend_tenant'
@@ -95,12 +95,12 @@ export type Command
     | 'delete_tenant'
 
 export type CommandClaims = {
-    iss: string,
-    sub: string,
-    command: Command,
-    tenant?: string,
+    iss: string
+    sub: string
+    command: Command
+    tenant?: string
     groups?: string[]
     // add in all other identity claims from Hellō
 }
 
-export type CommandHandler = ( res: HelloResponse, claims: CommandClaims  ) => void
+export type CommandHandler = (res: HelloResponse, claims: CommandClaims) => void

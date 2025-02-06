@@ -1,6 +1,6 @@
 {
     "extends": "@tsconfig/node18/tsconfig.json",
-    "include": ["../src/common/*.ts","../src/browser/*.ts"],
+    "include": ["../src/common/*.ts", "../src/browser/*.ts"],
     "exclude": ["node_modules", "./**/dist"],
     "compilerOptions": {
         "lib": ["dom"],
@@ -10,4 +10,4 @@
         "strict": true,
         "outDir": "./dist"
     }
-  }
+}

@@ -18,7 +18,6 @@ A package to add login and registration with Hellō to an Fastify application.
 
 [Hellō Fastify SDK documentation](https://www.hello.dev/docs/sdks/fastify)
 
-
 ## [@hellocoop/nextjs](./nextjs/)
 
 A package to add login and registration with Hellō to a Next.js application.
@@ -39,10 +38,9 @@ Svelte components for Hellō - BETA
 
 [Hellō React SDK documentation](https://www.hello.dev/docs/sdks/svelte)
 
-
 ## [@hellocoop/quickstart](./quickstart/)
 
-A CLI and nodejs package to create or retrieve a Hellō `client_id`. 
+A CLI and nodejs package to create or retrieve a Hellō `client_id`.
 
 [Quickstart CLI and API Documentation](https://www.hello.dev/docs/sdks/quickstart)
 
@@ -56,17 +54,15 @@ A set of client side helper functions for the Hellō OpenID Connect Provider.
 
 [Hellō core / client SDK documentation](https://www.hello.dev/docs/sdks/helper/)
 
-
 # Publishing New Versions
 
 - make updates and commit changes to repo
 - `npx lerna version` will then see which workspaces have changes and prompt to update the version, and all dependent versions
 
-setup with 
+setup with
 
 `npx lerna init --independent`
 
 `lerna publish from-package` will only publish packages that have a different version then what is published
 
 `lerna publish` will prompt to update the version of the package as well
-

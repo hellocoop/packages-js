@@ -1,14 +1,14 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-  "include": ["../src/common/*.ts","../src/server/*.ts"],
-  "exclude": ["node_modules", "./**/dist"],
-  "compilerOptions": {
-      "lib": ["dom"],
-      "declarationMap": true,
-      "declaration": true,
-      "baseUrl": "../",
-      "target": "es2019",
-      "strict": true,
-      "outDir": "./dist"
-  }
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "include": ["../src/common/*.ts", "../src/server/*.ts"],
+    "exclude": ["node_modules", "./**/dist"],
+    "compilerOptions": {
+        "lib": ["dom"],
+        "declarationMap": true,
+        "declaration": true,
+        "baseUrl": "../",
+        "target": "es2019",
+        "strict": true,
+        "outDir": "./dist"
+    }
 }

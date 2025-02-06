@@ -1,64 +1,64 @@
 {
-  "name": "@hellocoop/fastify",
-  "version": "1.14.6",
-  "description": "Fastify SDK for Hellō https://hello.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hellocoop/packages.git"
-  },
-  "homepage": "https://www.hello.dev/docs/sdks/fastify",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "files": [
-    "dist/"
-  ],
-  "keywords": [
-    "fastify",
-    "nodejs",
-    "node.js",
-    "hello",
-    "openid",
-    "oidc",
-    "sso"
-  ],
-  "author": {
-    "name": "Hello Identity Co-op",
-    "email": "contact@hello.coop",
-    "url": "https://hello.coop"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hellocoop/packages/issues"
-  },
-  "scripts": {
-    "watch": "tsc --watch --declaration",
-    "prebuild": "rimraf dist node_modules",
-    "build": "tsc --declaration",
-    "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
-    "test:debug": "npm run build && docker compose -f ./spec/docker-compose.yml -f ./spec/docker-compose.debug.yml up --build --abort-on-container-exit",
-    "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'",
-    "spec:debug": "wait-on http://mockin:3333/mock && node --inspect-brk=0.0.0.0  ./node_modules/.bin/mocha './spec/**/*.spec.mjs'"
-  },
-  "peerDependencies": {
-    "fastify": "^4"
-  },
-  "devDependencies": {
-    "@tsconfig/node18": "^18.2.2",
-    "fastify": "^5",
-    "rimraf": "^5.0.1",
-    "typescript": "^5.2.2"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "dependencies": {
-    "@fastify/formbody": "^8.0.2",
-    "@hellocoop/api": "^2.2.7",
-    "dotenv": "^16.3.1",
-    "fastify-plugin": "^4.5.1"
-  },
-  "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+    "name": "@hellocoop/fastify",
+    "version": "1.14.6",
+    "description": "Fastify SDK for Hellō https://hello.dev",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://www.hello.dev/docs/sdks/fastify",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "files": [
+        "dist/"
+    ],
+    "keywords": [
+        "fastify",
+        "nodejs",
+        "node.js",
+        "hello",
+        "openid",
+        "oidc",
+        "sso"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "watch": "tsc --watch --declaration",
+        "prebuild": "rimraf dist node_modules",
+        "build": "tsc --declaration",
+        "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
+        "test:debug": "npm run build && docker compose -f ./spec/docker-compose.yml -f ./spec/docker-compose.debug.yml up --build --abort-on-container-exit",
+        "spec": "wait-on http://mockin:3333/mock && mocha './spec/**/*.spec.mjs'",
+        "spec:debug": "wait-on http://mockin:3333/mock && node --inspect-brk=0.0.0.0  ./node_modules/.bin/mocha './spec/**/*.spec.mjs'"
+    },
+    "peerDependencies": {
+        "fastify": "^4"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.2",
+        "fastify": "^5",
+        "rimraf": "^5.0.1",
+        "typescript": "^5.2.2"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@fastify/formbody": "^8.0.2",
+        "@hellocoop/api": "^2.2.7",
+        "dotenv": "^16.3.1",
+        "fastify-plugin": "^4.5.1"
+    },
+    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }

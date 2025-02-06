@@ -1,6 +1,6 @@
-export type { 
-    Config as HelloConfig, 
-    LoginSyncResponse, 
+export type {
+    Config as HelloConfig,
+    LoginSyncResponse,
     LogoutSyncResponse,
     LoginSyncParams,
 } from '@hellocoop/api'
