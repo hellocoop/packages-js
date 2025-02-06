@@ -52,7 +52,7 @@ HELLO_COOKIE_SECRET='${session_secret}'`
         const envFile = process.cwd() + '/.env'
 
         try {
-            const err = fs.appendFileSync(envFile, helloConfig)
+            fs.appendFileSync(envFile, helloConfig)
         } catch (err) {
             console.err(err)
             return err

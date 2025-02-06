@@ -4,8 +4,8 @@
 
 // we will get the crypto object from the parent package
 
-var crypto: any
-export var uuidv4: any
+let crypto: any
+export let uuidv4: any
 
 export const setCrypto = function (c: any) {
     crypto = c

@@ -4,6 +4,8 @@
 
 // generateId added by build script
 
+/* global HELLO_ALPHABET, identifierTypesSet, identifierTypes, generateId -- these come from ./build.js */
+
 const HELLO_REGEX = new RegExp(`^[${HELLO_ALPHABET}]+$`)
 
 const checksum = (prefix, id) => {

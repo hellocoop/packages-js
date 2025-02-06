@@ -123,7 +123,7 @@ const handleCommand = async (
         return res.status(500)
     }
 
-    var claims = await verifyCommandToken(command_token)
+    const claims = await verifyCommandToken(command_token)
 
     if (!claims) {
         res.status(400)

@@ -1,2 +1,2 @@
-import { Claims, Scope, ProviderHint } from '@hellocoop/definitions'
+import { Claims, Scope } from '@hellocoop/definitions'
 export { Claims, Scope }

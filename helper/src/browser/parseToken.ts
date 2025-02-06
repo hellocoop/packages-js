@@ -6,8 +6,8 @@ import type { TokenPayload, TokenHeader } from '@hellocoop/definitions'
 
 // https://stackoverflow.com/a/38552302/9747630
 function parseJwt(token: string): TokenHeader | TokenPayload {
-    var base64 = token.replace(/-/g, '+').replace(/_/g, '/')
-    var jsonPayload = decodeURIComponent(
+    const base64 = token.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
         window
             .atob(base64)
             .split('')

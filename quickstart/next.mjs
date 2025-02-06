@@ -1,6 +1,5 @@
 // next.js quickstart
 
-import semver from 'semver'
 import { statSync, appendFileSync } from 'fs'
 import chalk from 'chalk'
 import fs from 'fs-extra'

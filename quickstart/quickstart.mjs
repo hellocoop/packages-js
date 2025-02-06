@@ -70,7 +70,7 @@ const options = {}
 if (provider_hint) options.provider_hint = provider_hint
 if (suffix) options.suffix = suffix
 if (integration) options.integration = integration
-if (wildcard_domain) options.wildcard_domain = wildcard
+if (wildcard_domain) options.wildcard_domain = wildcard_domain
 ;(async () => {
     if (nextjs) {
         await nextConfig(options)

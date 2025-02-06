@@ -3,4 +3,4 @@ import 'dotenv/config'
 import qs from './index.js'
 
 const err = await qs()
-if (err) exit(1)
+if (err) process.exit(1)

@@ -32,6 +32,6 @@ export const unauthorized = async (
     }
 }
 
-export const setAuth = async (request: FastifyRequest, reply: FastifyReply) => {
+export const setAuth = async (request: FastifyRequest) => {
     await request.getAuth()
 }

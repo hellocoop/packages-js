@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint'
 import reactPlugin from 'eslint-plugin-react'
 import sveltePlugin from 'eslint-plugin-svelte'
 import vuePlugin from 'eslint-plugin-vue'
+import * as svelteParser from 'svelte-eslint-parser'
 
 export default [
     eslint.configs.recommended,
@@ -27,10 +28,44 @@ export default [
         },
     },
     {
+        files: ['**/*.svelte'],
+        languageOptions: {
+            parser: svelteParser,
+            parserOptions: {
+                parser: tseslint.parser,
+                project: './svelte/tsconfig.json',
+                extraFileExtensions: ['.svelte'],
+            },
+        },
+    },
+    {
+        files: ['**/*.{ts,vue}'],
+        languageOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            globals: globals.browser,
+            parserOptions: {
+                parser: tseslint.parser,
+            },
+        },
+    },
+    {
         settings: {
             react: {
                 version: 'detect',
             },
+        },
+    },
+    {
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-namespace': 'off',
+            '@typescript-eslint/no-unused-expressions': 'off',
+            '@typescript-eslint/ban-ts-comment': 'off',
+            '@typescript-eslint/no-empty-object-type': 'off',
+            'svelte/no-at-html-tags': 'off',
+            'vue/require-default-prop': 'off',
+            'vue/no-v-html': 'off',
         },
     },
 ]

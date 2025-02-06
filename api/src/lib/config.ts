@@ -1,4 +1,4 @@
-import { Config, GenericSync, CommandHandler, Command } from '../types'
+import { Config, GenericSync, CommandHandler } from '../types'
 import { Scope, ProviderHint } from '@hellocoop/definitions'
 import { checkSecret } from '@hellocoop/helper-server'
 

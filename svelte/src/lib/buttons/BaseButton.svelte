@@ -4,25 +4,6 @@
     import { onMount } from 'svelte'
     import { Button } from '../types.js' // tbd use @hellocoop/definitions (currently, some esm import errors)
 
-    interface $$Props {
-        label?: string
-        style?: any
-        color?: Button.Color
-        theme?: Button.Theme
-        hover?: Button.Hover
-        scope?: Scope[]
-        update?: boolean
-        targetURI?: string
-        providerHint?: ProviderHint[]
-        showLoader?: boolean
-        disabled?: boolean
-        promptLogin?: boolean
-        promptConsent?: boolean
-        loginHint?: string
-        domainHint?: string
-    }
-
-    // All prop exports must still be typed standalone and in the $$Props interface
     export let label: string = 'ō&nbsp;&nbsp;&nbsp;Continue with Hellō'
     export let style: any = {} //TBD any
     export let color: Button.Color = 'black'

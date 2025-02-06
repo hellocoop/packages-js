@@ -94,7 +94,6 @@ const onClickHandler = (): void => {
 
 <template>
     <button
-        @click="onClickHandler"
         :class="[
             'hello-btn',
             Button.CLASS_MAPPING[props.color]?.[props.theme],
@@ -103,6 +102,7 @@ const onClickHandler = (): void => {
         ]"
         :disabled="props.disabled || clicked"
         :style="style"
+        @click="onClickHandler"
     >
         <span v-html="label"></span>
     </button>

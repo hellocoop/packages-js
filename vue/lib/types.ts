@@ -89,21 +89,6 @@ export type TokenHeader = {
     alg: string
 }
 
-const CLASS_MAPPING = {
-    black: {
-        'ignore-light': '',
-        'ignore-dark': 'hello-btn-black-on-dark',
-        'aware-invert': 'hello-btn-black-and-invert',
-        'aware-static': 'hello-btn-black-and-static',
-    },
-    white: {
-        'ignore-light': 'hello-btn-white-on-light',
-        'ignore-dark': 'hello-btn-white-on-dark',
-        'aware-invert': 'hello-btn-white-and-invert',
-        'aware-static': 'hello-btn-white-and-static',
-    },
-}
-
 export namespace Button {
     export type Color = 'black' | 'white'
     export type Theme =
