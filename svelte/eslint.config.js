@@ -10,6 +10,9 @@ export default [
     ...sveltePlugin.configs['flat/recommended'],
     prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
+        ignores: ['**/.svelte-kit'],
+    },
+    {
         languageOptions: {
             globals: {
                 ...globals.worker,

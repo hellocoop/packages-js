@@ -8,7 +8,7 @@ export default [
     ...tseslint.configs.recommended,
     prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
-        ignores: ['**/dist', '**/node_modules', '**/.svelte-kit', 'archive*/'],
+        ignores: ['**/dist', '**/node_modules', 'archive*/'],
     },
     {
         languageOptions: {
@@ -20,11 +20,14 @@ export default [
     },
     {
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-namespace': 'off',
+            '@typescript-eslint/no-explicit-any': 'off', // allow typescript "any" type
+            '@typescript-eslint/no-namespace': 'off', // TBD: ES2015 module syntax is preferred over namespaces
+
+            // allow assertions expect(test).to.be.true since true is not a fn
             '@typescript-eslint/no-unused-expressions': 'off',
-            '@typescript-eslint/ban-ts-comment': 'off',
-            '@typescript-eslint/no-empty-object-type': 'off',
+
+            '@typescript-eslint/ban-ts-comment': 'off', // TBD: allow @ts-ignore comments
+            '@typescript-eslint/no-empty-object-type': 'off', // TBD: Auth | {} allow empty object
         },
     },
 ]
