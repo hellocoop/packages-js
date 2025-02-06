@@ -6,12 +6,10 @@ const handleLogout = async (req: HelloRequest, res: HelloResponse) => {
     const { target_uri } = req.query
     clearAuthCookie(res)
     if (config.logoutSync) {
-        const e = await req.logoutSyncWrapper( config.logoutSync )
-        if (e)
-            console.log(new Error('logoutSync faulted'),e)
+        const e = await req.logoutSyncWrapper(config.logoutSync)
+        if (e) console.log(new Error('logoutSync faulted'), e)
     }
-    res.redirect(target_uri as string || config.routes.loggedOut || '/') 
+    res.redirect((target_uri as string) || config.routes.loggedOut || '/')
 }
 
 export default handleLogout
-

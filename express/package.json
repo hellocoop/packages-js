@@ -1,67 +1,67 @@
 {
-  "name": "@hellocoop/express",
-  "version": "1.17.6",
-  "description": "Express SDK for Hellō https://hello.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hellocoop/packages.git"
-  },
-  "homepage": "https://www.hello.dev/docs/sdks/express",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "files": [
-    "dist/"
-  ],
-  "keywords": [
-    "express",
-    "nodejs",
-    "node.js",
-    "hello",
-    "openid",
-    "oidc",
-    "sso"
-  ],
-  "author": {
-    "name": "Hello Identity Co-op",
-    "email": "contact@hello.coop",
-    "url": "https://hello.coop"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hellocoop/packages/issues"
-  },
-  "scripts": {
-    "test": "npm run build && npx playwright test",
-    "watch": "tsc --watch --declaration",
-    "prebuild": "rimraf dist node_modules",
-    "build": "tsc --declaration"
-  },
-  "peerDependencies": {
-    "express": "^4"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.42.1",
-    "@tsconfig/node18": "^18.2.2",
-    "@types/cookie": "^0.6.0",
-    "@types/express": "^4.17.20",
-    "@types/node": "*",
-    "express": "^4.18.2",
-    "rimraf": "^5.0.1",
-    "typescript": "^5.2.2"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "dependencies": {
-    "@hellocoop/api": "^2.2.7",
-    "@hellocoop/definitions": "^1.0.9",
-    "@hellocoop/helper-server": "^2.2.1",
-    "cookie": "^1.0.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
-  },
-  "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+    "name": "@hellocoop/express",
+    "version": "1.17.6",
+    "description": "Express SDK for Hellō https://hello.dev",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://www.hello.dev/docs/sdks/express",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "files": [
+        "dist/"
+    ],
+    "keywords": [
+        "express",
+        "nodejs",
+        "node.js",
+        "hello",
+        "openid",
+        "oidc",
+        "sso"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "test": "npm run build && npx playwright test",
+        "watch": "tsc --watch --declaration",
+        "prebuild": "rimraf dist node_modules",
+        "build": "tsc --declaration"
+    },
+    "peerDependencies": {
+        "express": "^4"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.42.1",
+        "@tsconfig/node18": "^18.2.2",
+        "@types/cookie": "^0.6.0",
+        "@types/express": "^4.17.20",
+        "@types/node": "*",
+        "express": "^4.18.2",
+        "rimraf": "^5.0.1",
+        "typescript": "^5.2.2"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@hellocoop/api": "^2.2.7",
+        "@hellocoop/definitions": "^1.0.9",
+        "@hellocoop/helper-server": "^2.2.1",
+        "cookie": "^1.0.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1"
+    },
+    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }

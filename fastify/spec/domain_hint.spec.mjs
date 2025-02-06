@@ -13,16 +13,16 @@ describe('domain_hint', () => {
     let fastify = null
     let cookies = {}
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
         cookies = {}
     })
 
-    let loginRedirect;
+    let loginRedirect
     it('start op=login with domain_hint param', async () => {
-        const data = new URLSearchParams();
+        const data = new URLSearchParams()
         data.append('op', 'login')
         data.append('domain_hint', domainHint)
         const response = await fastify.inject({
@@ -39,18 +39,21 @@ describe('domain_hint', () => {
     })
 
     it('authz request should have domain_hint param', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
     })
 
-
     it('authz request should have domain_hint param', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
     })
 
     it('IdP initiated login w/ GET domain_hint ', async () => {
-        const data = new URLSearchParams();
+        const data = new URLSearchParams()
         data.append('domain_hint', domainHint)
         const response = await fastify.inject({
             method: 'GET',
@@ -66,18 +69,20 @@ describe('domain_hint', () => {
     })
 
     it('authz request should have domain_hint param', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
     })
 
     it('IdP initiated login w/ POST domain_hint ', async () => {
-        const data = new URLSearchParams();
+        const data = new URLSearchParams()
         data.append('domain_hint', domainHint)
         const response = await fastify.inject({
             method: 'POST',
             url: '/api/hellocoop',
             headers: {
-                'content-type': 'application/x-www-form-urlencoded'
+                'content-type': 'application/x-www-form-urlencoded',
             },
             body: data.toString(),
             cookies,
@@ -91,14 +96,16 @@ describe('domain_hint', () => {
     })
 
     it('authz request should have domain_hint param', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
-    }) 
-    
+    })
+
     it('IdP initiated login w/ GET domain_hint & iss', async () => {
-        const data = new URLSearchParams();
-        data.append('domain_hint', domainHint);
-        data.append('iss', 'https://issuer.hello.coop');
+        const data = new URLSearchParams()
+        data.append('domain_hint', domainHint)
+        data.append('iss', 'https://issuer.hello.coop')
         const response = await fastify.inject({
             method: 'GET',
             url: '/api/hellocoop?' + data.toString(),
@@ -113,19 +120,21 @@ describe('domain_hint', () => {
     })
 
     it('authz request should have domain_hint param & iss', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
     })
 
     it('IdP initiated login w/ POST domain_hint ', async () => {
-        const data = new URLSearchParams();
+        const data = new URLSearchParams()
         data.append('domain_hint', domainHint)
-        data.append('iss', 'https://issuer.hello.coop');
+        data.append('iss', 'https://issuer.hello.coop')
         const response = await fastify.inject({
             method: 'POST',
             url: '/api/hellocoop',
             headers: {
-                'content-type': 'application/x-www-form-urlencoded'
+                'content-type': 'application/x-www-form-urlencoded',
             },
             body: data.toString(),
             cookies,
@@ -139,9 +148,9 @@ describe('domain_hint', () => {
     })
 
     it('authz request should have domain_hint param', async () => {
-        const loginRedirectParams = new URLSearchParams(loginRedirect.split('?')[1])
+        const loginRedirectParams = new URLSearchParams(
+            loginRedirect.split('?')[1],
+        )
         expect(loginRedirectParams.get('domain_hint')).to.eql(domainHint)
     })
-
-
 })

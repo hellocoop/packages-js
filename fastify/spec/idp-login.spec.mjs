@@ -10,7 +10,7 @@ describe('provider initiated login', () => {
     let fastify = null
     let cookies = {}
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -26,7 +26,7 @@ describe('provider initiated login', () => {
         })
 
         expect(response.statusCode).to.eql(302)
-        const authzReqUrl = new URL(response.headers.location) 
+        const authzReqUrl = new URL(response.headers.location)
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         const client_id = authzReqUrlParams.get('client_id')
         expect(client_id).to.exist
@@ -41,7 +41,9 @@ describe('provider initiated login', () => {
         expect(nonce).to.exist
         const code_challenge = authzReqUrlParams.get('code_challenge')
         expect(code_challenge).to.exist
-        const code_challenge_method = authzReqUrlParams.get('code_challenge_method')
+        const code_challenge_method = authzReqUrlParams.get(
+            'code_challenge_method',
+        )
         expect(code_challenge_method).to.exist
     })
 })
@@ -51,7 +53,7 @@ describe('provider initiated login with login_hint', () => {
     let cookies = {}
     const loginHint = 'dan.brown@example.net'
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -67,7 +69,7 @@ describe('provider initiated login with login_hint', () => {
         })
 
         expect(response.statusCode).to.eql(302)
-        const authzReqUrl = new URL(response.headers.location) 
+        const authzReqUrl = new URL(response.headers.location)
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         const client_id = authzReqUrlParams.get('client_id')
         expect(client_id).to.exist
@@ -82,7 +84,9 @@ describe('provider initiated login with login_hint', () => {
         expect(nonce).to.exist
         const code_challenge = authzReqUrlParams.get('code_challenge')
         expect(code_challenge).to.exist
-        const code_challenge_method = authzReqUrlParams.get('code_challenge_method')
+        const code_challenge_method = authzReqUrlParams.get(
+            'code_challenge_method',
+        )
         expect(code_challenge_method).to.exist
         const loginHintParam = authzReqUrlParams.get('login_hint')
         expect(loginHintParam).to.exist
@@ -95,7 +99,7 @@ describe('provider initiated login with domain_hint', () => {
     let cookies = {}
     const domainHint = 'rsandh.com'
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -106,12 +110,13 @@ describe('provider initiated login with domain_hint', () => {
         const issParam = 'https://issuer.hello.coop'
         const response = await fastify.inject({
             method: 'GET',
-            url: '/api/hellocoop?iss=' + issParam + '&domain_hint=' + domainHint,
+            url:
+                '/api/hellocoop?iss=' + issParam + '&domain_hint=' + domainHint,
             cookies,
         })
 
         expect(response.statusCode).to.eql(302)
-        const authzReqUrl = new URL(response.headers.location) 
+        const authzReqUrl = new URL(response.headers.location)
         const authzReqUrlParams = new URLSearchParams(authzReqUrl.search)
         const client_id = authzReqUrlParams.get('client_id')
         expect(client_id).to.exist
@@ -126,7 +131,9 @@ describe('provider initiated login with domain_hint', () => {
         expect(nonce).to.exist
         const code_challenge = authzReqUrlParams.get('code_challenge')
         expect(code_challenge).to.exist
-        const code_challenge_method = authzReqUrlParams.get('code_challenge_method')
+        const code_challenge_method = authzReqUrlParams.get(
+            'code_challenge_method',
+        )
         expect(code_challenge_method).to.exist
         const domainHintParam = authzReqUrlParams.get('domain_hint')
         expect(domainHintParam).to.exist

@@ -1,16 +1,16 @@
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
-  "exclude": ["node_modules", "**/dist"],
-  "include": ["src/*.ts"],
-  "compilerOptions": {
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declarationMap": true,
-    "declaration": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "target": "ES2022",
-    "strict": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  }
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "exclude": ["node_modules", "**/dist"],
+    "include": ["src/*.ts"],
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declarationMap": true,
+        "declaration": true,
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "target": "ES2022",
+        "strict": true,
+        "outDir": "./dist",
+        "rootDir": "./src"
+    }
 }

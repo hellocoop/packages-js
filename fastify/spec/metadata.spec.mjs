@@ -8,20 +8,20 @@ const config = {
 }
 
 const fetchToken = async () => {
-    const results = await fetch('http://mockin:3333/command/mock?client_id='+config.client_id)
-    if (!results.ok)
-        throw new Error('Failed to fetch command token')
+    const results = await fetch(
+        'http://mockin:3333/command/mock?client_id=' + config.client_id,
+    )
+    if (!results.ok) throw new Error('Failed to fetch command token')
     const json = await results.json()
     return json.command_token
 }
-
 
 describe('metadata command', () => {
     let fastify = null
     let cookies = {}
     let command_token = null
 
-    before( async () => {
+    before(async () => {
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -30,13 +30,13 @@ describe('metadata command', () => {
     })
 
     it('should get metadata', async () => {
-        const data = new URLSearchParams();
+        const data = new URLSearchParams()
         data.append('command_token', command_token)
         const response = await fastify.inject({
             method: 'POST',
             url: '/api/hellocoop',
             headers: {
-                'content-type': 'application/x-www-form-urlencoded'
+                'content-type': 'application/x-www-form-urlencoded',
             },
             body: data.toString(),
             cookies,
@@ -46,7 +46,7 @@ describe('metadata command', () => {
         const json = JSON.parse(response.body)
         expect(json).to.exist
 
-// console.log('metadata', json)  
+        // console.log('metadata', json)
 
         expect(json.context).to.exist
         // expect(json.context.package_name).to.eql()
@@ -60,6 +60,5 @@ describe('metadata command', () => {
         expect(json.commands_ttl).to.eql(0)
         expect(json.client_id).to.exist
         expect(json.client_id).to.eql(config.client_id)
-
     })
 })

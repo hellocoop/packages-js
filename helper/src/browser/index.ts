@@ -5,6 +5,11 @@ export * from './parseToken'
 export * from './validateToken'
 
 // crypto wrapper for PKCE
-import { generateChallenge, pkce, verifyChallenge, setCrypto} from '../common/pkce';
-setCrypto(crypto);
+import {
+    generateChallenge,
+    pkce,
+    verifyChallenge,
+    setCrypto,
+} from '../common/pkce'
+setCrypto(crypto)
 export { generateChallenge, verifyChallenge, pkce as pkceChallenge }

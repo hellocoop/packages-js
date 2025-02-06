@@ -1,4 +1,4 @@
-export default function (client_id) {
+export default function () {
     return `
     <!DOCTYPE html>
     <html lang="en">

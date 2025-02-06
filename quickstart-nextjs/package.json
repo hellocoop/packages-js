@@ -1,43 +1,43 @@
 {
-  "name": "@hellocoop/quickstart-nextjs",
-  "version": "1.1.0",
-  "description": "A CLI andmodule to start the Hellō Quickstart web app for a Next.js app.",
-  "main": "index.js",
-  "bin": {
-    "quickstart-nextjs": "quickstart-next.mjs"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prebuild": "rimraf dist node_modules",
-    "build": "echo \"No build specified\" && exit 0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hellocoop/packages.git"
-  },
-  "keywords": [
-    "hello",
-    "oauth",
-    "oauth2",
-    "OIDC",
-    "auth",
-    "sso",
-    "quickstart",
-    "next.js"
-  ],
-  "author": {
-    "name": "Hello Identity Co-op",
-    "email": "contact@hello.coop",
-    "url": "https://hello.coop"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hellocoop/packages/issues"
-  },
-  "homepage": "https://github.com/hellocoop/packages#readme",
-  "dependencies": {
-    "@hellocoop/quickstart": "latest",
-    "dotenv": "^16.3.1"
-  },
-  "type": "module"
+    "name": "@hellocoop/quickstart-nextjs",
+    "version": "1.1.0",
+    "description": "A CLI andmodule to start the Hellō Quickstart web app for a Next.js app.",
+    "main": "index.js",
+    "bin": {
+        "quickstart-nextjs": "quickstart-next.mjs"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prebuild": "rimraf dist node_modules",
+        "build": "echo \"No build specified\" && exit 0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "keywords": [
+        "hello",
+        "oauth",
+        "oauth2",
+        "OIDC",
+        "auth",
+        "sso",
+        "quickstart",
+        "next.js"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "homepage": "https://github.com/hellocoop/packages#readme",
+    "dependencies": {
+        "@hellocoop/quickstart": "latest",
+        "dotenv": "^16.3.1"
+    },
+    "type": "module"
 }

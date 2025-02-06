@@ -1,4 +1,3 @@
-
 import { Auth, NotLoggedIn } from '@hellocoop/definitions'
 import { configuration, PackageMetadata } from '@hellocoop/api'
 import { cookies } from 'next/headers'
@@ -6,8 +5,8 @@ import { decryptObj } from '@hellocoop/helper-server'
 
 // set name and version to provide in metadata
 import parentPackageJson from '../package.json'
-const { name, version } = parentPackageJson;
-PackageMetadata.setMetadata(name, version);
+const { name, version } = parentPackageJson
+PackageMetadata.setMetadata(name, version)
 
 // TODO cache decryption
 // import { unstable_cache } from 'next/cache';
@@ -15,10 +14,11 @@ PackageMetadata.setMetadata(name, version);
 
 export const auth = async function (): Promise<Auth> {
     const authCookie = cookies().get(configuration.cookies.authName)?.value
-    if (!authCookie)
-        return NotLoggedIn
-    const a = await decryptObj(authCookie, configuration.secret as string) as Auth
-    if (!a)
-        return NotLoggedIn
-    return a 
+    if (!authCookie) return NotLoggedIn
+    const a = (await decryptObj(
+        authCookie,
+        configuration.secret as string,
+    )) as Auth
+    if (!a) return NotLoggedIn
+    return a
 }

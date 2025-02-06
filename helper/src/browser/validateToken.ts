@@ -12,37 +12,43 @@ export type ValidateConfig = {
 
 export interface IntrospectionResponse extends TokenPayload {
     active: boolean
-}     
+}
 
-export async function validateToken( {  token, client_id, nonce, wallet }: ValidateConfig ): Promise<IntrospectionResponse> {
+export async function validateToken({
+    token,
+    client_id,
+    nonce,
+    wallet,
+}: ValidateConfig): Promise<IntrospectionResponse> {
     const params: Record<string, any> = {
         token,
         client_id,
-        nonce
+        nonce,
     }
     const body = new URLSearchParams(params).toString()
     const introspectEndpoint = (wallet || PRODUCTION_WALLET) + DEFAULT_ENDPOINT
 
     try {
-
         const r = await fetch(introspectEndpoint, {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body
-        })   
-        const json =  await r.json()
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+        })
+        const json = await r.json()
 
         if (!r.ok) {
-            const message = `Fetch ${introspectEndpoint} failed with ${r.status}. ` + (json.error ? json.error+'.' :'')
+            const message =
+                `Fetch ${introspectEndpoint} failed with ${r.status}. ` +
+                (json.error ? json.error + '.' : '')
             throw new Error(message)
         }
 
-        if (json.error) // should not happen as errors have a non 200 response, but just in case
+        if (json.error)
+            // should not happen as errors have a non 200 response, but just in case
             throw new Error(json.error)
 
         return json
-
     } catch (error: any) {
-        throw new Error (error)
+        throw new Error(error)
     }
 }

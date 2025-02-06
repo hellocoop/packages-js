@@ -1,6 +1,5 @@
-# Description: debug 
+# Description: debug
 
 services:
-  fastify-client:
-    command: ["npm", "run", "spec:debug"] 
- 
+    fastify-client:
+        command: ['npm', 'run', 'spec:debug']

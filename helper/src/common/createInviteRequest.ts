@@ -1,39 +1,39 @@
 // creates an invite request URL for Hellō
 
-import {  PRODUCTION_WALLET } from '@hellocoop/definitions'
+import { PRODUCTION_WALLET } from '@hellocoop/definitions'
 
 export interface ICreateInviteRequest {
-    inviter: string,
-    client_id: string,
-    initiate_login_uri: string,
-    return_uri: string,
-    app_name?: string,
-    prompt?: string,
-    role?: string,
-    tenant?: string,
-    state?: string,
-    events_uri?: string,
-    wallet?: string;
+    inviter: string
+    client_id: string
+    initiate_login_uri: string
+    return_uri: string
+    app_name?: string
+    prompt?: string
+    role?: string
+    tenant?: string
+    state?: string
+    events_uri?: string
+    wallet?: string
 }
 
 export interface InviteResponse {
-    url: string;
+    url: string
 }
 
-export function createInviteRequest( 
-        config: ICreateInviteRequest
-    ): InviteResponse {
+export function createInviteRequest(
+    config: ICreateInviteRequest,
+): InviteResponse {
     if (!config.inviter) {
-        throw new Error('inviter is required in the invite request.');
+        throw new Error('inviter is required in the invite request.')
     }
     if (!config.client_id) {
-        throw new Error('client_id is required in the invite request.');
-    } 
+        throw new Error('client_id is required in the invite request.')
+    }
     if (!config.initiate_login_uri) {
-        throw new Error('initiate_login_uri is required in the invite request.');
-    } 
+        throw new Error('initiate_login_uri is required in the invite request.')
+    }
     if (!config.return_uri) {
-        throw new Error('return_uri is required in the invite request.');
+        throw new Error('return_uri is required in the invite request.')
     }
     const url = new URL('/invite', config.wallet || PRODUCTION_WALLET)
     url.searchParams.set('inviter', config.inviter)

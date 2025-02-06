@@ -1,53 +1,51 @@
 # Description: This file is used to run the api tests in the docker container
 
-networks: 
-  mock:
+networks:
+    mock:
 
 services:
+    mockin:
+        # image: mockin:latest
+        image: hellocoop/mockin:latest
+        networks:
+            - mock
+        ports:
+            - '3333:3333'
+            # debugger
+            - '9339:9229'
+        environment:
+            ISSUER: 'http://mockin:3333'
 
-  mockin:
-    # image: mockin:latest
-    image: hellocoop/mockin:latest
-    networks:
-      - mock
-    ports:
-      - '3333:3333'
-      # debugger
-      - '9339:9229'
-    environment:
-      ISSUER: 'http://mockin:3333'
+    fastify-client:
+        image: node:18-alpine
+        depends_on:
+            - mockin
+        networks:
+            - mock
+        working_dir: /usr/src/svr
+        environment:
+            HELLO_WALLET: 'http://mockin:3333'
+            HELLO_COOKIE_SECRET: '66c71f55568f7b0c3b30cb6a8df9975b5125000caa775240b2e76eb96c43715e'
+            HOST: 'fastify-client'
+        volumes:
+            - type: bind
+              source: ../
+              target: /usr/src/svr
+            - type: bind
+              source: ../../node_modules
+              target: /usr/src/svr/node_modules
 
-  fastify-client:
-    image: node:18-alpine
-    depends_on:
-      - mockin
-    networks: 
-      - mock
-    working_dir: /usr/src/svr
-    environment:
-      HELLO_WALLET: 'http://mockin:3333'
-      HELLO_COOKIE_SECRET: '66c71f55568f7b0c3b30cb6a8df9975b5125000caa775240b2e76eb96c43715e'
-      HOST: 'fastify-client'
-    volumes: 
-      - type: bind
-        source: ../
-        target: /usr/src/svr  
-      - type: bind 
-        source: ../../node_modules
-        target: /usr/src/svr/node_modules
-
-      # @DICK - this is a hack!!! i dont know how to resolve symlinks inside docker
-      # the packages in node_modules/@hellocoop/* were a symlink to (relative path) '../../*'
-      - type: bind 
-        source: ../../api
-        target: /usr/src/svr/api
-      - type: bind 
-        source: ../../helper/server
-        target: /usr/src/svr/helper/server
-      - type: bind 
-        source: ../../definitions
-        target: /usr/src/svr/definitions
-    ports:
-      - "9229:9229"
-    command: ["npm", "run", "spec"] 
- 
+            # @DICK - this is a hack!!! i dont know how to resolve symlinks inside docker
+            # the packages in node_modules/@hellocoop/* were a symlink to (relative path) '../../*'
+            - type: bind
+              source: ../../api
+              target: /usr/src/svr/api
+            - type: bind
+              source: ../../helper/server
+              target: /usr/src/svr/helper/server
+            - type: bind
+              source: ../../definitions
+              target: /usr/src/svr/definitions
+        ports:
+            - '9229:9229'
+        command: ['npm', 'run', 'spec']

@@ -5,7 +5,12 @@ export interface ErrorPageParams {
     error_uri?: string
 }
 
-export function errorPage( { error, error_description, error_uri, target_uri }: ErrorPageParams ) {
+export function errorPage({
+    error,
+    error_description,
+    error_uri,
+    target_uri,
+}: ErrorPageParams) {
     return `
         <html>
             <head>

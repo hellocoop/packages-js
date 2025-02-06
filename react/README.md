@@ -3,6 +3,7 @@
 [Hellō](https://hello.dev) is an identity network that provides login and registration using the standard OpenID Connect protocol. Hellō offers your users choice between all popular social login providers.
 
 This [React](https://react.dev/) package provides:
+
 - React components for buttons and logged in context
 
 See the [React SDK documentation](https://www.hello.dev/docs/sdks/react) for details.
