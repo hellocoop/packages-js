@@ -1,13 +1,12 @@
 // test server for @hellocoop/express package
 
-import dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
 import express from 'express'
 // const https = require('https');
 // const fs = require('fs');
 
 import { helloAuth, redirect, unauthorized, setAuth } from '@hellocoop/express'
-import config from './hello.config'
+import config from './hello.config.js'
 
 const app = express()
 const port = 3000 // default port to listen
