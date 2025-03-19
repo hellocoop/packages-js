@@ -87,7 +87,11 @@ const verifyCommandToken = async (command_token: string) => {
             return false
         }
         const json = await response.json()
-        return json
+        if (!json.active) {
+            console.error('commands.verifyCommandToken: token is inactive')
+            return false
+        }
+        return json        
     } catch (e) {
         console.error('error verifying command token', e)
         return false
