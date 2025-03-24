@@ -45,11 +45,11 @@
     "license": "MIT",
     "devDependencies": {
         "chai": "^5.1.1",
-        "eslint": "^8.57.1",
-        "eslint-config-prettier": "^10.0.1",
+        "eslint": "^9.23.0",
+        "eslint-config-prettier": "^10.1.1",
         "eslint-plugin-react": "^7.37.4",
-        "eslint-plugin-svelte": "^2.46.1",
-        "eslint-plugin-vue": "^9.32.0",
+        "eslint-plugin-svelte": "^3.3.3",
+        "eslint-plugin-vue": "^10.0.0",
         "esm": "^3.2.25",
         "husky": "^9.1.7",
         "lerna": "^8.1.8",
@@ -58,8 +58,8 @@
         "prettier": "^3.4.2",
         "prettier-plugin-svelte": "^3.3.3",
         "rimraf": "^5.0.5",
-        "svelte-eslint-parser": "^0.43.0",
-        "typescript-eslint": "^8.23.0",
+        "svelte-eslint-parser": "^1.1.0",
+        "typescript-eslint": "^8.27.0",
         "wait-on": "^8.0.1"
     },
     "private": true
