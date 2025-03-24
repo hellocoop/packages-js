@@ -1,3 +1,5 @@
+'use client'
+
 import { useAuth } from './auth'
 
 const isLoggedIn = (): boolean => useAuth()?.isLoggedIn || false

@@ -1,3 +1,5 @@
+'use client'
+
 import useSWR from 'swr'
 import type { Auth } from '@hellocoop/definitions'
 

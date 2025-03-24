@@ -1,3 +1,5 @@
+'use client'
+
 import { routeConfig } from './provider'
 
 const makeLogoutRoute = (params: Record<string, any>): string => {

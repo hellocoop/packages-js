@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import type { ProviderHint, Scope } from '@hellocoop/definitions'
 import { Button } from '@hellocoop/definitions'
