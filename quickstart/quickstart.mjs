@@ -26,6 +26,8 @@ if (!process.stdout.isTTY) {
 let {
     values: {
         nextjs,
+        nextjs_app_router,
+        nextjs_pages_router,
         express,
         fastify,
         provider_hint,
@@ -36,6 +38,12 @@ let {
 } = parseArgs({
     options: {
         nextjs: {
+            type: 'boolean',
+        },
+        nextjs_app_router: {
+            type: 'boolean',
+        },
+        nextjs_pages_router: {
             type: 'boolean',
         },
         express: {
@@ -72,8 +80,8 @@ if (suffix) options.suffix = suffix
 if (integration) options.integration = integration
 if (wildcard_domain) options.wildcard_domain = wildcard_domain
 ;(async () => {
-    if (nextjs) {
-        await nextConfig(options)
+    if (nextjs || nextjs_app_router || nextjs_pages_router) {
+        await nextConfig(options, nextjs_pages_router) // defaults to app router
         process.exit(0)
     }
 
