@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/react",
-    "version": "3.1.9",
+    "version": "3.1.10-canary.0",
     "description": "React SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
