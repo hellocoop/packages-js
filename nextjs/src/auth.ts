@@ -13,7 +13,8 @@ PackageMetadata.setMetadata(name, version)
 // https://nextjs.org/docs/app/api-reference/functions/unstable_cache
 
 export const auth = async function (): Promise<Auth> {
-    const authCookie = cookies().get(configuration.cookies.authName)?.value
+    const cookieStore = await cookies()
+    const authCookie = cookieStore.get(configuration.cookies.authName)?.value
     if (!authCookie) return NotLoggedIn
     const a = (await decryptObj(
         authCookie,

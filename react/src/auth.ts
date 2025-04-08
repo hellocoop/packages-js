@@ -1,3 +1,5 @@
+'use client'
+
 import useSWR from 'swr'
 import type { Auth } from '@hellocoop/definitions'
 
@@ -21,10 +23,15 @@ export type AuthState = {
 }
 
 export const useAuth = (): AuthState => {
-    const defaultAuth: Auth | undefined = useHelloProviderContext()
-    const { data: auth, isLoading } = useSWR(routeConfig.auth, fetcher, {
-        fallbackData: defaultAuth,
-    })
+    // TBD type: Auth | any -- TS complaints without any
+    const defaultAuth: Auth | any = useHelloProviderContext()
+    if (defaultAuth)
+        return {
+            auth: defaultAuth,
+            isLoading: false,
+            isLoggedIn: defaultAuth?.isLoggedIn,
+        }
+    const { data: auth, isLoading } = useSWR(routeConfig.auth, fetcher)
     return {
         auth: auth || {},
         isLoading,

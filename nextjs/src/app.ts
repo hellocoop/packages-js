@@ -114,7 +114,7 @@ const convertToHelloResponse = (res: InternalResponse): HelloResponse => {
 
 type HandlerFunction = (req: NextRequest) => Promise<NextResponse>
 
-export const appAuth = (config: Config): HandlerFunction => {
+const appAuthHandler = (config: Config): HandlerFunction => {
     if (!isConfigured) {
         configure(config as Config)
     }
@@ -143,4 +143,11 @@ export const appAuth = (config: Config): HandlerFunction => {
         return res
     }
     return r
+}
+
+export const appAuth = (config: Config) => {
+    return {
+        GET: appAuthHandler(config),
+        POST: appAuthHandler(config),
+    }
 }
