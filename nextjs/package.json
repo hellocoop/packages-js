@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/nextjs",
-    "version": "3.3.0",
+    "version": "3.3.1",
     "description": "Next.js SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
@@ -63,7 +63,7 @@
     "dependencies": {
         "@hellocoop/api": "^2.2.7",
         "@hellocoop/helper-server": "^2.2.1",
-        "@hellocoop/react": "^3.2.0",
+        "@hellocoop/react": "^3.2.1",
         "cookie": "^1.0.1",
         "cors": "^2.8.5",
         "swr": "^2.2.2"
