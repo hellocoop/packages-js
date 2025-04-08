@@ -52,7 +52,7 @@ module.exports = config
 const writeHelloCoop = async (pagesRouter) => {
     HELLO_COOP_FILE = pagesRouter
         ? 'pages/api/hellocoop.js'
-        : 'app/api/hellocoop/router.js'
+        : 'app/api/hellocoop/route.js'
     const filePath = process.cwd() + '/' + HELLO_COOP_FILE
     try {
         statSync(filePath)
