@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/fastify",
-    "version": "1.15.0",
+    "version": "1.15.1",
     "description": "Fastify SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",

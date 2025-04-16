@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/svelte",
-    "version": "2.1.7",
+    "version": "2.2.0",
     "description": "Svelte SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
@@ -41,7 +41,7 @@
         "!dist/**/*.spec.*"
     ],
     "peerDependencies": {
-        "svelte": "^4.0.0"
+        "svelte": ">=4.0.0"
     },
     "devDependencies": {
         "@sveltejs/adapter-auto": "^3.3.1",
