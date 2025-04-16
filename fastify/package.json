@@ -43,11 +43,11 @@
         "spec:debug": "wait-on http://mockin:3333/mock && node --inspect-brk=0.0.0.0  ./node_modules/.bin/mocha './spec/**/*.spec.mjs'"
     },
     "peerDependencies": {
-        "fastify": "^4"
+        "fastify": "^4 || ^5"
     },
     "devDependencies": {
         "@tsconfig/node18": "^18.2.2",
-        "fastify": "^5",
+        "fastify": "^5.3.0",
         "rimraf": "^5.0.1",
         "typescript": "^5.2.2"
     },
@@ -58,7 +58,7 @@
         "@fastify/formbody": "^8.0.2",
         "@hellocoop/api": "^2.2.7",
         "dotenv": "^16.3.1",
-        "fastify-plugin": "^4.5.1"
+        "fastify-plugin": "^5.0.1"
     },
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }
