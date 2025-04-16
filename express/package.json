@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/express",
-    "version": "1.17.6",
+    "version": "1.18.0",
     "description": "Express SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
