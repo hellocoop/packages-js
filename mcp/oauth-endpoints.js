@@ -1,15 +1,14 @@
 // OAuth endpoints and well-known metadata
 // Static configuration with environment variable overrides
 
-// Domain constants
-const DEFAULT_DOMAIN = 'hello.coop';
-export const DOMAIN = process.env.HELLO_DOMAIN || DEFAULT_DOMAIN;
+
+export const domain = process.env.HELLO_DOMAIN || 'hello.coop';
 
 // Base URL constants
-export const ADMIN_BASE_URL = process.env.HELLO_ADMIN || `https://admin.${DOMAIN}`;
-export const MCP_BASE_URL = process.env.HELLO_MCP || `https://mcp.${DOMAIN}`;
-export const WALLET_BASE_URL = process.env.HELLO_WALLET || `https://wallet.${DOMAIN}`;
-export const ISSUER_BASE_URL = process.env.HELLO_ISSUER || `https://issuer.${DOMAIN}`;
+export const ADMIN_BASE_URL = process.env.HELLO_ADMIN || `https://admin.${domain}`;
+export const MCP_BASE_URL = process.env.HELLO_MCP || `https://mcp.${domain}`;
+export const WALLET_BASE_URL = process.env.HELLO_WALLET || `https://wallet.${domain}`;
+export const ISSUER_BASE_URL = process.env.HELLO_ISSUER || `https://issuer.${domain}`;
 
 // OAuth Authorization Server Metadata (RFC 8414)
 export const OAUTH_AUTH_SERVER_METADATA = {
@@ -64,31 +63,4 @@ export function createWellKnownHandlers() {
   };
 }
 
-// Legacy function exports for backward compatibility
-export function getDomain() {
-  return DOMAIN;
-}
-
-export function getAdminBaseUrl() {
-  return ADMIN_BASE_URL;
-}
-
-export function getMcpBaseUrl() {
-  return MCP_BASE_URL;
-}
-
-export function getWalletBaseUrl() {
-  return WALLET_BASE_URL;
-}
-
-export function getIssuerBaseUrl() {
-  return ISSUER_BASE_URL;
-}
-
-export function getAuthServerMetadata() {
-  return OAUTH_AUTH_SERVER_METADATA;
-}
-
-export function getProtectedResourceMetadata() {
-  return OAUTH_PROTECTED_RESOURCE_METADATA;
-} 
+ 
