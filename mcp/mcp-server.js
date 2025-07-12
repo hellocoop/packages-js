@@ -7,7 +7,7 @@ import {
   ListResourcesRequestSchema,
   SetLevelRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAdminBaseUrl } from './oauth-endpoints.js';
+import { ADMIN_BASE_URL } from './oauth-endpoints.js';
 
 export class HelloMCPServer {
   constructor() {
@@ -169,7 +169,7 @@ export class HelloMCPServer {
       }
     }
 
-    const url = getAdminBaseUrl() + path;
+    const url = ADMIN_BASE_URL + path;
     const headers = {
       'Content-Type': 'application/json',
       ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` })

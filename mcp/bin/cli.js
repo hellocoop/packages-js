@@ -5,7 +5,7 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { HelloMCPServer } from '../mcp-server.js';
-import { getWalletBaseUrl, getAdminBaseUrl, createWellKnownHandlers } from '../oauth-endpoints.js';
+import { OAUTH_AUTH_SERVER_METADATA, createWellKnownHandlers } from '../oauth-endpoints.js';
 import http from 'http';
 import url from 'url';
 import open from 'open';
@@ -266,8 +266,7 @@ class MCPCLIServer {
           
           try {
             const redirectUri = `http://localhost:${this.localPort}/callback`;
-            const walletBase = getWalletBaseUrl();
-            const authUrl = new URL('/authorize', walletBase);
+            const authUrl = new URL(OAUTH_AUTH_SERVER_METADATA.authorization_endpoint);
             authUrl.searchParams.set('response_type', 'code');
             authUrl.searchParams.set('client_id', 'mcp-cli');
             authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -432,8 +431,7 @@ class MCPCLIServer {
 
   async exchangeCodeForToken(code, codeVerifier, redirectUri) {
     try {
-      const walletBase = getWalletBaseUrl();
-      const tokenUrl = `${walletBase}/oauth/token`;
+          const tokenUrl = OAUTH_AUTH_SERVER_METADATA.token_endpoint;
 
       const response = await fetch(tokenUrl, {
         method: 'POST',
