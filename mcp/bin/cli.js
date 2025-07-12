@@ -5,7 +5,7 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { HelloMCPServer } from '../mcp-server.js';
-import { OAUTH_AUTH_SERVER_METADATA, createWellKnownHandlers } from '../oauth-endpoints.js';
+import { OAUTH_AUTH_SERVER_METADATA, MCP_CLIENT_ID, createWellKnownHandlers } from '../oauth-endpoints.js';
 import http from 'http';
 import url from 'url';
 import open from 'open';
@@ -268,7 +268,7 @@ class MCPCLIServer {
             const redirectUri = `http://localhost:${this.localPort}/callback`;
             const authUrl = new URL(OAUTH_AUTH_SERVER_METADATA.authorization_endpoint);
             authUrl.searchParams.set('response_type', 'code');
-            authUrl.searchParams.set('client_id', 'mcp-cli');
+            authUrl.searchParams.set('client_id', MCP_CLIENT_ID);
             authUrl.searchParams.set('redirect_uri', redirectUri);
             authUrl.searchParams.set('scope', 'mcp');
             authUrl.searchParams.set('state', this.authParams.state);
@@ -442,7 +442,7 @@ class MCPCLIServer {
           grant_type: 'authorization_code',
           code: code,
           redirect_uri: redirectUri,
-          client_id: 'mcp-cli',
+                      client_id: MCP_CLIENT_ID,
           code_verifier: codeVerifier
         })
       });

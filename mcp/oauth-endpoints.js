@@ -4,6 +4,9 @@
 
 export const domain = process.env.HELLO_DOMAIN || 'hello.coop';
 
+// MCP Client Configuration
+export const MCP_CLIENT_ID = process.env.MCP_CLIENT_ID || 'hello_mcp_client';
+
 // Base URL constants
 export const ADMIN_BASE_URL = process.env.HELLO_ADMIN || `https://admin.${domain}`;
 export const MCP_BASE_URL = process.env.HELLO_MCP || `https://mcp.${domain}`;
