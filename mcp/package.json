@@ -1,0 +1,31 @@
+{
+  "name": "@hellocoop/mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) CLI and server for Hellō Application Admin API.",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "@hellocoop/mcp": "./bin/cli.js",
+    "hello-mcp-server": "./server.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "hello",
+    "cli",
+    "oauth",
+    "admin"
+  ],
+  "author": "Hello Identity Co-op",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@hellocoop/helper-server": "^2.2.1",
+    "@modelcontextprotocol/sdk": "^1.15.1",
+    "open": "^10.1.2"
+  }
+}
