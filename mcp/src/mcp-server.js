@@ -144,7 +144,6 @@ export class HelloMCPServer {
           };
       }
     } catch (error) {
-      console.error('MCP method error:', error);
       return {
         jsonrpc: '2.0',
         id,
@@ -158,11 +157,12 @@ export class HelloMCPServer {
   }
 
   // REST call to admin API using built-in fetch
-  async callAdminAPI(method, path, data, isRetry = false) {
-    // Trigger authentication if we don't have a token and have a callback
-    if (!this.accessToken && this.authenticationCallback) {
+  async callAdminAPI(method, path, data, options = {}) {
+    const { requiresAuth = true, isRetry = false } = options;
+    
+    // Trigger authentication if we need auth but don't have a token
+    if (requiresAuth && !this.accessToken && this.authenticationCallback) {
       try {
-        console.error('Admin API call requires authentication, triggering OAuth flow...');
         this.accessToken = await this.authenticationCallback();
       } catch (error) {
         throw new Error(`Authentication failed: ${error.message}`);
@@ -172,25 +172,24 @@ export class HelloMCPServer {
     const url = ADMIN_BASE_URL + path;
     const headers = {
       'Content-Type': 'application/json',
-      ...(this.accessToken && { Authorization: `Bearer ${this.accessToken}` })
+      ...(requiresAuth && this.accessToken && { Authorization: `Bearer ${this.accessToken}` })
     };
 
-    const options = {
+    const requestOptions = {
       method: method.toUpperCase(),
       headers
     };
 
     if (data && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) {
-      options.body = JSON.stringify(data);
+      requestOptions.body = JSON.stringify(data);
     }
 
     try {
-      const response = await fetch(url, options);
+      const response = await fetch(url, requestOptions);
       const responseData = await response.json();
       
       // Handle token expiration (401 Unauthorized)
-      if (response.status === 401 && !isRetry && this.authenticationCallback) {
-        console.error('Access token expired, re-authenticating...');
+      if (response.status === 401 && requiresAuth && !isRetry && this.authenticationCallback) {
         this.accessToken = null; // Clear expired token
         
         try {
@@ -198,25 +197,24 @@ export class HelloMCPServer {
           this.accessToken = await this.authenticationCallback();
           
           // Retry the original request with new token
-          return await this.callAdminAPI(method, path, data, true);
+          return await this.callAdminAPI(method, path, data, { requiresAuth, isRetry: true });
         } catch (authError) {
           throw new Error(`Re-authentication failed: ${authError.message}`);
         }
       }
       
       if (!response.ok) {
-        // Return error response data for handling by caller
         return responseData;
       }
       
       return responseData;
-    } catch (err) {
-      throw new Error(`API call failed: ${err.message}`);
-    }
+          } catch (err) {
+        throw new Error(`API call failed: ${err.message}`);
+      }
   }
 
   setupHandlers() {
-    // ListTools handler (already present)
+    // ListTools handler
     this.mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
         tools: [
@@ -302,17 +300,58 @@ export class HelloMCPServer {
             inputSchema: {
               type: 'object',
               properties: {
-                publisher_id: { type: 'string', description: 'ID of the publisher' },
-                name: { type: 'string', description: 'Application name' },
-                tos_uri: { type: 'string', description: 'Terms of Service URI (optional)' },
-                pp_uri: { type: 'string', description: 'Privacy Policy URI (optional)' },
-                image_uri: { type: 'string', description: 'Application logo URI (optional)' },
-                dev_redirect_uris: { type: 'array', items: { type: 'string' }, description: 'Development redirect URIs', default: [] },
-                prod_redirect_uris: { type: 'array', items: { type: 'string' }, description: 'Production redirect URIs', default: [] },
-                localhost: { type: 'boolean', description: 'Allow localhost in development' },
-                local_ip: { type: 'boolean', description: 'Allow 127.0.0.1 in development' },
-                wildcard_domain: { type: 'boolean', description: 'Allow wildcard domains in development' },
-                device_code: { type: 'boolean', description: 'Support device code flow' }
+                publisher_id: {
+                  type: 'string',
+                  description: 'ID of the publisher to create the app under'
+                },
+                name: {
+                  type: 'string',
+                  description: 'Application name (defaults to "[Your Name]\'s MCP Created App")'
+                },
+                dev_redirect_uris: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Development redirect URIs',
+                  default: []
+                },
+                prod_redirect_uris: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Production redirect URIs',
+                  default: []
+                },
+                device_code: {
+                  type: 'boolean',
+                  description: 'Support device code flow',
+                  default: false
+                },
+                image_uri: {
+                  type: 'string',
+                  description: 'Application logo URI (optional)'
+                },
+                local_ip: {
+                  type: 'boolean',
+                  description: 'Allow 127.0.0.1 in development',
+                  default: true
+                },
+                localhost: {
+                  type: 'boolean',
+                  description: 'Allow localhost in development',
+                  default: true
+                },
+                pp_uri: {
+                  type: 'string',
+                  description: 'Privacy Policy URI (optional)'
+                },
+                tos_uri: {
+                  type: 'string',
+                  description: 'Terms of Service URI (optional)'
+                },
+                wildcard_domain: {
+                  type: 'boolean',
+                  description: 'Allow wildcard domains in development',
+                  default: false
+                }
               },
               required: ['publisher_id']
             }
@@ -323,60 +362,117 @@ export class HelloMCPServer {
             inputSchema: {
               type: 'object',
               properties: {
-                publisher_id: { type: 'string', description: 'ID of the publisher' },
-                application_id: { type: 'string', description: 'ID of the application' },
-                name: { type: 'string', description: 'Application name' },
-                tos_uri: { type: 'string', description: 'Terms of Service URI' },
-                pp_uri: { type: 'string', description: 'Privacy Policy URI' },
-                image_uri: { type: 'string', description: 'Application logo URI' },
-                dev_redirect_uris: { type: 'array', items: { type: 'string' }, description: 'Development redirect URIs' },
-                prod_redirect_uris: { type: 'array', items: { type: 'string' }, description: 'Production redirect URIs' },
-                localhost: { type: 'boolean', description: 'Allow localhost in development' },
-                local_ip: { type: 'boolean', description: 'Allow 127.0.0.1 in development' },
-                wildcard_domain: { type: 'boolean', description: 'Allow wildcard domains in development' },
-                device_code: { type: 'boolean', description: 'Support device code flow' }
+                publisher_id: {
+                  type: 'string',
+                  description: 'ID of the publisher'
+                },
+                application_id: {
+                  type: 'string',
+                  description: 'ID of the application to update'
+                },
+                name: {
+                  type: 'string',
+                  description: 'Application name'
+                },
+                dev_redirect_uris: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Development redirect URIs'
+                },
+                prod_redirect_uris: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Production redirect URIs'
+                },
+                device_code: {
+                  type: 'boolean',
+                  description: 'Support device code flow'
+                },
+                image_uri: {
+                  type: 'string',
+                  description: 'Application logo URI'
+                },
+                local_ip: {
+                  type: 'boolean',
+                  description: 'Allow 127.0.0.1 in development'
+                },
+                localhost: {
+                  type: 'boolean',
+                  description: 'Allow localhost in development'
+                },
+                pp_uri: {
+                  type: 'string',
+                  description: 'Privacy Policy URI'
+                },
+                tos_uri: {
+                  type: 'string',
+                  description: 'Terms of Service URI'
+                },
+                wildcard_domain: {
+                  type: 'boolean',
+                  description: 'Allow wildcard domains in development'
+                }
               },
               required: ['publisher_id', 'application_id']
+            }
+          },
+          {
+            name: 'hello_admin_version',
+            description: 'Get Admin API version information',
+            inputSchema: {
+              type: 'object',
+              properties: {}
             }
           }
         ]
       };
     });
 
-    // Handler: Get Profile
+    // Tool call handler
     this.mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
       try {
+        const { name, arguments: args } = request.params;
+        
         switch (name) {
           case 'hello_get_profile': {
-            // GET /profile or /profile/:publisher
-            let path = '/profile';
+            // GET /api/v1/profile or /api/v1/profile/:publisher
+            let path = '/api/v1/profile';
             if (args.publisher_id) path += `/${args.publisher_id}`;
-            return await this.callAdminAPI('get', path);
+            const result = await this.callAdminAPI('get', path);
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }]
+            };
           }
           case 'hello_create_publisher': {
-            // POST /publishers
-            return await this.callAdminAPI('post', '/publishers', { name: args.name });
+            // POST /api/v1/publishers
+            return await this.callAdminAPI('post', '/api/v1/publishers', { name: args.name });
           }
           case 'hello_update_publisher': {
-            // PUT /publishers/:publisher
-            return await this.callAdminAPI('put', `/publishers/${args.publisher_id}`, { name: args.name });
+            // PUT /api/v1/publishers/:publisher
+            return await this.callAdminAPI('put', `/api/v1/publishers/${args.publisher_id}`, { name: args.name });
           }
           case 'hello_read_publisher': {
-            // GET /publishers/:publisher
-            return await this.callAdminAPI('get', `/publishers/${args.publisher_id}`);
+            // GET /api/v1/publishers/:publisher
+            return await this.callAdminAPI('get', `/api/v1/publishers/${args.publisher_id}`);
           }
           case 'hello_read_application': {
-            // GET /publishers/:publisher/applications/:application
-            return await this.callAdminAPI('get', `/publishers/${args.publisher_id}/applications/${args.application_id}`);
+            // GET /api/v1/publishers/:publisher/applications/:application
+            return await this.callAdminAPI('get', `/api/v1/publishers/${args.publisher_id}/applications/${args.application_id}`);
           }
           case 'hello_create_application': {
-            // POST /publishers/:publisher/applications
-            return await this.callAdminAPI('post', `/publishers/${args.publisher_id}/applications`, args);
+            // POST /api/v1/publishers/:publisher/applications
+            return await this.callAdminAPI('post', `/api/v1/publishers/${args.publisher_id}/applications`, args);
           }
           case 'hello_update_application': {
-            // PUT /publishers/:publisher/applications/:application
-            return await this.callAdminAPI('put', `/publishers/${args.publisher_id}/applications/${args.application_id}`, args);
+            // PUT /api/v1/publishers/:publisher/applications/:application
+            return await this.callAdminAPI('put', `/api/v1/publishers/${args.publisher_id}/applications/${args.application_id}`, args);
+          }
+          case 'hello_admin_version': {
+            // GET /api/v1/version - no authentication required
+            return await this.callAdminAPI('get', '/api/v1/version', null, { requiresAuth: false });
           }
           default:
             throw new Error(`Unknown tool: ${name}`);

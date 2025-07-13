@@ -19,14 +19,16 @@ class MCPHttpServer {
   }
 
   setupMiddleware() {
-    // CORS middleware
+    // CORS middleware - matching Admin server approach
     this.app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      const requestedHeaders = req.headers['access-control-request-headers'];
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', requestedHeaders || 'Authorization, Content-Type, mcp-protocol-version');
+      res.header('Access-Control-Max-Age', '86400');
       
       if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        return res.status(204).end();
       }
       next();
     });

@@ -3,13 +3,21 @@
   "version": "1.0.0",
   "description": "Model Context Protocol (MCP) CLI and server for Hellō Application Admin API.",
   "type": "module",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
-    "@hellocoop/mcp": "./bin/cli.js",
-    "hello-mcp-server": "./server.js"
+    "@hellocoop/mcp": "./src/stdio.js",
+    "hello-mcp-http": "./src/http.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/stdio.js",
+    "start:http": "node src/http.js",
+    "test": "node test/test-runner.js",
+    "test:oauth-interactive": "node test/oauth-interactive.test.js",
+    "test:version": "node test/version.test.js",
+    "test:cli": "node test/cli.test.js",
+    "get-token": "node scripts/get-access-token.js",
+    "docker:build-local": "scripts/docker-build-local.sh",
+    "docker:publish": "scripts/docker-publish.sh"
   },
   "keywords": [
     "mcp",
