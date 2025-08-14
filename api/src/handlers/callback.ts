@@ -10,6 +10,7 @@ import {
 } from '@hellocoop/helper-server'
 import { saveAuthCookie, clearAuthCookie } from '../lib/auth'
 import { Auth, VALID_IDENTITY_CLAIMS } from '@hellocoop/definitions'
+import { performTokenExchange } from './exchange'
 
 // export const getCallbackRequest = (req: HelloRequest): CallbackRequest => {
 //     return {
@@ -112,120 +113,23 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
 
     try {
         clearOidcCookie(res) // clear cookie so we don't try to use code again
-        const token = await fetchToken({
+
+        // Use shared token exchange logic
+        const result = await performTokenExchange({
             code: code.toString(),
-            wallet: config.helloWallet,
             code_verifier,
+            nonce,
             redirect_uri,
-            client_id: config.clientId as string,
+            target_uri,
+            loginSyncWrapper: req.loginSyncWrapper,
         })
 
-        const { payload } = parseToken(token)
-
-        if (payload.aud != config.clientId) {
-            return sendErrorPage(
-                {
-                    error: 'invalid_client',
-                    error_description: 'Wrong ID token audience',
-                },
-                target_uri,
-                res,
-            )
-        }
-        if (payload.nonce != nonce) {
-            return sendErrorPage(
-                {
-                    error: 'invalid_request',
-                    error_description: 'Wrong nonce in ID token',
-                },
-                target_uri,
-                res,
-            )
+        if ('error' in result) {
+            return sendErrorPage(result, target_uri, res)
         }
 
-        const currentTimeInt = Math.floor(Date.now() / 1000)
-        if (payload.exp < currentTimeInt) {
-            return sendErrorPage(
-                {
-                    error: 'invalid_request',
-                    error_description: 'The ID token has expired.',
-                },
-                target_uri,
-                res,
-            )
-        }
-        if (payload.iat > currentTimeInt + 5) {
-            // 5 seconds of clock skew
-            return sendErrorPage(
-                {
-                    error: 'invalid_request',
-                    error_description: 'The ID token is not yet valid',
-                },
-                target_uri,
-                res,
-            )
-        }
-
-        let auth = {
-            isLoggedIn: true,
-            sub: payload.sub,
-            iat: payload.iat,
-        } as Auth
-
-        VALID_IDENTITY_CLAIMS.forEach((claim) => {
-            const value = (payload as any)[claim]
-            if (value) (auth as any)[claim] = value
-        })
-        if (auth.isLoggedIn && payload.org) auth.org = payload.org
-
-        if (config?.loginSync) {
-            try {
-                if (config.logDebug)
-                    console.log(
-                        '\n@hellocoop/api loginSync passing:\n',
-                        JSON.stringify({ payload, target_uri }, null, 2),
-                    )
-                const cb = await req.loginSyncWrapper(config.loginSync, {
-                    token,
-                    payload,
-                    target_uri,
-                })
-                if (config.logDebug)
-                    console.log(
-                        '\n@hellocoop/api loginSync returned:\n',
-                        JSON.stringify(cb, null, 2),
-                    )
-                target_uri = cb?.target_uri || target_uri
-                if (cb?.accessDenied) {
-                    return sendErrorPage(
-                        {
-                            error: 'access_denied',
-                            error_description: 'loginSync denied access',
-                        },
-                        target_uri,
-                        res,
-                    )
-                } else if (cb?.updatedAuth) {
-                    auth = {
-                        ...cb.updatedAuth,
-                        isLoggedIn: true,
-                        sub: payload.sub,
-                        iat: payload.iat,
-                    }
-                }
-            } catch (e) {
-                console.error(new Error('callback faulted'))
-                console.error(e)
-                return sendErrorPage(
-                    {
-                        error: 'server_error',
-                        error_description: 'loginSync failed',
-                    },
-                    target_uri,
-                    res,
-                )
-            }
-        }
+        const { auth } = result
+        target_uri = target_uri || config.routes.loggedIn || '/'
 
         if (wildcard_domain) {
             // the redirect_uri is not registered at Hellō - prompt to add
@@ -244,7 +148,7 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
 
             target_uri = config.apiRoute + '?' + queryString
         }
-        target_uri = target_uri || config.routes.loggedIn || '/'
+
         await saveAuthCookie(res, auth)
         if (config.sameSiteStrict) res.json({ target_uri })
         else res.redirect(target_uri)
