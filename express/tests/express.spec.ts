@@ -283,4 +283,134 @@ test.describe(`Testing ${APP_HOME}`, () => {
         expect(metadata.client_id).toBeDefined()
         expect(metadata.client_id).toEqual(config.client_id)
     })
+
+    test('loginURL - should return OAuth URL and state, and then exchange code for access_token and auth', async ({
+        page,
+    }) => {
+        // Add redirect_uri parameter for mobile apps
+        const response = await page.request.get(
+            APP_API + '?op=loginURL&redirect_uri=' + encodeURIComponent(MOCKIN),
+        )
+
+        // Debug: log the actual response
+        if (response.status() !== 200) {
+            const errorBody = await response.text()
+            console.log(
+                'loginURL error response:',
+                response.status(),
+                errorBody,
+            )
+        }
+
+        expect(response.status()).toBe(200)
+
+        const body = await response.json()
+        expect(body).toBeDefined()
+        expect(body.url).toBeDefined()
+        expect(body.state).toBeDefined()
+        expect(typeof body.url).toBe('string')
+        expect(typeof body.state).toBe('string')
+
+        // URL should be a valid Hellō OAuth URL (using MOCKIN for testing)
+        expect(body.url.startsWith(MOCKIN)).toBe(true)
+
+        // State should be an encrypted string (base64-like)
+        expect(body.state.length).toBeGreaterThan(50)
+
+        // load the URL in the browser
+        await page.goto(body.url)
+
+        // extract code
+        const url = new URL(page.url())
+        const code = url.searchParams.get('code') as string
+        expect(code).toBeDefined()
+
+        // Simulate the OAuth flow by exchanging the code
+        const exchangeResponse = await page.request.get(
+            APP_API +
+                '?op=exchange&code=' +
+                encodeURIComponent(code) +
+                '&state=' +
+                encodeURIComponent(body.state),
+        )
+        expect(exchangeResponse.status()).toBe(200)
+
+        const exchangeBody = await exchangeResponse.json()
+
+        // Log response details for debugging
+        if (exchangeResponse.status() !== 200) {
+            console.log(
+                'Exchange failed with status:',
+                exchangeResponse.status(),
+            )
+            console.log('Exchange error body:', exchangeBody)
+        }
+
+        expect(exchangeBody.access_token).toBeDefined()
+        expect(exchangeBody.auth).toBeDefined()
+        expect(exchangeBody.auth.isLoggedIn).toBe(true)
+        expect(exchangeBody.auth.sub).toBeDefined()
+    })
+
+    test('loginURL with parameters - should handle scope and provider_hint', async ({
+        page,
+    }) => {
+        const params = new URLSearchParams({
+            op: 'loginURL',
+            scope: 'openid name email',
+            provider_hint: 'github',
+            login_hint: 'dan.brown@example.net',
+            redirect_uri: MOCKIN,
+        })
+
+        const response = await page.request.get(
+            APP_API + '?' + params.toString(),
+        )
+
+        // Debug: log the actual response if there's an error
+        if (response.status() !== 200) {
+            const errorBody = await response.text()
+            console.log(
+                'loginURL with parameters error response:',
+                response.status(),
+                errorBody,
+            )
+        }
+
+        expect(response.status()).toBe(200)
+
+        const body = await response.json()
+        expect(body.url).toBeDefined()
+        expect(body.state).toBeDefined()
+
+        // URL should contain the parameters
+        const url = new URL(body.url)
+        expect(url.searchParams.get('scope')).toBe('openid name email')
+        expect(url.searchParams.get('provider_hint')).toBe('github')
+        expect(url.searchParams.get('login_hint')).toBe('dan.brown@example.net')
+
+        // load the URL in the browser
+        await page.goto(body.url)
+
+        // extract code
+        const responseURL = new URL(page.url())
+        const code = responseURL.searchParams.get('code') as string
+        expect(code).toBeDefined()
+
+        // Simulate the OAuth flow by exchanging the code
+        const exchangeResponse = await page.request.get(
+            APP_API +
+                '?op=exchange&code=' +
+                encodeURIComponent(code) +
+                '&state=' +
+                encodeURIComponent(body.state),
+        )
+        expect(exchangeResponse.status()).toBe(200)
+
+        const exchangeBody = await exchangeResponse.json()
+        expect(exchangeBody.access_token).toBeDefined()
+        expect(exchangeBody.auth).toBeDefined()
+        expect(exchangeBody.auth.isLoggedIn).toBe(true)
+        expect(exchangeBody.auth.sub).toBeDefined()
+    })
 })

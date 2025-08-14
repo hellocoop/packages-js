@@ -3,6 +3,8 @@ import { HelloRequest, HelloResponse } from '../types'
 import config from '../lib/config'
 import handleCallback from './callback'
 import handleLogin from './login'
+import handleLoginURL from './loginURL'
+import handleTokenExchange from './exchange'
 import handleLogout from './logout'
 import handleInvite from './invite'
 import handleCommand from './command'
@@ -70,6 +72,14 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
         if (query.op === 'invite') {
             // start invite flow, redirect to Hellō
             return await handleInvite(req, res)
+        }
+        if (query.op === 'loginURL') {
+            // return login URL and state for mobile apps
+            return await handleLoginURL(req, res)
+        }
+        if (query.op === 'exchange') {
+            // exchange code + state for tokens (mobile apps)
+            return await handleTokenExchange(req, res)
         }
         res.status(500)
         res.send('unknown op parameter:\n' + JSON.stringify(query, null, 4))

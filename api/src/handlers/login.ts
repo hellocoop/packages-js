@@ -1,72 +1,52 @@
 import { HelloRequest, HelloResponse } from '../types'
-import {
-    createAuthRequest,
-    redirectURIBounce,
-    ICreateAuthRequest,
-} from '@hellocoop/helper-server'
-import { Scope, ProviderHint } from '@hellocoop/definitions'
+import { redirectURIBounce, decryptObj } from '@hellocoop/helper-server'
 
 import config from '../lib/config'
 import { saveOidc } from '../lib/oidc'
+import { createLoginURL } from './loginURL'
 
 const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
-    const {
-        provider_hint: providerParam,
-        scope: scopeParam,
-        target_uri,
-        redirect_uri,
-        nonce: providedNonce,
-        prompt,
-        login_hint,
-        domain_hint,
-    } = req.query
-
     if (!config.clientId) {
         res.status(500)
         res.send('Missing HELLO_CLIENT_ID configuration')
         return
     }
 
-    const redirectURI = config.redirectURI || (redirect_uri as string)
+    const redirectURI = config.redirectURI || (req.query.redirect_uri as string)
     if (!redirectURI) {
         console.log('Hellō: Discovering API RedirectURI route ...')
         return res.send(redirectURIBounce())
     }
-    // parse out param strings
-    const targetURIstring = (
-        Array.isArray(providerParam) ? providerParam[0] : providerParam
-    ) as string
-    const provider_hint = targetURIstring?.split(' ').map((s) => s.trim()) as
-        | ProviderHint[]
-        | undefined
-    const scopeString = (
-        Array.isArray(scopeParam) ? scopeParam[0] : scopeParam
-    ) as string
-    const scope = scopeString?.split(' ').map((s) => s.trim()) as
-        | Scope[]
-        | undefined
 
-    const request: ICreateAuthRequest = {
-        redirect_uri: redirectURI,
-        client_id: config.clientId,
-        wallet: config.helloWallet,
-        scope,
-        provider_hint,
-        login_hint,
-        domain_hint,
-        prompt,
+    // Use the shared createLoginURL function
+    const result = await createLoginURL(req.query)
+
+    if ('error' in result) {
+        res.status(500)
+        res.send(result.error_description)
+        return
     }
-    if (providedNonce) request.nonce = providedNonce
-    const { url, nonce, code_verifier } = await createAuthRequest(request)
-    await saveOidc(req, res, {
-        nonce,
-        code_verifier,
-        redirect_uri: redirectURI,
-        target_uri: (Array.isArray(target_uri)
-            ? target_uri[0]
-            : target_uri) as string,
-    })
-    res.redirect(url)
+
+    // For web login, we need to extract the state and save it as a cookie
+    // The state contains encrypted OIDC parameters, we need to decrypt and re-save as cookie
+    const { url, state } = result
+
+    try {
+        // The state from createLoginURL is encrypted, but we need to save it as OIDC cookie for web
+        // We'll need to decrypt it first, then save it using saveOidc
+        const oidcData = await decryptObj(state, config.secret as string)
+
+        if (!oidcData) {
+            throw new Error('Failed to decrypt state data')
+        }
+
+        await saveOidc(req, res, oidcData as any)
+        res.redirect(url)
+    } catch (error) {
+        console.error('Error processing login:', error)
+        res.status(500)
+        res.send('Failed to initiate login')
+    }
 }
 
 export default handleLogin

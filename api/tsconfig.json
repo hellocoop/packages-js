@@ -1,7 +1,7 @@
 {
     "extends": "@tsconfig/node18/tsconfig.json",
     "exclude": ["node_modules", "**/dist"],
-    "include": ["src/*.ts"],
+    "include": ["src/**/*.ts"],
     "compilerOptions": {
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
