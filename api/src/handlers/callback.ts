@@ -2,14 +2,11 @@ import { HelloRequest, HelloResponse } from '../types'
 import config from '../lib/config'
 import { getOidc, clearOidcCookie } from '../lib/oidc'
 import {
-    fetchToken,
-    parseToken,
     errorPage,
     ErrorPageParams,
     sameSiteCallback,
 } from '@hellocoop/helper-server'
 import { saveAuthCookie, clearAuthCookie } from '../lib/auth'
-import { Auth, VALID_IDENTITY_CLAIMS } from '@hellocoop/definitions'
 import { performTokenExchange } from './exchange'
 
 // export const getCallbackRequest = (req: HelloRequest): CallbackRequest => {

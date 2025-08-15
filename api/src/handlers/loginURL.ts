@@ -1,7 +1,6 @@
 import { HelloRequest, HelloResponse } from '../types'
 import {
     createAuthRequest,
-    redirectURIBounce,
     ICreateAuthRequest,
     encryptObj,
 } from '@hellocoop/helper-server'
