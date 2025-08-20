@@ -6,7 +6,6 @@ import {
 import { generateIssuedToken } from '../tokens/issued-token.js'
 import type { IssuedTokenPayload, KeyResolver } from '../types.js'
 import {
-    MissingClaimError,
     TimeValidationError,
     InvalidSignatureError,
     TokenFormatError,
@@ -219,7 +218,8 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for invalid JWK', async () => {
-            const { alg, ...invalidKey } = rsaBrowserKey
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { alg: _alg, ...invalidKey } = rsaBrowserKey
 
             const issuedTokenPayload: IssuedTokenPayload = {
                 iss: 'issuer.example',

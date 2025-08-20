@@ -238,10 +238,8 @@ export async function verifyPresentationTokenIndependent(
                 const kbSigningInput = kbJwt.split('.').slice(0, 2).join('.')
                 const kbSignature = kbJwt.split('.')[2]
 
-                let keyObject
+                const keyObject = jwkToKeyObject(browserPublicKey)
                 let algorithm: string
-
-                keyObject = jwkToKeyObject(browserPublicKey)
 
                 if (browserPublicKey.kty === 'RSA') {
                     algorithm = 'RSA-SHA256'

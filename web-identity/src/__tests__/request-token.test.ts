@@ -80,7 +80,8 @@ describe('RequestToken Functions', () => {
         })
 
         it('should throw error for missing JWK algorithm', async () => {
-            const { alg, ...keyWithoutAlg } = rsaKey
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { alg: _alg, ...keyWithoutAlg } = rsaKey
 
             await expect(
                 generateRequestToken(testPayload, keyWithoutAlg),
@@ -88,7 +89,8 @@ describe('RequestToken Functions', () => {
         })
 
         it('should throw error for missing JWK kid', async () => {
-            const { kid, ...keyWithoutKid } = rsaKey
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { kid: _kid, ...keyWithoutKid } = rsaKey
 
             await expect(
                 generateRequestToken(testPayload, keyWithoutKid),

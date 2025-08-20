@@ -18,17 +18,9 @@ const privateJwks = JSON.parse(
         'utf8',
     ),
 )
-const publicJwks = JSON.parse(
-    readFileSync(
-        join(__dirname, 'src/__tests__/test-keys/public_jwks.json'),
-        'utf8',
-    ),
-)
 
 const rsaPrivateKey = privateJwks.keys.find((key) => key.kty === 'RSA')
 const eddsaPrivateKey = privateJwks.keys.find((key) => key.kty === 'OKP')
-const rsaPublicKey = publicJwks.keys.find((key) => key.kty === 'RSA')
-const eddsaPublicKey = publicJwks.keys.find((key) => key.kty === 'OKP')
 
 async function generateSampleTokens() {
     console.log('🔐 Generating Sample Web Identity Tokens\n')

@@ -296,7 +296,7 @@ describe('Performance and Security Validation', () => {
                 const start = performance.now()
                 try {
                     await verifyRequestToken(invalidToken)
-                } catch (error) {
+                } catch {
                     // Expected to fail
                 }
                 const end = performance.now()
