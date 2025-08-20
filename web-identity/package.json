@@ -1,0 +1,66 @@
+{
+    "name": "@hellocoop/web-identity",
+    "version": "1.0.0",
+    "description": "Functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://github.com/dickhardt/verified-email-autocomplete",
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js",
+            "types": "./dist/types/index.d.ts"
+        }
+    },
+    "files": [
+        "dist/"
+    ],
+    "keywords": [
+        "jwt",
+        "web-identity",
+        "verified-email",
+        "autocomplete",
+        "sd-jwt",
+        "hello",
+        "typescript"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "test": "vitest --run",
+        "test:watch": "vitest --watch",
+        "build": "npm run build:clean && npm run build:cjs && npm run build:esm && npm run build:types",
+        "build:clean": "rimraf dist",
+        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:esm": "tsc -p tsconfig.esm.json",
+        "build:types": "tsc -p tsconfig.types.json",
+        "watch": "tsc --watch",
+        "prebuild": "rimraf dist"
+    },
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "dependencies": {
+        "jose": "^5.0.0"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.2",
+        "@types/node": "^20.0.0",
+        "rimraf": "^5.0.5",
+        "typescript": "^5.0.0",
+        "vitest": "^1.0.0"
+    }
+}

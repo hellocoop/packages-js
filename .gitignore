@@ -71,6 +71,9 @@ out
 # Apple search
 .DS_Store
 
+# Kiro IDE files
+.kiro/
+
 # Playwright
 
 test-results/
