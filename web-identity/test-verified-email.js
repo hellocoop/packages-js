@@ -2,12 +2,12 @@
 
 /**
  * Test script for Verified Email Autocomplete protocol
- * 
+ *
  * This script simulates the browser's role in the verified email autocomplete flow
  * as defined in https://github.com/dickhardt/verified-email-autocomplete
- * 
+ *
  * Usage: node test-verified-email.js <email> <cookie_name> <cookie_value>
- * 
+ *
  * Flow:
  * 1. Discover issuer from email domain via DNS
  * 2. Fetch issuer metadata (JWKS URI and issuance endpoint)
@@ -22,7 +22,7 @@ import {
     fetchWebIdentityMetadata,
     generateRequestToken,
     verifyIssuedToken,
-    fetchJWKS
+    fetchJWKS,
 } from './dist/esm/index.js'
 
 // ANSI color codes for pretty output
@@ -33,7 +33,7 @@ const colors = {
     red: '\x1b[31m',
     cyan: '\x1b[36m',
     reset: '\x1b[0m',
-    bold: '\x1b[1m'
+    bold: '\x1b[1m',
 }
 
 function log(message, color = 'reset') {
@@ -41,7 +41,9 @@ function log(message, color = 'reset') {
 }
 
 function logStep(step, message) {
-    log(`\n${colors.bold}[Step ${step}]${colors.reset} ${colors.cyan}${message}${colors.reset}`)
+    log(
+        `\n${colors.bold}[Step ${step}]${colors.reset} ${colors.cyan}${message}${colors.reset}`,
+    )
 }
 
 function logSuccess(message) {
@@ -64,7 +66,9 @@ function prettyPrintJWT(token, title) {
         }
 
         const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+        const payload = JSON.parse(
+            Buffer.from(parts[1], 'base64url').toString(),
+        )
 
         log(`\n${colors.bold}${title}${colors.reset}`)
         log('Header:', 'blue')
@@ -125,15 +129,19 @@ async function main() {
 
     const [email, cookieName, cookieValue] = args
 
-    log(`${colors.bold}Testing Verified Email Autocomplete Protocol${colors.reset}`)
+    log(
+        `${colors.bold}Testing Verified Email Autocomplete Protocol${colors.reset}`,
+    )
     log(`Email: ${email}`)
     log(`Cookie: ${cookieName}=${cookieValue.substring(0, 10)}...`)
 
     try {
         // Step 1: Discover issuer from email domain
         logStep(1, 'Discovering issuer from email domain')
-        log(`Looking up DNS TXT record for: email._web-identity.${email.split('@')[1]}`)
-        
+        log(
+            `Looking up DNS TXT record for: email._web-identity.${email.split('@')[1]}`,
+        )
+
         let issuer
         try {
             issuer = await discoverIssuer(email)
@@ -145,8 +153,10 @@ async function main() {
 
         // Step 2: Fetch issuer metadata
         logStep(2, 'Fetching issuer metadata')
-        log(`Fetching metadata from: https://${issuer}/.well-known/web-identity`)
-        
+        log(
+            `Fetching metadata from: https://${issuer}/.well-known/web-identity`,
+        )
+
         let metadata
         try {
             metadata = await fetchWebIdentityMetadata(issuer)
@@ -166,24 +176,25 @@ async function main() {
         try {
             jwks = await fetchJWKS(metadata.jwks_uri)
             logSuccess(`Fetched JWKS with ${jwks.keys.length} keys`)
-            
+
             // Display supported algorithms
             const supportedAlgorithms = new Set()
-            jwks.keys.forEach(key => {
+            jwks.keys.forEach((key) => {
                 if (key.alg) {
                     supportedAlgorithms.add(key.alg)
                 }
             })
-            
+
             log('Supported algorithms:', 'blue')
-            supportedAlgorithms.forEach(alg => {
+            supportedAlgorithms.forEach((alg) => {
                 console.log(`  - ${alg}`)
             })
-            
+
             if (supportedAlgorithms.size === 0) {
-                logWarning('No algorithms specified in JWKS, will use EdDSA as default')
+                logWarning(
+                    'No algorithms specified in JWKS, will use EdDSA as default',
+                )
             }
-            
         } catch (error) {
             logError(`JWKS fetch failed: ${error.message}`)
             process.exit(1)
@@ -191,34 +202,44 @@ async function main() {
 
         // Step 4: Generate browser key pair (simulating browser)
         logStep(4, 'Generating browser key pair compatible with issuer')
-        
+
         // Determine which algorithm to use based on issuer support
         const supportedAlgorithms = new Set()
-        jwks.keys.forEach(key => {
+        jwks.keys.forEach((key) => {
             if (key.alg) {
                 supportedAlgorithms.add(key.alg)
             }
         })
-        
+
         // Algorithm preference order (most secure first)
-        const preferredAlgorithms = ['EdDSA', 'ES256', 'ES384', 'ES512', 'RS256', 'RS384', 'RS512']
+        const preferredAlgorithms = [
+            'EdDSA',
+            'ES256',
+            'ES384',
+            'ES512',
+            'RS256',
+            'RS384',
+            'RS512',
+        ]
         let chosenAlgorithm = null
-        
+
         for (const alg of preferredAlgorithms) {
             if (supportedAlgorithms.has(alg)) {
                 chosenAlgorithm = alg
                 break
             }
         }
-        
+
         // Fallback to EdDSA if no algorithm specified in JWKS
         if (!chosenAlgorithm) {
             chosenAlgorithm = 'EdDSA'
-            logWarning('No supported algorithm found in JWKS, defaulting to EdDSA')
+            logWarning(
+                'No supported algorithm found in JWKS, defaulting to EdDSA',
+            )
         }
-        
+
         log(`Selected algorithm: ${chosenAlgorithm}`, 'cyan')
-        
+
         let keyPair, browserJWK
         try {
             // Generate key pair based on chosen algorithm
@@ -238,23 +259,31 @@ async function main() {
                 case 'RS256':
                 case 'RS384':
                 case 'RS512':
-                    keyPair = await generateKeyPair('RS256', { modulusLength: 2048 })
+                    keyPair = await generateKeyPair('RS256', {
+                        modulusLength: 2048,
+                    })
                     break
                 default:
                     throw new Error(`Unsupported algorithm: ${chosenAlgorithm}`)
             }
-            
+
             browserJWK = await exportJWK(keyPair.privateKey)
             browserJWK.alg = chosenAlgorithm
             browserJWK.use = 'sig'
             browserJWK.kid = crypto.randomUUID() // Add key identifier
-            
-            const keyType = browserJWK.kty === 'OKP' ? `${browserJWK.crv}` : 
-                           browserJWK.kty === 'EC' ? `${browserJWK.crv}` :
-                           browserJWK.kty === 'RSA' ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}` :
-                           browserJWK.kty
-            
-            logSuccess(`Generated ${keyType} key pair with ${chosenAlgorithm} algorithm`)
+
+            const keyType =
+                browserJWK.kty === 'OKP'
+                    ? `${browserJWK.crv}`
+                    : browserJWK.kty === 'EC'
+                      ? `${browserJWK.crv}`
+                      : browserJWK.kty === 'RSA'
+                        ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
+                        : browserJWK.kty
+
+            logSuccess(
+                `Generated ${keyType} key pair with ${chosenAlgorithm} algorithm`,
+            )
         } catch (error) {
             logError(`Key generation failed: ${error.message}`)
             process.exit(1)
@@ -267,12 +296,15 @@ async function main() {
             aud: issuer,
             nonce: nonce,
             email: email,
-            iat: Math.floor(Date.now() / 1000)
+            iat: Math.floor(Date.now() / 1000),
         }
 
         let requestToken
         try {
-            requestToken = await generateRequestToken(requestPayload, browserJWK)
+            requestToken = await generateRequestToken(
+                requestPayload,
+                browserJWK,
+            )
             logSuccess('Request token created')
             prettyPrintJWT(requestToken, 'Request Token')
         } catch (error) {
@@ -291,21 +323,20 @@ async function main() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cookie': `${cookieName}=${cookieValue}`
+                    Cookie: `${cookieName}=${cookieValue}`,
                 },
                 body: JSON.stringify({
-                    request_token: requestToken
-                })
+                    request_token: requestToken,
+                }),
             })
 
             log(`Response Status: ${response.status} ${response.statusText}`)
-            
+
             if (!response.ok) {
                 const errorText = await response.text()
                 logError(`HTTP ${response.status}: ${errorText}`)
                 process.exit(1)
             }
-
         } catch (error) {
             logError(`Request failed: ${error.message}`)
             process.exit(1)
@@ -321,7 +352,7 @@ async function main() {
             }
 
             responseData = await response.json()
-            
+
             if (!responseData.issued_token) {
                 logError('Response missing issued_token field')
                 console.log('Response body:', responseData)
@@ -341,17 +372,21 @@ async function main() {
 
         try {
             // Create a key resolver that uses the fetched JWKS
-            const keyResolver = async (kid, issuerFromToken) => {
-                const key = jwks.keys.find(k => k.kid === kid)
+            const keyResolver = async (kid) => {
+                const key = jwks.keys.find((k) => k.kid === kid)
                 if (!key) {
                     throw new Error(`Key not found: ${kid}`)
                 }
                 return key
             }
 
-            const verifiedToken = await verifyIssuedToken(issuedToken, keyResolver, issuer)
+            const verifiedToken = await verifyIssuedToken(
+                issuedToken,
+                keyResolver,
+                issuer,
+            )
             logSuccess('Token verification successful!')
-            
+
             log('\nVerified Token Claims:', 'blue')
             console.log(JSON.stringify(verifiedToken, null, 2))
 
@@ -359,23 +394,28 @@ async function main() {
             if (verifiedToken.email === email) {
                 logSuccess(`Email verified: ${verifiedToken.email}`)
             } else {
-                logError(`Email mismatch: expected ${email}, got ${verifiedToken.email}`)
+                logError(
+                    `Email mismatch: expected ${email}, got ${verifiedToken.email}`,
+                )
             }
 
             if (verifiedToken.email_verified === true) {
                 logSuccess('Email verification status: true')
             } else {
-                logError(`Email verification status: ${verifiedToken.email_verified}`)
+                logError(
+                    `Email verification status: ${verifiedToken.email_verified}`,
+                )
             }
-
         } catch (error) {
             logError(`Token verification failed: ${error.message}`)
             process.exit(1)
         }
 
         logStep('✓', 'Verified Email Autocomplete flow completed successfully!')
-        log('\nThe browser would now create a presentation token (SD-JWT+KB) and send it to the RP.', 'cyan')
-
+        log(
+            '\nThe browser would now create a presentation token (SD-JWT+KB) and send it to the RP.',
+            'cyan',
+        )
     } catch (error) {
         logError(`Unexpected error: ${error.message}`)
         console.error(error.stack)
@@ -384,12 +424,12 @@ async function main() {
 }
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     logError(`Unhandled Promise Rejection: ${reason}`)
     process.exit(1)
 })
 
-main().catch(error => {
+main().catch((error) => {
     logError(`Script failed: ${error.message}`)
     process.exit(1)
 })
