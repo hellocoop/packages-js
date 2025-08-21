@@ -5,6 +5,7 @@ import type {
     TokenGenerationOptions,
     KeyResolver,
 } from '../types.js'
+import { fetchWebIdentityMetadata, fetchJWKS } from '../utils/dns-discovery.js'
 import { validateJWK, calculateSHA256Hash } from '../utils/crypto.js'
 import { ensureIatClaim, validateIatForVerification } from '../utils/time.js'
 import {
@@ -15,6 +16,51 @@ import {
 } from '../utils/validation.js'
 import { verifyIssuanceToken } from './issuance-token.js'
 import { InvalidSignatureError, TokenFormatError } from '../errors.js'
+
+/**
+ * Automatically resolves issuer's public key using DNS discovery
+ * @param kid - Key identifier from JWT header
+ * @param issuer - Issuer identifier from JWT payload
+ * @returns Promise resolving to JWK for verification
+ */
+async function autoResolveKey(kid?: string, issuer?: string): Promise<JWK> {
+    if (!issuer) {
+        throw new InvalidSignatureError(
+            'Issuer identifier is required for automatic key resolution',
+        )
+    }
+
+    if (!kid) {
+        throw new InvalidSignatureError(
+            'Key identifier (kid) is required for automatic key resolution',
+        )
+    }
+
+    try {
+        // Fetch web-identity metadata from the issuer
+        const metadata = await fetchWebIdentityMetadata(issuer)
+
+        // Fetch JWKS from the metadata
+        const jwks = await fetchJWKS(metadata.jwks_uri)
+
+        // Find the key with matching kid
+        const key = jwks.keys.find((k) => k.kid === kid)
+        if (!key) {
+            throw new InvalidSignatureError(
+                `Key with kid '${kid}' not found in issuer's JWKS`,
+            )
+        }
+
+        return key
+    } catch (error) {
+        if (error instanceof InvalidSignatureError) {
+            throw error
+        }
+        throw new InvalidSignatureError(
+            `Automatic key resolution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        )
+    }
+}
 
 /**
  * Generates a PresentationToken (SD-JWT+KB) for presenting verified email tokens to relying parties
@@ -82,22 +128,23 @@ export async function generatePresentationToken(
  * Used by relying parties in steps 6.2-6.4 of the web-identity protocol
  *
  * @param token - SD-JWT+KB string to verify
- * @param keyResolver - Callback to resolve issuer's public key for SD-JWT verification
  * @param expectedAudience - Expected audience (RP's origin)
  * @param expectedNonce - Expected nonce from RP's session
+ * @param keyResolver - Optional callback to resolve issuer's public key for SD-JWT verification. If not provided, uses automatic DNS discovery
  * @returns Promise resolving to both SD-JWT and KB-JWT verified payloads
  */
 export async function verifyPresentationToken(
     token: string,
-    keyResolver: KeyResolver,
     expectedAudience: string,
     expectedNonce: string,
+    keyResolver?: KeyResolver,
 ): Promise<PresentationTokenPayload> {
     // Parse SD-JWT+KB by splitting on tilde separator
     const { sdJwt, kbJwt } = parsePresentationToken(token)
 
     // First verify the SD-JWT using the existing verifyIssuanceToken function
-    const sdJwtPayload = await verifyIssuanceToken(sdJwt, keyResolver)
+    const resolverToUse = keyResolver || autoResolveKey
+    const sdJwtPayload = await verifyIssuanceToken(sdJwt, resolverToUse)
 
     // Parse the KB-JWT
     const { header: kbHeader, payload: kbPayload } = parseJWT(kbJwt)

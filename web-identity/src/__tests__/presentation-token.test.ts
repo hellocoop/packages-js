@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
     generatePresentationToken,
     verifyPresentationToken,
@@ -14,6 +14,18 @@ import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { importJWK } from 'jose'
+import { fetchWebIdentityMetadata, fetchJWKS } from '../utils/dns-discovery.js'
+
+// Mock the DNS discovery functions
+vi.mock('../utils/dns-discovery.js', async () => {
+    const actual = await vi.importActual('../utils/dns-discovery.js')
+    return {
+        ...actual,
+        discoverIssuer: vi.fn(),
+        fetchWebIdentityMetadata: vi.fn(),
+        fetchJWKS: vi.fn(),
+    }
+})
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -277,9 +289,9 @@ describe('PresentationToken Functions', () => {
 
             const verified = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verified.sdJwt.iss).toBe('issuer.example')
@@ -320,9 +332,9 @@ describe('PresentationToken Functions', () => {
 
             const verified = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verified.sdJwt.iss).toBe('issuer.example')
@@ -362,9 +374,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     presentationToken,
-                    keyResolver,
                     'https://wrong-rp.example',
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow(InvalidSignatureError)
         })
@@ -399,9 +411,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     presentationToken,
-                    keyResolver,
                     audience,
                     'wrong-nonce',
+                    keyResolver,
                 ),
             ).rejects.toThrow(InvalidSignatureError)
         })
@@ -441,9 +453,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     tamperedToken,
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow(InvalidSignatureError)
         })
@@ -452,9 +464,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     'not-a-valid-token',
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow(TokenFormatError)
         })
@@ -463,9 +475,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     'jwt.without.tilde.separator',
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow(TokenFormatError)
         })
@@ -513,9 +525,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     invalidToken,
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow()
         })
@@ -551,9 +563,9 @@ describe('PresentationToken Functions', () => {
             await expect(
                 verifyPresentationToken(
                     presentationToken,
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow(TimeValidationError)
         })
@@ -589,9 +601,9 @@ describe('PresentationToken Functions', () => {
 
             const verified = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verified.sdJwt.iss).toBe('issuer.example')
@@ -627,13 +639,248 @@ describe('PresentationToken Functions', () => {
 
             const verified = await verifyPresentationToken(
                 presentationToken,
+                audience,
+                nonce,
                 keyResolver,
+            )
+
+            expect(verified.sdJwt.iss).toBe('issuer.example')
+            expect(verified.kbJwt.aud).toBe(audience)
+        })
+    })
+
+    describe('verifyPresentationToken without keyResolver (automatic DNS discovery)', () => {
+        let mockFetch: any
+        let originalFetch: any
+
+        beforeEach(() => {
+            // Store original fetch
+            originalFetch = global.fetch
+
+            // Mock fetch for metadata and JWKS
+            mockFetch = vi.fn()
+            global.fetch = mockFetch
+        })
+
+        afterEach(() => {
+            // Restore original fetch
+            global.fetch = originalFetch
+            vi.restoreAllMocks()
+            vi.clearAllMocks()
+        })
+
+        it('should verify PresentationToken using automatic DNS discovery', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
+                rsaPrivateKey,
+            )
+            const presentationToken = await generatePresentationToken(
+                sdJwt,
+                audience,
+                nonce,
+                rsaBrowserKey,
+            )
+
+            // Mock the DNS discovery functions
+            const mockFetchWebIdentityMetadata = vi.mocked(
+                fetchWebIdentityMetadata,
+            )
+            const mockFetchJWKS = vi.mocked(fetchJWKS)
+
+            // Mock metadata
+            const mockMetadata = {
+                issuance_endpoint: 'https://issuer.example/issuance',
+                jwks_uri: 'https://issuer.example/.well-known/jwks',
+            }
+
+            // Mock JWKS
+            const mockJwks = {
+                keys: [rsaPublicKey],
+            }
+
+            mockFetchWebIdentityMetadata.mockResolvedValue(mockMetadata)
+            mockFetchJWKS.mockResolvedValue(mockJwks)
+
+            // Verify without keyResolver - should use automatic DNS discovery
+            const verified = await verifyPresentationToken(
+                presentationToken,
                 audience,
                 nonce,
             )
 
             expect(verified.sdJwt.iss).toBe('issuer.example')
+            expect(verified.sdJwt.email).toBe('user@example.com')
+            expect(verified.sdJwt.email_verified).toBe(true)
             expect(verified.kbJwt.aud).toBe(audience)
+            expect(verified.kbJwt.nonce).toBe(nonce)
+
+            // Verify DNS discovery functions were called
+            expect(mockFetchWebIdentityMetadata).toHaveBeenCalledWith(
+                'issuer.example',
+            )
+            expect(mockFetchJWKS).toHaveBeenCalledWith(
+                'https://issuer.example/.well-known/jwks',
+            )
+        })
+
+        it('should throw error when metadata fetch fails', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
+                rsaPrivateKey,
+            )
+            const presentationToken = await generatePresentationToken(
+                sdJwt,
+                audience,
+                nonce,
+                rsaBrowserKey,
+            )
+
+            // Mock metadata fetch to fail
+            const mockFetchWebIdentityMetadata = vi.mocked(
+                fetchWebIdentityMetadata,
+            )
+            mockFetchWebIdentityMetadata.mockRejectedValue(
+                new Error('Metadata fetch failed'),
+            )
+
+            await expect(
+                verifyPresentationToken(presentationToken, audience, nonce),
+            ).rejects.toThrow('Automatic key resolution failed')
+        })
+
+        it('should throw error when JWKS fetch fails', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
+                rsaPrivateKey,
+            )
+            const presentationToken = await generatePresentationToken(
+                sdJwt,
+                audience,
+                nonce,
+                rsaBrowserKey,
+            )
+
+            // Mock metadata fetch to succeed
+            const mockFetchWebIdentityMetadata = vi.mocked(
+                fetchWebIdentityMetadata,
+            )
+            const mockFetchJWKS = vi.mocked(fetchJWKS)
+
+            const mockMetadata = {
+                issuance_endpoint: 'https://issuer.example/issuance',
+                jwks_uri: 'https://issuer.example/.well-known/jwks',
+            }
+
+            mockFetchWebIdentityMetadata.mockResolvedValue(mockMetadata)
+            mockFetchJWKS.mockRejectedValue(new Error('JWKS fetch failed'))
+
+            await expect(
+                verifyPresentationToken(presentationToken, audience, nonce),
+            ).rejects.toThrow('Automatic key resolution failed')
+        })
+
+        it('should throw error when key not found in JWKS', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
+                rsaPrivateKey,
+            )
+            const presentationToken = await generatePresentationToken(
+                sdJwt,
+                audience,
+                nonce,
+                rsaBrowserKey,
+            )
+
+            // Mock the DNS discovery functions
+            const mockFetchWebIdentityMetadata = vi.mocked(
+                fetchWebIdentityMetadata,
+            )
+            const mockFetchJWKS = vi.mocked(fetchJWKS)
+
+            // Mock metadata
+            const mockMetadata = {
+                issuance_endpoint: 'https://issuer.example/issuance',
+                jwks_uri: 'https://issuer.example/.well-known/jwks',
+            }
+
+            // Mock JWKS with different key
+            const mockJwks = {
+                keys: [
+                    {
+                        ...rsaPublicKey,
+                        kid: 'different-key-id',
+                    },
+                ],
+            }
+
+            mockFetchWebIdentityMetadata.mockResolvedValue(mockMetadata)
+            mockFetchJWKS.mockResolvedValue(mockJwks)
+
+            await expect(
+                verifyPresentationToken(presentationToken, audience, nonce),
+            ).rejects.toThrow(
+                `Key with kid '${rsaPrivateKey.kid}' not found in issuer's JWKS`,
+            )
         })
     })
 })

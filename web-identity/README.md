@@ -18,13 +18,15 @@ npm install @hellocoop/web-identity
 
 ```typescript
 import {
-    // Token functions
+    // Most commonly used by RPs
+    verifyPresentationToken,
+
+    // Other token functions
     generateRequestToken,
     verifyRequestToken,
     generateIssuanceToken,
     verifyIssuanceToken,
     generatePresentationToken,
-    verifyPresentationToken,
 
     // DNS discovery functions
     discoverIssuer,
@@ -44,15 +46,17 @@ import {
 
 ```javascript
 const {
-    // Token functions
+    // Most commonly used by RPs
+    verifyPresentationToken,
+
+    // Other token functions
     generateRequestToken,
     verifyRequestToken,
     generateIssuanceToken,
     verifyIssuanceToken,
     generatePresentationToken,
-    verifyPresentationToken,
 
-    // DNS discovery functions
+    // Discovery functions
     discoverIssuer,
     fetchWebIdentityMetadata,
     fetchJWKS,
@@ -63,6 +67,52 @@ const {
 **Note**: The package provides dual ESM/CommonJS support with automatic module resolution based on your project configuration.
 
 ## API Reference
+
+### PresentationToken Verification (Most Common for RPs)
+
+#### `verifyPresentationToken(token, expectedAudience, expectedNonce, keyResolver?)`
+
+**🔥 Most commonly used function by Relying Parties** - Verifies a PresentationToken (SD-JWT+KB) from browsers with automatic DNS-based key discovery.
+
+**Parameters:**
+
+- `token: string` - SD-JWT+KB string to verify
+- `expectedAudience: string` - Expected audience (RP's origin)
+- `expectedNonce: string` - Expected nonce from RP's session
+- `keyResolver?: KeyResolver` - Optional function to resolve issuer's public key. If not provided, uses automatic DNS discovery
+
+**Returns:** `Promise<PresentationTokenPayload>` - Object containing both SD-JWT and KB-JWT payloads
+
+**Example (Automatic DNS Discovery - Recommended):**
+
+```typescript
+// Simplest usage - automatic key discovery via DNS
+const verified = await verifyPresentationToken(
+    presentationToken,
+    'https://rp.example',
+    'session-nonce-123',
+)
+
+console.log(verified.sdJwt.email) // 'user@example.com'
+console.log(verified.kbJwt.aud) // 'https://rp.example'
+```
+
+**Example (Custom Key Resolver):**
+
+```typescript
+// Custom key resolver for advanced use cases
+const keyResolver = async (kid, issuer) => {
+    // Your custom logic to resolve keys
+    return await getPublicKeyFromSomewhere(kid, issuer)
+}
+
+const verified = await verifyPresentationToken(
+    presentationToken,
+    'https://rp.example',
+    'session-nonce-123',
+    keyResolver,
+)
+```
 
 ### RequestToken Functions
 
@@ -200,33 +250,6 @@ const presentationToken = await generatePresentationToken(
     'session-nonce-123',
     browserPrivateKey,
 )
-```
-
-#### `verifyPresentationToken(token, keyResolver, expectedAudience, expectedNonce)`
-
-Verifies a PresentationToken (SD-JWT+KB) from browsers.
-
-**Parameters:**
-
-- `token: string` - SD-JWT+KB string to verify
-- `keyResolver: KeyResolver` - Function to resolve issuer's public key
-- `expectedAudience: string` - Expected audience (RP's origin)
-- `expectedNonce: string` - Expected nonce from RP's session
-
-**Returns:** `Promise<PresentationTokenPayload>` - Object containing both SD-JWT and KB-JWT payloads
-
-**Example:**
-
-```typescript
-const verified = await verifyPresentationToken(
-    presentationToken,
-    keyResolver,
-    'https://rp.example',
-    'session-nonce-123',
-)
-
-console.log(verified.sdJwt.email) // 'user@example.com'
-console.log(verified.kbJwt.aud) // 'https://rp.example'
 ```
 
 ### DNS Discovery Functions
@@ -576,10 +599,9 @@ const presentationToken = await generatePresentationToken(
     browserPrivateKey,
 )
 
-// 6. Relying Party verifies PresentationToken
+// 6. Relying Party verifies PresentationToken (automatic DNS discovery)
 const presentationPayload = await verifyPresentationToken(
     presentationToken,
-    keyResolver,
     'https://rp.example',
     'rp-nonce-123',
 )

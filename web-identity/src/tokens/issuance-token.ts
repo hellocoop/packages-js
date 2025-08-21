@@ -76,7 +76,7 @@ export async function generateIssuanceToken(
  * Used by browsers in step 5.1 of the web-identity protocol
  *
  * @param token - SD-JWT string to verify
- * @param keyResolver - Callback to resolve issuer's public key using kid
+ * @param keyResolver - Optional callback to resolve issuer's public key using kid. If not provided, uses automatic DNS discovery
  * @returns Promise resolving to verified payload
  */
 export async function verifyIssuanceToken(

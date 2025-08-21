@@ -122,9 +122,9 @@ describe('End-to-End Token Flow', () => {
             // Step 6: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verifiedPresentation.sdJwt.email).toBe('user@example.com')
@@ -199,9 +199,9 @@ describe('End-to-End Token Flow', () => {
             // Step 6: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verifiedPresentation.sdJwt.email).toBe('user@example.com')
@@ -270,9 +270,9 @@ describe('End-to-End Token Flow', () => {
             // Step 6: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verifiedPresentation.sdJwt.email).toBe('user@example.com')
@@ -340,9 +340,9 @@ describe('End-to-End Token Flow', () => {
             // Step 6: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             expect(verifiedPresentation.sdJwt.email).toBe('user@example.com')
@@ -440,9 +440,9 @@ describe('End-to-End Token Flow', () => {
             await expect(
                 verifyPresentationToken(
                     tamperedToken,
-                    keyResolver,
                     audience,
                     nonce,
+                    keyResolver,
                 ),
             ).rejects.toThrow()
         })
@@ -512,9 +512,9 @@ describe('End-to-End Token Flow', () => {
             )
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
-                keyResolver,
                 audience,
                 nonce,
+                keyResolver,
             )
 
             // Ensure all fields are preserved correctly
