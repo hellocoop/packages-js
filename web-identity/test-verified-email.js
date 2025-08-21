@@ -6,7 +6,7 @@
  * This script simulates the browser's role in the verified email autocomplete flow
  * as defined in https://github.com/dickhardt/verified-email-autocomplete
  *
- * Usage: node test-verified-email.js <email> <cookie_name> <cookie_value>
+ * Usage: npx @hellocoop/web-identity <email> <cookie_name> <cookie_value>
  *
  * Flow:
  * 1. Discover issuer from email domain via DNS
@@ -89,7 +89,7 @@ ${colors.bold}Verified Email Autocomplete Test Script${colors.reset}
 This script simulates the browser's role in the verified email autocomplete flow.
 
 ${colors.bold}Usage:${colors.reset}
-  node test-verified-email.js <email> <cookie_name> <cookie_value>
+  npx @hellocoop/web-identity <email> <cookie_name> <cookie_value>
 
 ${colors.bold}Parameters:${colors.reset}
   email        - Email address to verify (e.g., dick@blame.ca)
@@ -97,7 +97,7 @@ ${colors.bold}Parameters:${colors.reset}
   cookie_value - Value of the authentication cookie
 
 ${colors.bold}Example:${colors.reset}
-  node test-verified-email.js dick@blame.ca user-hint abc123def456
+  npx @hellocoop/web-identity dick@blame.ca user-hint abc123def456
 
 ${colors.bold}Flow:${colors.reset}
   1. Discover issuer from email domain via DNS TXT record

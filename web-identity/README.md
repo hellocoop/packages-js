@@ -2,7 +2,7 @@
 
 🧪 **Experimental** - This package implements the [Verified Email Autocomplete](https://github.com/dickhardt/verified-email-autocomplete) protocol and is currently in experimental status.
 
-> **Development Note**: This package was collaboratively developed using spec-driven development with AI assistance. You can view the complete [requirements, design, and implementation specifications](./specs) that guided the development process.
+> **Development Note**: This package was collaboratively developed using spec-driven development with AI assistance. You can view the complete [requirements, design, and implementation specifications](https://github.com/hellocoop/packages-js/tree/main/web-identity/specs) that guided the development process.
 
 TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package provides complete implementations for RequestToken, IssuanceToken (SD-JWT), and PresentationToken (SD-JWT+KB) as defined in the [web-identity specification](https://github.com/dickhardt/verified-email-autocomplete).
 
@@ -669,10 +669,6 @@ const keyResolver = async (kid, issuer) => {
 ## Specification
 
 This package implements the [Verified Email Autocomplete](https://github.com/dickhardt/verified-email-autocomplete) protocol. For detailed protocol information, please refer to the specification.
-
-## License
-
-MIT - See LICENSE file for details.
 
 ## Contributing
 
