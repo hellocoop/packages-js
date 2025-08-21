@@ -164,7 +164,7 @@ export async function verifyPresentationTokenIndependent(
         }
 
         // Verify SD-JWT independently
-        const sdJwtVerification = await verifyIssuedTokenIndependent(
+        const sdJwtVerification = await verifyIssuanceTokenIndependent(
             sdJwt,
             issuerPublicKey,
         )
@@ -368,9 +368,9 @@ export async function verifyRequestTokenIndependent(
 }
 
 /**
- * Verify IssuedToken (SD-JWT) independently using external key
+ * Verify IssuanceToken (SD-JWT) independently using external key
  */
-export async function verifyIssuedTokenIndependent(
+export async function verifyIssuanceTokenIndependent(
     token: string,
     issuerPublicKey: any,
 ): Promise<{ valid: boolean; payload: any; errors: string[] }> {

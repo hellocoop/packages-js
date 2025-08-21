@@ -27,10 +27,10 @@ export interface RequestTokenPayload {
 }
 
 /**
- * IssuedToken (SD-JWT) payload structure (step 4.2)
+ * IssuanceToken (SD-JWT) payload structure (step 4.2)
  * Used by issuers to provide verified email tokens to browsers
  */
-export interface IssuedTokenPayload {
+export interface IssuanceTokenPayload {
     /** Issuer identifier */
     iss: string
     /** Issued at time (optional for testing expired tokens) */
@@ -52,7 +52,7 @@ export interface IssuedTokenPayload {
  */
 export interface PresentationTokenPayload {
     /** Verified SD-JWT payload */
-    sdJwt: IssuedTokenPayload
+    sdJwt: IssuanceTokenPayload
     /** Key Binding JWT payload */
     kbJwt: {
         /** Audience (RP's origin) */
@@ -89,9 +89,9 @@ export interface RequestTokenHeader {
 }
 
 /**
- * JWT Header structure for IssuedToken (SD-JWT)
+ * JWT Header structure for IssuanceToken (SD-JWT)
  */
-export interface IssuedTokenHeader {
+export interface IssuanceTokenHeader {
     /** Algorithm */
     alg: string
     /** Token type (web-identity+sd-jwt) */

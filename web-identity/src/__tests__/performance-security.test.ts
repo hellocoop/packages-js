@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import {
     generateRequestToken,
-    generateIssuedToken,
+    generateIssuanceToken,
     verifyRequestToken,
-    verifyIssuedToken,
+    verifyIssuanceToken,
 } from '../index.js'
 import type {
     KeyResolver,
     RequestTokenPayload,
-    IssuedTokenPayload,
+    IssuanceTokenPayload,
 } from '../index.js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
@@ -131,7 +131,7 @@ describe('Performance and Security Validation', () => {
 
     describe('Security Validation', () => {
         it('should not leak private key material in cnf claims', async () => {
-            const payloadWithPrivateKey: IssuedTokenPayload = {
+            const payloadWithPrivateKey: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: { ...rsaBrowserKey }, // Contains private key material
@@ -140,11 +140,11 @@ describe('Performance and Security Validation', () => {
                 email_verified: true,
             }
 
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 payloadWithPrivateKey,
                 rsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             // Verify private key material is stripped
             expect(verified.cnf.jwk.d).toBeUndefined()

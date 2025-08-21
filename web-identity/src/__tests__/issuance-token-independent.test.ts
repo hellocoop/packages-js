@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { generateIssuedToken } from '../tokens/issued-token.js'
-import { verifyIssuedTokenIndependent } from './independent-verify.js'
-import type { IssuedTokenPayload } from '../types.js'
+import { generateIssuanceToken } from '../tokens/issuance-token.js'
+import { verifyIssuanceTokenIndependent } from './independent-verify.js'
+import type { IssuanceTokenPayload } from '../types.js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -22,7 +22,7 @@ const eddsaPrivateKey = privateJwks.keys.find((key: any) => key.kty === 'OKP')
 const rsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'RSA')
 const eddsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'OKP')
 
-describe('IssuedToken Independent Verification', () => {
+describe('IssuanceToken Independent Verification', () => {
     const browserPublicKey = {
         kty: 'OKP',
         crv: 'Ed25519',
@@ -31,7 +31,7 @@ describe('IssuedToken Independent Verification', () => {
         kid: 'browser-key-1',
     }
 
-    const testPayload: IssuedTokenPayload = {
+    const testPayload: IssuanceTokenPayload = {
         iss: 'issuer.example',
         cnf: {
             jwk: browserPublicKey,
@@ -40,10 +40,10 @@ describe('IssuedToken Independent Verification', () => {
         email_verified: true,
     }
 
-    it('should generate and independently verify RSA IssuedToken', async () => {
-        const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+    it('should generate and independently verify RSA IssuanceToken', async () => {
+        const token = await generateIssuanceToken(testPayload, rsaPrivateKey)
 
-        const verification = await verifyIssuedTokenIndependent(
+        const verification = await verifyIssuanceTokenIndependent(
             token,
             rsaPublicKey,
         )
@@ -57,10 +57,10 @@ describe('IssuedToken Independent Verification', () => {
         expect(verification.payload.iat).toBeTypeOf('number')
     })
 
-    it('should generate and independently verify EdDSA IssuedToken', async () => {
-        const token = await generateIssuedToken(testPayload, eddsaPrivateKey)
+    it('should generate and independently verify EdDSA IssuanceToken', async () => {
+        const token = await generateIssuanceToken(testPayload, eddsaPrivateKey)
 
-        const verification = await verifyIssuedTokenIndependent(
+        const verification = await verifyIssuanceTokenIndependent(
             token,
             eddsaPublicKey,
         )
@@ -75,7 +75,7 @@ describe('IssuedToken Independent Verification', () => {
     })
 
     it('should detect invalid signature in independent verification', async () => {
-        const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+        const token = await generateIssuanceToken(testPayload, rsaPrivateKey)
 
         // Tamper with the token
         const parts = token.split('.')
@@ -84,7 +84,7 @@ describe('IssuedToken Independent Verification', () => {
         ).toString('base64url')
         const tamperedToken = `${parts[0]}.${tamperedPayload}.${parts[2]}`
 
-        const verification = await verifyIssuedTokenIndependent(
+        const verification = await verifyIssuanceTokenIndependent(
             tamperedToken,
             rsaPublicKey,
         )
@@ -101,7 +101,7 @@ describe('IssuedToken Independent Verification', () => {
 
         // We expect this to fail during generation due to missing claims
         await expect(
-            generateIssuedToken(incompletePayload as any, rsaPrivateKey),
+            generateIssuanceToken(incompletePayload as any, rsaPrivateKey),
         ).rejects.toThrow()
     })
 
@@ -110,7 +110,7 @@ describe('IssuedToken Independent Verification', () => {
 
         // This should fail during generation due to email validation
         await expect(
-            generateIssuedToken(invalidEmailPayload, rsaPrivateKey),
+            generateIssuanceToken(invalidEmailPayload, rsaPrivateKey),
         ).rejects.toThrow()
     })
 
@@ -119,7 +119,7 @@ describe('IssuedToken Independent Verification', () => {
 
         // This should fail during generation due to email_verified validation
         await expect(
-            generateIssuedToken(unverifiedPayload, rsaPrivateKey),
+            generateIssuanceToken(unverifiedPayload, rsaPrivateKey),
         ).rejects.toThrow()
     })
 
@@ -129,8 +129,8 @@ describe('IssuedToken Independent Verification', () => {
             iat: Math.floor(Date.now() / 1000) - 120,
         } // 2 minutes ago
 
-        const token = await generateIssuedToken(expiredPayload, rsaPrivateKey)
-        const verification = await verifyIssuedTokenIndependent(
+        const token = await generateIssuanceToken(expiredPayload, rsaPrivateKey)
+        const verification = await verifyIssuanceTokenIndependent(
             token,
             rsaPublicKey,
         )
@@ -144,7 +144,7 @@ describe('IssuedToken Independent Verification', () => {
     })
 
     it('should validate JWT type is web-identity+sd-jwt', async () => {
-        const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+        const token = await generateIssuanceToken(testPayload, rsaPrivateKey)
 
         // Manually parse to check the header
         const parts = token.split('.')
@@ -163,11 +163,11 @@ describe('IssuedToken Independent Verification', () => {
             },
         }
 
-        const token = await generateIssuedToken(
+        const token = await generateIssuanceToken(
             payloadWithPrivateKey,
             rsaPrivateKey,
         )
-        const verification = await verifyIssuedTokenIndependent(
+        const verification = await verifyIssuanceTokenIndependent(
             token,
             rsaPublicKey,
         )
@@ -190,8 +190,8 @@ describe('IssuedToken Independent Verification', () => {
             cnf: { jwk: eddsaBrowserKey },
         }
 
-        const token = await generateIssuedToken(crossPayload, rsaPrivateKey)
-        const verification = await verifyIssuedTokenIndependent(
+        const token = await generateIssuanceToken(crossPayload, rsaPrivateKey)
+        const verification = await verifyIssuanceTokenIndependent(
             token,
             rsaPublicKey,
         )

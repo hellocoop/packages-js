@@ -13,7 +13,7 @@ import {
     parsePresentationToken,
     validateJWTType,
 } from '../utils/validation.js'
-import { verifyIssuedToken } from './issued-token.js'
+import { verifyIssuanceToken } from './issuance-token.js'
 import { InvalidSignatureError, TokenFormatError } from '../errors.js'
 
 /**
@@ -96,8 +96,8 @@ export async function verifyPresentationToken(
     // Parse SD-JWT+KB by splitting on tilde separator
     const { sdJwt, kbJwt } = parsePresentationToken(token)
 
-    // First verify the SD-JWT using the existing verifyIssuedToken function
-    const sdJwtPayload = await verifyIssuedToken(sdJwt, keyResolver)
+    // First verify the SD-JWT using the existing verifyIssuanceToken function
+    const sdJwtPayload = await verifyIssuanceToken(sdJwt, keyResolver)
 
     // Parse the KB-JWT
     const { header: kbHeader, payload: kbPayload } = parseJWT(kbJwt)

@@ -16,9 +16,9 @@ export {
 } from './tokens/request-token.js'
 
 export {
-    generateIssuedToken,
-    verifyIssuedToken,
-} from './tokens/issued-token.js'
+    generateIssuanceToken,
+    verifyIssuanceToken,
+} from './tokens/issuance-token.js'
 
 export {
     generatePresentationToken,
@@ -29,11 +29,11 @@ export {
 export type {
     KeyResolver,
     RequestTokenPayload,
-    IssuedTokenPayload,
+    IssuanceTokenPayload,
     PresentationTokenPayload,
     TokenGenerationOptions,
     RequestTokenHeader,
-    IssuedTokenHeader,
+    IssuanceTokenHeader,
     KeyBindingHeader,
 } from './types.js'
 

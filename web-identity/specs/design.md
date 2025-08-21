@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `web-identity` package provides TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. The package implements three core token types: RequestToken (JWT), IssuedToken (SD-JWT), and PresentationToken (SD-JWT+KB). The design emphasizes security, performance, and ease of integration while maintaining compatibility with the web-identity specification.
+The `web-identity` package provides TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. The package implements three core token types: RequestToken (JWT), IssuanceToken (SD-JWT), and PresentationToken (SD-JWT+KB). The design emphasizes security, performance, and ease of integration while maintaining compatibility with the web-identity specification.
 
 ## JWT Library Selection
 
@@ -65,12 +65,12 @@ web-identity/
 │   │   └── dns-discovery.ts     # DNS-based issuer discovery and metadata fetching
 │   ├── tokens/
 │   │   ├── request-token.ts     # RequestToken generation and verification
-│   │   ├── issued-token.ts      # IssuedToken (SD-JWT) generation and verification
+│   │   ├── issuance-token.ts      # IssuanceToken (SD-JWT) generation and verification
 │   │   └── presentation-token.ts # PresentationToken (SD-JWT+KB) generation and verification
 │   └── __tests__/
 │       ├── independent-verify.ts # Independent verification test suite
 │       ├── request-token.test.ts
-│       ├── issued-token.test.ts
+│       ├── issuance-token.test.ts
 │       ├── presentation-token.test.ts
 │       ├── dns-discovery.test.ts # DNS discovery function tests
 │       └── test-keys/
@@ -107,7 +107,7 @@ export interface RequestTokenPayload {
     email: string
 }
 
-export interface IssuedTokenPayload {
+export interface IssuanceTokenPayload {
     iss: string
     iat?: number // Optional for testing expired tokens
     cnf: {
@@ -118,7 +118,7 @@ export interface IssuedTokenPayload {
 }
 
 export interface PresentationTokenPayload {
-    sdJwt: IssuedTokenPayload
+    sdJwt: IssuanceTokenPayload
     kbJwt: {
         aud: string
         nonce: string
@@ -167,19 +167,19 @@ export async function verifyRequestToken(
 ): Promise<RequestTokenPayload>
 ```
 
-#### IssuedToken Functions
+#### IssuanceToken Functions
 
 ```typescript
-export async function generateIssuedToken(
-    payload: IssuedTokenPayload,
+export async function generateIssuanceToken(
+    payload: IssuanceTokenPayload,
     jwk: JWK, // JWK containing private key, alg, and kid
     options?: TokenGenerationOptions,
 ): Promise<string>
 
-export async function verifyIssuedToken(
+export async function verifyIssuanceToken(
     token: string,
     keyResolver: KeyResolver,
-): Promise<IssuedTokenPayload>
+): Promise<IssuanceTokenPayload>
 ```
 
 #### PresentationToken Functions
@@ -229,7 +229,7 @@ export function clearCaches(): void
 - **Payload**: `iss`, `aud`, `iat`, `nonce`, `email`
 - **Signature**: Signed with browser's private key
 
-#### IssuedToken (SD-JWT)
+#### IssuanceToken (SD-JWT)
 
 - **Header**: `alg`, `typ` ("web-identity+sd-jwt"), `kid`
 - **Payload**: `iss`, `iat`, `cnf` (confirmation with public key), `email`, `email_verified`
@@ -238,7 +238,7 @@ export function clearCaches(): void
 #### PresentationToken (SD-JWT+KB)
 
 - **Format**: `{SD-JWT}~{KB-JWT}`
-- **SD-JWT**: Same as IssuedToken
+- **SD-JWT**: Same as IssuanceToken
 - **KB-JWT**:
     - **Header**: `alg`, `typ` ("kb+jwt")
     - **Payload**: `aud`, `nonce`, `iat`, `sd_hash`
@@ -249,13 +249,13 @@ export function clearCaches(): void
 #### Time Validation
 
 - `iat` claims must be within 60 seconds of current time for all token types
-- Consistent 60-second validation window across RequestToken, IssuedToken, and PresentationToken verification
+- Consistent 60-second validation window across RequestToken, IssuanceToken, and PresentationToken verification
 
 #### Claim Validation
 
 - All required claims must be present (throws `missing_claim` error if absent)
 - Email addresses must be syntactically valid
-- `email_verified` must be `true` in IssuedTokens
+- `email_verified` must be `true` in IssuanceTokens
 - `sd_hash` is calculated automatically from SD-JWT in PresentationTokens
 - JWK validation: must contain required `alg`, `kid`, and algorithm-specific parameters
 - JWK in `cnf` claim contains only essential public key parameters (no private key material)

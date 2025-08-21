@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
-    generateIssuedToken,
-    verifyIssuedToken,
-} from '../tokens/issued-token.js'
-import type { IssuedTokenPayload, KeyResolver } from '../types.js'
+    generateIssuanceToken,
+    verifyIssuanceToken,
+} from '../tokens/issuance-token.js'
+import type { IssuanceTokenPayload, KeyResolver } from '../types.js'
 import {
     MissingClaimError,
     EmailValidationError,
@@ -31,7 +31,7 @@ const eddsaPrivateKey = privateJwks.keys.find((key: any) => key.kty === 'OKP')
 const rsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'RSA')
 const eddsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'OKP')
 
-describe('IssuedToken Functions', () => {
+describe('IssuanceToken Functions', () => {
     const browserPublicKey = {
         kty: 'OKP',
         crv: 'Ed25519',
@@ -40,7 +40,7 @@ describe('IssuedToken Functions', () => {
         kid: 'browser-key-1',
     }
 
-    const testPayload: IssuedTokenPayload = {
+    const testPayload: IssuanceTokenPayload = {
         iss: 'issuer.example',
         cnf: {
             jwk: browserPublicKey,
@@ -59,15 +59,18 @@ describe('IssuedToken Functions', () => {
         throw new Error(`Unknown key ID: ${kid}`)
     }
 
-    describe('generateIssuedToken', () => {
-        it('should generate valid IssuedToken with RSA key', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+    describe('generateIssuanceToken', () => {
+        it('should generate valid IssuanceToken with RSA key', async () => {
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
 
             expect(token).toBeTypeOf('string')
             expect(token.split('.')).toHaveLength(3) // JWT format
 
             // Verify the token can be parsed and verified
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
             expect(verified.iss).toBe(testPayload.iss)
             expect(verified.email).toBe(testPayload.email)
             expect(verified.email_verified).toBe(true)
@@ -75,8 +78,8 @@ describe('IssuedToken Functions', () => {
             expect(verified.iat).toBeTypeOf('number')
         })
 
-        it('should generate valid IssuedToken with EdDSA key', async () => {
-            const token = await generateIssuedToken(
+        it('should generate valid IssuanceToken with EdDSA key', async () => {
+            const token = await generateIssuanceToken(
                 testPayload,
                 eddsaPrivateKey,
             )
@@ -85,7 +88,7 @@ describe('IssuedToken Functions', () => {
             expect(token.split('.')).toHaveLength(3) // JWT format
 
             // Verify the token can be parsed and verified
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
             expect(verified.iss).toBe(testPayload.iss)
             expect(verified.email).toBe(testPayload.email)
             expect(verified.email_verified).toBe(true)
@@ -97,11 +100,11 @@ describe('IssuedToken Functions', () => {
             const customIat = Math.floor(Date.now() / 1000) - 30 // 30 seconds ago
             const payloadWithIat = { ...testPayload, iat: customIat }
 
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 payloadWithIat,
                 rsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.iat).toBe(customIat)
         })
@@ -114,11 +117,11 @@ describe('IssuedToken Functions', () => {
                 },
             }
 
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 payloadWithPrivateKey,
                 rsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.cnf.jwk.d).toBeUndefined()
             expect(verified.cnf.jwk).toEqual(browserPublicKey)
@@ -128,7 +131,7 @@ describe('IssuedToken Functions', () => {
             const invalidPayload = { ...testPayload, email: 'invalid-email' }
 
             await expect(
-                generateIssuedToken(invalidPayload, rsaPrivateKey),
+                generateIssuanceToken(invalidPayload, rsaPrivateKey),
             ).rejects.toThrow(EmailValidationError)
         })
 
@@ -136,7 +139,7 @@ describe('IssuedToken Functions', () => {
             const unverifiedPayload = { ...testPayload, email_verified: false }
 
             await expect(
-                generateIssuedToken(unverifiedPayload, rsaPrivateKey),
+                generateIssuanceToken(unverifiedPayload, rsaPrivateKey),
             ).rejects.toThrow(EmailValidationError)
         })
 
@@ -145,7 +148,7 @@ describe('IssuedToken Functions', () => {
             const { alg: _alg, ...keyWithoutAlg } = rsaPrivateKey
 
             await expect(
-                generateIssuedToken(testPayload, keyWithoutAlg),
+                generateIssuanceToken(testPayload, keyWithoutAlg),
             ).rejects.toThrow()
         })
 
@@ -154,12 +157,15 @@ describe('IssuedToken Functions', () => {
             const { kid: _kid, ...keyWithoutKid } = rsaPrivateKey
 
             await expect(
-                generateIssuedToken(testPayload, keyWithoutKid),
+                generateIssuanceToken(testPayload, keyWithoutKid),
             ).rejects.toThrow()
         })
 
         it('should set correct JWT type and header', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
 
             // Parse header manually to check
             const parts = token.split('.')
@@ -173,10 +179,13 @@ describe('IssuedToken Functions', () => {
         })
     })
 
-    describe('verifyIssuedToken', () => {
-        it('should verify valid RSA IssuedToken', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
-            const verified = await verifyIssuedToken(token, keyResolver)
+    describe('verifyIssuanceToken', () => {
+        it('should verify valid RSA IssuanceToken', async () => {
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.iss).toBe(testPayload.iss)
             expect(verified.email).toBe(testPayload.email)
@@ -185,12 +194,12 @@ describe('IssuedToken Functions', () => {
             expect(verified.iat).toBeTypeOf('number')
         })
 
-        it('should verify valid EdDSA IssuedToken', async () => {
-            const token = await generateIssuedToken(
+        it('should verify valid EdDSA IssuanceToken', async () => {
+            const token = await generateIssuanceToken(
                 testPayload,
                 eddsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.iss).toBe(testPayload.iss)
             expect(verified.email).toBe(testPayload.email)
@@ -220,19 +229,22 @@ describe('IssuedToken Functions', () => {
             const invalidToken = `${headerB64}.${payloadB64}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(invalidToken, keyResolver),
+                verifyIssuanceToken(invalidToken, keyResolver),
             ).rejects.toThrow(MissingClaimError)
         })
 
         it('should throw error for invalid signature', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
 
             // Tamper with the signature
             const parts = token.split('.')
             const tamperedToken = `${parts[0]}.${parts[1]}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(tamperedToken, keyResolver),
+                verifyIssuanceToken(tamperedToken, keyResolver),
             ).rejects.toThrow(InvalidSignatureError)
         })
 
@@ -241,14 +253,14 @@ describe('IssuedToken Functions', () => {
                 ...testPayload,
                 iat: Math.floor(Date.now() / 1000) - 120,
             } // 2 minutes ago
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 expiredPayload,
                 rsaPrivateKey,
             )
 
-            await expect(verifyIssuedToken(token, keyResolver)).rejects.toThrow(
-                TimeValidationError,
-            )
+            await expect(
+                verifyIssuanceToken(token, keyResolver),
+            ).rejects.toThrow(TimeValidationError)
         })
 
         it('should throw error for wrong JWT type', async () => {
@@ -263,7 +275,7 @@ describe('IssuedToken Functions', () => {
             const invalidToken = `${headerB64}.${payloadB64}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(invalidToken, keyResolver),
+                verifyIssuanceToken(invalidToken, keyResolver),
             ).rejects.toThrow()
         })
 
@@ -278,7 +290,7 @@ describe('IssuedToken Functions', () => {
             const invalidToken = `${headerB64}.${payloadB64}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(invalidToken, keyResolver),
+                verifyIssuanceToken(invalidToken, keyResolver),
             ).rejects.toThrow(InvalidSignatureError)
         })
 
@@ -300,7 +312,7 @@ describe('IssuedToken Functions', () => {
             const invalidToken = `${headerB64}.${payloadB64}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(invalidToken, keyResolver),
+                verifyIssuanceToken(invalidToken, keyResolver),
             ).rejects.toThrow(MissingClaimError)
         })
 
@@ -321,19 +333,22 @@ describe('IssuedToken Functions', () => {
             const invalidToken = `${headerB64}.${payloadB64}.invalid-signature`
 
             await expect(
-                verifyIssuedToken(invalidToken, keyResolver),
+                verifyIssuanceToken(invalidToken, keyResolver),
             ).rejects.toThrow(EmailValidationError)
         })
 
         it('should throw error for unknown key ID', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
 
             const unknownKeyResolver: KeyResolver = async (kid?: string) => {
                 throw new Error(`Unknown key ID: ${kid}`)
             }
 
             await expect(
-                verifyIssuedToken(token, unknownKeyResolver),
+                verifyIssuanceToken(token, unknownKeyResolver),
             ).rejects.toThrow('Unknown key ID')
         })
 
@@ -341,15 +356,18 @@ describe('IssuedToken Functions', () => {
             const malformedToken = 'not.a.valid.jwt.format'
 
             await expect(
-                verifyIssuedToken(malformedToken, keyResolver),
+                verifyIssuanceToken(malformedToken, keyResolver),
             ).rejects.toThrow()
         })
     })
 
     describe('Cross-algorithm compatibility', () => {
         it('should generate with RSA and verify correctly', async () => {
-            const token = await generateIssuedToken(testPayload, rsaPrivateKey)
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const token = await generateIssuanceToken(
+                testPayload,
+                rsaPrivateKey,
+            )
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified).toEqual(
                 expect.objectContaining({
@@ -362,11 +380,11 @@ describe('IssuedToken Functions', () => {
         })
 
         it('should generate with EdDSA and verify correctly', async () => {
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 testPayload,
                 eddsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified).toEqual(
                 expect.objectContaining({
@@ -392,8 +410,11 @@ describe('IssuedToken Functions', () => {
                 cnf: { jwk: eddsaBrowserKey },
             }
 
-            const token = await generateIssuedToken(crossPayload, rsaPrivateKey)
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const token = await generateIssuanceToken(
+                crossPayload,
+                rsaPrivateKey,
+            )
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.cnf.jwk).toEqual(eddsaBrowserKey)
         })
@@ -412,11 +433,11 @@ describe('IssuedToken Functions', () => {
                 cnf: { jwk: rsaBrowserKey },
             }
 
-            const token = await generateIssuedToken(
+            const token = await generateIssuanceToken(
                 crossPayload,
                 eddsaPrivateKey,
             )
-            const verified = await verifyIssuedToken(token, keyResolver)
+            const verified = await verifyIssuanceToken(token, keyResolver)
 
             expect(verified.cnf.jwk).toEqual(rsaBrowserKey)
         })

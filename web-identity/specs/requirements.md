@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The `web-identity` package provides TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package implements the core cryptographic operations for RequestToken (steps 3.4 & 4.1), IssuedToken (steps 4.2 & 5.1), and PresentationToken (steps 5.2 & 6.2-6.4) as defined in the web-identity specification. The package will support multiple JWT processing libraries and provide a consistent API for token generation and verification operations.
+The `web-identity` package provides TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package implements the core cryptographic operations for RequestToken (steps 3.4 & 4.1), IssuanceToken (steps 4.2 & 5.1), and PresentationToken (steps 5.2 & 6.2-6.4) as defined in the web-identity specification. The package will support multiple JWT processing libraries and provide a consistent API for token generation and verification operations.
 
 ## Requirements
 
@@ -34,26 +34,26 @@ The `web-identity` package provides TypeScript functions for generating and veri
 
 ### Requirement 3
 
-**User Story:** As an issuer service developer, I want to generate IssuedTokens (SD-JWTs) for verified email addresses, so that browsers can present them to relying parties.
+**User Story:** As an issuer service developer, I want to generate IssuanceTokens (SD-JWTs) for verified email addresses, so that browsers can present them to relying parties.
 
 #### Acceptance Criteria
 
-1. WHEN a developer calls generateIssuedToken with a payload object and JWK THEN the system SHALL create an SD-JWT with type "web-identity+sd-jwt"
-2. WHEN generating an IssuedToken THEN the system SHALL include required claims: `iss`, `iat`, `cnf`, `email`, and `email_verified` in the payload
-3. WHEN generating an IssuedToken THEN the system SHALL embed the browser's public key from the RequestToken in the `cnf` claim
-4. WHEN generating an IssuedToken THEN the system SHALL include a `kid` in the header for key identification
+1. WHEN a developer calls generateIssuanceToken with a payload object and JWK THEN the system SHALL create an SD-JWT with type "web-identity+sd-jwt"
+2. WHEN generating an IssuanceToken THEN the system SHALL include required claims: `iss`, `iat`, `cnf`, `email`, and `email_verified` in the payload
+3. WHEN generating an IssuanceToken THEN the system SHALL embed the browser's public key from the RequestToken in the `cnf` claim
+4. WHEN generating an IssuanceToken THEN the system SHALL include a `kid` in the header for key identification
 5. WHEN the payload is missing required fields THEN the system SHALL throw a validation error
 6. WHEN a required claim is missing THEN the system SHALL throw a missing_claim error
 
 ### Requirement 4
 
-**User Story:** As a browser implementation developer, I want to verify IssuedTokens from issuers, so that I can validate the authenticity before creating presentation tokens.
+**User Story:** As a browser implementation developer, I want to verify IssuanceTokens from issuers, so that I can validate the authenticity before creating presentation tokens.
 
 #### Acceptance Criteria
 
-1. WHEN a developer calls verifyIssuedToken with an SD-JWT string and key resolver callback THEN the system SHALL parse and validate the SD-JWT structure
-2. WHEN verifying an IssuedToken THEN the system SHALL validate the signature using the issuer's public key identified by `kid`
-3. WHEN verifying an IssuedToken THEN the system SHALL validate required claims: `iss`, `iat`, `cnf`, `email`, and `email_verified`
+1. WHEN a developer calls verifyIssuanceToken with an SD-JWT string and key resolver callback THEN the system SHALL parse and validate the SD-JWT structure
+2. WHEN verifying an IssuanceToken THEN the system SHALL validate the signature using the issuer's public key identified by `kid`
+3. WHEN verifying an IssuanceToken THEN the system SHALL validate required claims: `iss`, `iat`, `cnf`, `email`, and `email_verified`
 4. WHEN the `iat` claim is more than 60 seconds old THEN the system SHALL throw a time validation error
 5. WHEN the `email_verified` claim is not true THEN the system SHALL throw a verification error
 6. WHEN verification succeeds THEN the system SHALL return the verified payload object

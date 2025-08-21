@@ -1,7 +1,7 @@
 import { SignJWT, importJWK, jwtVerify } from 'jose'
 import type { JWK } from 'jose'
 import type {
-    IssuedTokenPayload,
+    IssuanceTokenPayload,
     TokenGenerationOptions,
     KeyResolver,
 } from '../types.js'
@@ -17,16 +17,16 @@ import {
 import { InvalidSignatureError } from '../errors.js'
 
 /**
- * Generates an IssuedToken (SD-JWT) for verified email addresses
+ * Generates an IssuanceToken (SD-JWT) for verified email addresses
  * Used by issuers in step 4.2 of the web-identity protocol
  *
- * @param payload - IssuedToken payload containing iss, cnf, email, email_verified, and optional iat
+ * @param payload - IssuanceToken payload containing iss, cnf, email, email_verified, and optional iat
  * @param jwk - JWK containing private key, alg, and kid
  * @param options - Optional token generation options
  * @returns Promise resolving to signed SD-JWT string
  */
-export async function generateIssuedToken(
-    payload: IssuedTokenPayload,
+export async function generateIssuanceToken(
+    payload: IssuanceTokenPayload,
     jwk: JWK,
     options?: TokenGenerationOptions,
 ): Promise<string> {
@@ -72,17 +72,17 @@ export async function generateIssuedToken(
 }
 
 /**
- * Verifies an IssuedToken (SD-JWT) from issuers
+ * Verifies an IssuanceToken (SD-JWT) from issuers
  * Used by browsers in step 5.1 of the web-identity protocol
  *
  * @param token - SD-JWT string to verify
  * @param keyResolver - Callback to resolve issuer's public key using kid
  * @returns Promise resolving to verified payload
  */
-export async function verifyIssuedToken(
+export async function verifyIssuanceToken(
     token: string,
     keyResolver: KeyResolver,
-): Promise<IssuedTokenPayload> {
+): Promise<IssuanceTokenPayload> {
     // Parse the JWT
     const { header, payload } = parseJWT(token)
 
@@ -92,13 +92,13 @@ export async function verifyIssuedToken(
     // Validate required header fields
     if (!header.kid) {
         throw new InvalidSignatureError(
-            'IssuedToken header must contain key identifier (kid)',
+            'IssuanceToken header must contain key identifier (kid)',
         )
     }
 
     if (!header.alg) {
         throw new InvalidSignatureError(
-            'IssuedToken header must contain algorithm (alg)',
+            'IssuanceToken header must contain algorithm (alg)',
         )
     }
 
@@ -117,7 +117,7 @@ export async function verifyIssuedToken(
     // Validate cnf claim structure
     if (!payload.cnf || !payload.cnf.jwk) {
         throw new InvalidSignatureError(
-            'IssuedToken must contain cnf.jwk claim',
+            'IssuanceToken must contain cnf.jwk claim',
         )
     }
 
@@ -130,10 +130,10 @@ export async function verifyIssuedToken(
             algorithms: [header.alg],
         })
 
-        return verifiedPayload as unknown as IssuedTokenPayload
+        return verifiedPayload as unknown as IssuanceTokenPayload
     } catch (error) {
         throw new InvalidSignatureError(
-            `IssuedToken signature verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            `IssuanceToken signature verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         )
     }
 }

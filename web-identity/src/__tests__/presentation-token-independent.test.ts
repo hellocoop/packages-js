@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { generateIssuedToken } from '../tokens/issued-token.js'
+import { generateIssuanceToken } from '../tokens/issuance-token.js'
 import { generatePresentationToken } from '../tokens/presentation-token.js'
 import { verifyPresentationTokenIndependent } from './independent-verify.js'
-import type { IssuedTokenPayload } from '../types.js'
+import type { IssuanceTokenPayload } from '../types.js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -40,8 +40,8 @@ describe('PresentationToken Independent Verification', () => {
 
     describe('RSA Issuer with RSA Browser', () => {
         it('should generate and independently verify PresentationToken', async () => {
-            // Create IssuedToken with RSA issuer and RSA browser key
-            const issuedTokenPayload: IssuedTokenPayload = {
+            // Create IssuanceToken with RSA issuer and RSA browser key
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -56,8 +56,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -85,8 +85,8 @@ describe('PresentationToken Independent Verification', () => {
 
     describe('RSA Issuer with EdDSA Browser', () => {
         it('should generate and independently verify PresentationToken', async () => {
-            // Create IssuedToken with RSA issuer and EdDSA browser key
-            const issuedTokenPayload: IssuedTokenPayload = {
+            // Create IssuanceToken with RSA issuer and EdDSA browser key
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -101,8 +101,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -130,8 +130,8 @@ describe('PresentationToken Independent Verification', () => {
 
     describe('EdDSA Issuer with RSA Browser', () => {
         it('should generate and independently verify PresentationToken', async () => {
-            // Create IssuedToken with EdDSA issuer and RSA browser key
-            const issuedTokenPayload: IssuedTokenPayload = {
+            // Create IssuanceToken with EdDSA issuer and RSA browser key
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -146,8 +146,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 eddsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -175,8 +175,8 @@ describe('PresentationToken Independent Verification', () => {
 
     describe('EdDSA Issuer with EdDSA Browser', () => {
         it('should generate and independently verify PresentationToken', async () => {
-            // Create IssuedToken with EdDSA issuer and EdDSA browser key
-            const issuedTokenPayload: IssuedTokenPayload = {
+            // Create IssuanceToken with EdDSA issuer and EdDSA browser key
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -191,8 +191,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 eddsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -220,7 +220,7 @@ describe('PresentationToken Independent Verification', () => {
 
     describe('Error Detection', () => {
         it('should detect invalid signature in independent verification', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -235,8 +235,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -264,7 +264,7 @@ describe('PresentationToken Independent Verification', () => {
         })
 
         it('should detect audience mismatch', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -279,8 +279,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -306,7 +306,7 @@ describe('PresentationToken Independent Verification', () => {
         })
 
         it('should detect nonce mismatch', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -321,8 +321,8 @@ describe('PresentationToken Independent Verification', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -364,7 +364,7 @@ describe('PresentationToken Independent Verification', () => {
         })
 
         it('should detect expired KB-JWT', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -380,8 +380,8 @@ describe('PresentationToken Independent Verification', () => {
                 iat: Math.floor(Date.now() / 1000) - 120, // 2 minutes ago
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(

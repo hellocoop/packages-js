@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import {
     generateRequestToken,
     verifyRequestToken,
-    generateIssuedToken,
+    generateIssuanceToken,
     generatePresentationToken,
 } from './dist/esm/index.js'
 
@@ -52,9 +52,9 @@ async function generateSampleTokens() {
         console.log(JSON.stringify(verifiedRequest, null, 2))
         console.log()
 
-        // 2. Generate IssuedToken (SD-JWT)
-        console.log('2️⃣ Generating IssuedToken (SD-JWT)...')
-        const issuedTokenPayload = {
+        // 2. Generate IssuanceToken (SD-JWT)
+        console.log('2️⃣ Generating IssuanceToken (SD-JWT)...')
+        const issuanceTokenPayload = {
             iss: 'issuer.example',
             cnf: {
                 jwk: {
@@ -69,12 +69,12 @@ async function generateSampleTokens() {
             email_verified: true,
         }
 
-        const issuedToken = await generateIssuedToken(
-            issuedTokenPayload,
+        const issuanceToken = await generateIssuanceToken(
+            issuanceTokenPayload,
             issuerKey,
         )
-        console.log('✅ IssuedToken (SD-JWT) generated:')
-        console.log(issuedToken)
+        console.log('✅ IssuanceToken (SD-JWT) generated:')
+        console.log(issuanceToken)
         console.log()
 
         // 3. Generate PresentationToken (SD-JWT+KB)
@@ -83,7 +83,7 @@ async function generateSampleTokens() {
         const presentationNonce = 'presentation-nonce-67890'
 
         const presentationToken = await generatePresentationToken(
-            issuedToken,
+            issuanceToken,
             audience,
             presentationNonce,
             browserKey,
@@ -103,7 +103,7 @@ async function generateSampleTokens() {
         console.log('🎉 All tokens generated successfully!')
         console.log('\n📝 Token Summary:')
         console.log(`- RequestToken: ${requestToken.length} characters`)
-        console.log(`- IssuedToken: ${issuedToken.length} characters`)
+        console.log(`- IssuanceToken: ${issuanceToken.length} characters`)
         console.log(
             `- PresentationToken: ${presentationToken.length} characters`,
         )

@@ -12,7 +12,7 @@
 
     - [x] 2.1 Implement TypeScript interfaces for token payloads
 
-        - Define RequestTokenPayload, IssuedTokenPayload, PresentationTokenPayload interfaces
+        - Define RequestTokenPayload, IssuanceTokenPayload, PresentationTokenPayload interfaces
         - Make iat optional in all payload types for testing expired tokens
         - Include KeyResolver callback type definition
         - _Requirements: 8.2_
@@ -93,11 +93,11 @@
         - Verify generate/verify function compatibility
         - _Requirements: 1.4, 1.5, 2.4, 2.5, 2.7_
 
-- [ ]   6. Implement and test IssuedToken completely
+- [ ]   6. Implement and test IssuanceToken completely
 
-    - [x] 6.1 Create generateIssuedToken function
+    - [x] 6.1 Create generateIssuanceToken function
 
-        - Accept IssuedTokenPayload and JWK with private key
+        - Accept IssuanceTokenPayload and JWK with private key
         - Set JWT type to "web-identity+sd-jwt" in header
         - Extract kid from JWK for header
         - Include only public key parameters in cnf.jwk claim
@@ -105,7 +105,7 @@
         - Sign SD-JWT with issuer's private key
         - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-    - [x] 6.2 Create independent IssuedToken verification test
+    - [x] 6.2 Create independent IssuanceToken verification test
 
         - Extend independent JWT parsing for SD-JWT format
         - Verify "web-identity+sd-jwt" type in header
@@ -114,7 +114,7 @@
         - Test with both RSA and EdDSA generated tokens
         - _Requirements: 7.1, 7.2, 7.3_
 
-    - [x] 6.3 Create verifyIssuedToken function
+    - [x] 6.3 Create verifyIssuanceToken function
 
         - Parse SD-JWT and validate structure
         - Verify required claims (iss, cnf, email, email_verified)
@@ -126,7 +126,7 @@
         - Return verified payload on success
         - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-    - [x] 6.4 Test IssuedToken functions together
+    - [x] 6.4 Test IssuanceToken functions together
         - Test successful generation and verification with both key types
         - Test email_verified validation
         - Test cnf claim contains only public key parameters
@@ -162,7 +162,7 @@
         - Verify KB-JWT signature using public key from SD-JWT cnf claim
         - Validate KB-JWT claims (aud, nonce, iat, sd_hash)
         - Verify sd_hash matches SHA-256 hash of SD-JWT
-        - Verify SD-JWT using same logic as verifyIssuedToken
+        - Verify SD-JWT using same logic as verifyIssuanceToken
         - Validate all iat claims within 60-second window
         - Throw MissingClaimError for missing required claims
         - Return both SD-JWT and KB-JWT verified payloads
@@ -196,7 +196,7 @@
 
     - [x] 9.1 Complete token flow testing
 
-        - Test complete flow: RequestToken → IssuedToken → PresentationToken
+        - Test complete flow: RequestToken → IssuanceToken → PresentationToken
         - Verify token compatibility across all generate/verify function pairs
         - Test error propagation through the complete flow
         - Test all algorithm combinations (RSA/EdDSA) across token types

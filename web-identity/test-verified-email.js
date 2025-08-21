@@ -21,7 +21,7 @@ import {
     discoverIssuer,
     fetchWebIdentityMetadata,
     generateRequestToken,
-    verifyIssuedToken,
+    verifyIssuanceToken,
     fetchJWKS,
 } from './dist/esm/index.js'
 
@@ -353,22 +353,22 @@ async function main() {
 
             responseData = await response.json()
 
-            if (!responseData.issued_token) {
-                logError('Response missing issued_token field')
+            if (!responseData.issuance_token) {
+                logError('Response missing issuance_token field')
                 console.log('Response body:', responseData)
                 process.exit(1)
             }
 
-            logSuccess('Received issued token')
+            logSuccess('Received issuance token')
         } catch (error) {
             logError(`Response parsing failed: ${error.message}`)
             process.exit(1)
         }
 
-        // Step 8: Verify and display the issued token
-        logStep(8, 'Verifying issued token (SD-JWT)')
-        const issuedToken = responseData.issued_token
-        prettyPrintJWT(issuedToken, 'Issued Token (SD-JWT)')
+        // Step 8: Verify and display the issuance token
+        logStep(8, 'Verifying issuance token (SD-JWT)')
+        const issuanceToken = responseData.issuance_token
+        prettyPrintJWT(issuanceToken, 'Issuance Token (SD-JWT)')
 
         try {
             // Create a key resolver that uses the fetched JWKS
@@ -380,8 +380,8 @@ async function main() {
                 return key
             }
 
-            const verifiedToken = await verifyIssuedToken(
-                issuedToken,
+            const verifiedToken = await verifyIssuanceToken(
+                issuanceToken,
                 keyResolver,
                 issuer,
             )

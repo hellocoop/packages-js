@@ -3,8 +3,8 @@ import {
     generatePresentationToken,
     verifyPresentationToken,
 } from '../tokens/presentation-token.js'
-import { generateIssuedToken } from '../tokens/issued-token.js'
-import type { IssuedTokenPayload, KeyResolver } from '../types.js'
+import { generateIssuanceToken } from '../tokens/issuance-token.js'
+import type { IssuanceTokenPayload, KeyResolver } from '../types.js'
 import {
     TimeValidationError,
     InvalidSignatureError,
@@ -58,7 +58,7 @@ describe('PresentationToken Functions', () => {
 
     describe('generatePresentationToken', () => {
         it('should generate valid PresentationToken with RSA browser key', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -73,8 +73,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -94,7 +94,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should generate valid PresentationToken with EdDSA browser key', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -109,8 +109,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 eddsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -130,7 +130,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should calculate correct sd_hash', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -145,8 +145,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -167,7 +167,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should set correct KB-JWT header and payload', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -182,8 +182,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -221,7 +221,7 @@ describe('PresentationToken Functions', () => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { alg: _alg, ...invalidKey } = rsaBrowserKey
 
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -236,8 +236,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
 
@@ -249,7 +249,7 @@ describe('PresentationToken Functions', () => {
 
     describe('verifyPresentationToken', () => {
         it('should verify valid PresentationToken with RSA keys', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -264,8 +264,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -292,7 +292,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should verify valid PresentationToken with EdDSA keys', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -307,8 +307,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 eddsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -333,7 +333,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for audience mismatch', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -348,8 +348,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -370,7 +370,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for nonce mismatch', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -385,8 +385,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -407,7 +407,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for invalid signature', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -422,8 +422,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -471,7 +471,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for wrong KB-JWT type', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -486,8 +486,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
 
@@ -521,7 +521,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for expired KB-JWT', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -537,8 +537,8 @@ describe('PresentationToken Functions', () => {
                 iat: Math.floor(Date.now() / 1000) - 120, // 2 minutes ago
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             )
             const presentationToken = await generatePresentationToken(
@@ -561,7 +561,7 @@ describe('PresentationToken Functions', () => {
 
     describe('Cross-algorithm compatibility', () => {
         it('should handle RSA issuer with EdDSA browser', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -576,8 +576,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 rsaPrivateKey,
             ) // RSA issuer
             const presentationToken = await generatePresentationToken(
@@ -599,7 +599,7 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should handle EdDSA issuer with RSA browser', async () => {
-            const issuedTokenPayload: IssuedTokenPayload = {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
                     jwk: {
@@ -614,8 +614,8 @@ describe('PresentationToken Functions', () => {
                 email_verified: true,
             }
 
-            const sdJwt = await generateIssuedToken(
-                issuedTokenPayload,
+            const sdJwt = await generateIssuanceToken(
+                issuanceTokenPayload,
                 eddsaPrivateKey,
             ) // EdDSA issuer
             const presentationToken = await generatePresentationToken(

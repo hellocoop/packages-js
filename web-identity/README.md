@@ -4,7 +4,7 @@
 
 > **Development Note**: This package was collaboratively developed using spec-driven development with AI assistance. You can view the complete [requirements, design, and implementation specifications](./specs) that guided the development process.
 
-TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package provides complete implementations for RequestToken, IssuedToken (SD-JWT), and PresentationToken (SD-JWT+KB) as defined in the [web-identity specification](https://github.com/dickhardt/verified-email-autocomplete).
+TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package provides complete implementations for RequestToken, IssuanceToken (SD-JWT), and PresentationToken (SD-JWT+KB) as defined in the [web-identity specification](https://github.com/dickhardt/verified-email-autocomplete).
 
 ## Installation
 
@@ -21,8 +21,8 @@ import {
     // Token functions
     generateRequestToken,
     verifyRequestToken,
-    generateIssuedToken,
-    verifyIssuedToken,
+    generateIssuanceToken,
+    verifyIssuanceToken,
     generatePresentationToken,
     verifyPresentationToken,
 
@@ -47,8 +47,8 @@ const {
     // Token functions
     generateRequestToken,
     verifyRequestToken,
-    generateIssuedToken,
-    verifyIssuedToken,
+    generateIssuanceToken,
+    verifyIssuanceToken,
     generatePresentationToken,
     verifyPresentationToken,
 
@@ -116,17 +116,17 @@ console.log(verified.email) // 'user@example.com'
 
 **Note:** RequestTokens contain the public key embedded in the JWT header, so no external key resolver is needed.
 
-### IssuedToken Functions
+### IssuanceToken Functions
 
-IssuedTokens (SD-JWTs) are used by issuers to provide verified email tokens to browsers (step 4.2 & 5.1).
+IssuanceTokens (SD-JWTs) are used by issuers to provide verified email tokens to browsers (step 4.2 & 5.1).
 
-#### `generateIssuedToken(payload, jwk, options?)`
+#### `generateIssuanceToken(payload, jwk, options?)`
 
-Generates an IssuedToken (SD-JWT) for verified email addresses.
+Generates an IssuanceToken (SD-JWT) for verified email addresses.
 
 **Parameters:**
 
-- `payload: IssuedTokenPayload` - Token payload
+- `payload: IssuanceTokenPayload` - Token payload
     - `iss: string` - Issuer identifier
     - `cnf: { jwk: JWK }` - Confirmation claim with browser's public key
     - `email: string` - Verified email address
@@ -140,7 +140,7 @@ Generates an IssuedToken (SD-JWT) for verified email addresses.
 **Example:**
 
 ```typescript
-const issuedToken = await generateIssuedToken(
+const issuanceToken = await generateIssuanceToken(
     {
         iss: 'issuer.example',
         cnf: { jwk: browserPublicKey },
@@ -151,16 +151,16 @@ const issuedToken = await generateIssuedToken(
 )
 ```
 
-#### `verifyIssuedToken(token, keyResolver)`
+#### `verifyIssuanceToken(token, keyResolver)`
 
-Verifies an IssuedToken (SD-JWT) from issuers.
+Verifies an IssuanceToken (SD-JWT) from issuers.
 
 **Parameters:**
 
 - `token: string` - SD-JWT string to verify
 - `keyResolver: KeyResolver` - Function to resolve issuer's public key
 
-**Returns:** `Promise<IssuedTokenPayload>` - Verified payload
+**Returns:** `Promise<IssuanceTokenPayload>` - Verified payload
 
 **Example:**
 
@@ -170,7 +170,7 @@ const keyResolver: KeyResolver = async (kid, issuer) => {
     return await getIssuerPublicKey(kid, issuer)
 }
 
-const verified = await verifyIssuedToken(issuedToken, keyResolver)
+const verified = await verifyIssuanceToken(issuanceToken, keyResolver)
 ```
 
 ### PresentationToken Functions
@@ -195,7 +195,7 @@ Generates a PresentationToken (SD-JWT+KB) with key binding.
 
 ```typescript
 const presentationToken = await generatePresentationToken(
-    issuedToken,
+    issuanceToken,
     'https://rp.example',
     'session-nonce-123',
     browserPrivateKey,
@@ -330,7 +330,7 @@ import {
     discoverIssuer,
     fetchWebIdentityMetadata,
     fetchJWKS,
-    verifyIssuedToken,
+    verifyIssuanceToken,
 } from '@hellocoop/web-identity'
 
 // 1. Discover issuer from email domain
@@ -352,7 +352,7 @@ const keyResolver = async (kid?: string, issuer?: string) => {
 }
 
 // 5. Use with token verification
-const verified = await verifyIssuedToken(issuedToken, keyResolver)
+const verified = await verifyIssuanceToken(issuanceToken, keyResolver)
 ```
 
 ## Types
@@ -375,7 +375,7 @@ interface RequestTokenPayload {
     email: string
 }
 
-interface IssuedTokenPayload {
+interface IssuanceTokenPayload {
     iss: string
     iat?: number
     cnf: { jwk: JWK }
@@ -384,7 +384,7 @@ interface IssuedTokenPayload {
 }
 
 interface PresentationTokenPayload {
-    sdJwt: IssuedTokenPayload
+    sdJwt: IssuanceTokenPayload
     kbJwt: {
         aud: string
         nonce: string
@@ -530,8 +530,8 @@ Typical performance benchmarks on modern hardware:
 import {
     generateRequestToken,
     verifyRequestToken,
-    generateIssuedToken,
-    verifyIssuedToken,
+    generateIssuanceToken,
+    verifyIssuanceToken,
     generatePresentationToken,
     verifyPresentationToken,
     type KeyResolver,
@@ -550,8 +550,8 @@ const requestToken = await generateRequestToken(
 // 2. Issuer verifies RequestToken
 const requestPayload = await verifyRequestToken(requestToken)
 
-// 3. Issuer generates IssuedToken
-const issuedToken = await generateIssuedToken(
+// 3. Issuer generates IssuanceToken
+const issuanceToken = await generateIssuanceToken(
     {
         iss: 'issuer.example',
         cnf: { jwk: extractedBrowserPublicKey },
@@ -561,16 +561,16 @@ const issuedToken = await generateIssuedToken(
     issuerPrivateKey,
 )
 
-// 4. Browser verifies IssuedToken
+// 4. Browser verifies IssuanceToken
 const keyResolver: KeyResolver = async (kid, issuer) => {
     return await getIssuerPublicKey(kid, issuer)
 }
 
-const issuedPayload = await verifyIssuedToken(issuedToken, keyResolver)
+const issuancePayload = await verifyIssuanceToken(issuanceToken, keyResolver)
 
 // 5. Browser generates PresentationToken
 const presentationToken = await generatePresentationToken(
-    issuedToken,
+    issuanceToken,
     'https://rp.example',
     'rp-nonce-123',
     browserPrivateKey,
@@ -593,8 +593,8 @@ console.log('Verified email:', presentationPayload.sdJwt.email)
 const {
     generateRequestToken,
     verifyRequestToken,
-    generateIssuedToken,
-    verifyIssuedToken,
+    generateIssuanceToken,
+    verifyIssuanceToken,
     generatePresentationToken,
     verifyPresentationToken,
 } = require('@hellocoop/web-identity')
