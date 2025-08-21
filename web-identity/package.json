@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/web-identity",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol",
     "repository": {
         "type": "git",
