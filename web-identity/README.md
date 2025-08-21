@@ -6,7 +6,7 @@
 
 TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package provides complete implementations for RequestToken, IssuanceToken (SD-JWT), and PresentationToken (SD-JWT+KB) as defined in the [web-identity specification](https://github.com/dickhardt/verified-email-autocomplete).
 
-## 🚀 Try It Live with Hello.coop
+## 🚀 Try It Live with Hellō
 
 Want to see the Verified Email Autocomplete protocol in action? You can test it right now with hello.coop!
 
