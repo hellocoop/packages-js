@@ -17,8 +17,12 @@
             "types": "./dist/types/index.d.ts"
         }
     },
+    "bin": {
+        "web-identity": "./test-verified-email.js"
+    },
     "files": [
-        "dist/"
+        "dist/",
+        "test-verified-email.js"
     ],
     "keywords": [
         "jwt",

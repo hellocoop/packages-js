@@ -6,6 +6,42 @@
 
 TypeScript functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol. This package provides complete implementations for RequestToken, IssuanceToken (SD-JWT), and PresentationToken (SD-JWT+KB) as defined in the [web-identity specification](https://github.com/dickhardt/verified-email-autocomplete).
 
+## 🚀 Try It Live with Hello.coop
+
+Want to see the Verified Email Autocomplete protocol in action? You can test it right now with Hello.coop!
+
+### Quick Test Setup
+
+1. **Add DNS Record**: Add this TXT record to your domain:
+
+    ```
+    email._web-identity.yourdomain.com TXT "iss=hello.coop"
+    ```
+
+2. **Get User Hint Cookie**: Visit [Hello.coop](https://hello.coop) and verify an email address at your domain. This will set a `user-hint` cookie.
+
+3. **Run the Test**: Use npx to test the complete flow:
+    ```bash
+    npx @hellocoop/web-identity your-email@yourdomain.com user-hint <cookie-value>
+    ```
+
+### Example
+
+```bash
+# After setting up DNS and getting your user-hint cookie
+npx @hellocoop/web-identity john@example.com user-hint eyJhbGciOiJFZERTQSJ9...
+```
+
+This will:
+
+- ✅ Discover the issuer (hello.coop) via DNS
+- ✅ Fetch Hello.coop's metadata and JWKS
+- ✅ Generate a request token with a browser key pair
+- ✅ Send the request to Hello.coop's issuance endpoint
+- ✅ Verify and display the returned SD-JWT token
+
+Perfect for testing your DNS setup and seeing the protocol in action! 🎯
+
 ## Installation
 
 ```bash
