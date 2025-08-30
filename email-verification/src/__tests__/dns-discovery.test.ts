@@ -170,7 +170,8 @@ describe('DNS Discovery Functions', () => {
         const mockMetadata = {
             issuance_endpoint:
                 'https://accounts.issuer.example/email-verification/issuance',
-            jwks_uri: 'https://accounts.issuer.example/email-verification/jwks.json',
+            jwks_uri:
+                'https://accounts.issuer.example/email-verification/jwks.json',
             signing_alg_values_supported: ['EdDSA', 'RS256'],
         }
 
@@ -182,7 +183,8 @@ describe('DNS Discovery Functions', () => {
                 json: () => Promise.resolve(mockMetadata),
             })
 
-            const result = await fetchEmailVerificationMetadata('issuer.example')
+            const result =
+                await fetchEmailVerificationMetadata('issuer.example')
 
             expect(result).toEqual(mockMetadata)
             expect(mockFetch).toHaveBeenCalledWith(
@@ -202,7 +204,8 @@ describe('DNS Discovery Functions', () => {
                 json: () => Promise.resolve(mockMetadata),
             })
 
-            const result = await fetchEmailVerificationMetadata('issuer.example')
+            const result =
+                await fetchEmailVerificationMetadata('issuer.example')
 
             expect(result).toEqual(mockMetadata)
         })
@@ -219,7 +222,8 @@ describe('DNS Discovery Functions', () => {
             await fetchEmailVerificationMetadata('issuer.example')
 
             // Second call should use cache
-            const result = await fetchEmailVerificationMetadata('issuer.example')
+            const result =
+                await fetchEmailVerificationMetadata('issuer.example')
 
             expect(result).toEqual(mockMetadata)
             expect(mockFetch).toHaveBeenCalledTimes(1)
@@ -335,7 +339,9 @@ describe('DNS Discovery Functions', () => {
             )
 
             await expect(
-                fetchEmailVerificationMetadata('issuer.example', { timeout: 100 }),
+                fetchEmailVerificationMetadata('issuer.example', {
+                    timeout: 100,
+                }),
             ).rejects.toThrow(JWKSFetchError)
         })
     })

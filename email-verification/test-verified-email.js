@@ -129,9 +129,7 @@ async function main() {
 
     const [email, cookieName, cookieValue] = args
 
-    log(
-        `${colors.bold}Testing Email Verification Protocol${colors.reset}`,
-    )
+    log(`${colors.bold}Testing Email Verification Protocol${colors.reset}`)
     log(`Email: ${email}`)
     log(`Cookie: ${cookieName}=${cookieValue.substring(0, 10)}...`)
 
@@ -276,10 +274,10 @@ async function main() {
                 browserJWK.kty === 'OKP'
                     ? `${browserJWK.crv}`
                     : browserJWK.kty === 'EC'
-                        ? `${browserJWK.crv}`
-                        : browserJWK.kty === 'RSA'
-                            ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
-                            : browserJWK.kty
+                      ? `${browserJWK.crv}`
+                      : browserJWK.kty === 'RSA'
+                        ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
+                        : browserJWK.kty
 
             logSuccess(
                 `Generated ${keyType} key pair with ${chosenAlgorithm} algorithm`,
@@ -319,7 +317,9 @@ async function main() {
         logStep(6, 'Sending request to issuance endpoint')
         log(`POST ${metadata.issuance_endpoint}`)
         log(`Cookie: ${cookieName}=${cookieValue.substring(0, 10)}...`)
-        log('Headers: Content-Type: application/x-www-form-urlencoded, Sec-Fetch-Dest: email-verification')
+        log(
+            'Headers: Content-Type: application/x-www-form-urlencoded, Sec-Fetch-Dest: email-verification',
+        )
 
         let response
         try {

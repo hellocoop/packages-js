@@ -5,7 +5,10 @@ import type {
     TokenGenerationOptions,
     KeyResolver,
 } from '../types.js'
-import { fetchEmailVerificationMetadata, fetchJWKS } from '../utils/dns-discovery.js'
+import {
+    fetchEmailVerificationMetadata,
+    fetchJWKS,
+} from '../utils/dns-discovery.js'
 import { validateJWK, calculateSHA256Hash } from '../utils/crypto.js'
 import { ensureIatClaim, validateIatForVerification } from '../utils/time.js'
 import {

@@ -14,7 +14,10 @@ import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { importJWK } from 'jose'
-import { fetchEmailVerificationMetadata, fetchJWKS } from '../utils/dns-discovery.js'
+import {
+    fetchEmailVerificationMetadata,
+    fetchJWKS,
+} from '../utils/dns-discovery.js'
 
 // Mock the DNS discovery functions
 vi.mock('../utils/dns-discovery.js', async () => {

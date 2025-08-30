@@ -381,9 +381,7 @@ export async function verifyIssuanceTokenIndependent(
 
         // Validate header
         if (header.typ !== 'evp+sd-jwt') {
-            errors.push(
-                `Expected typ 'evp+sd-jwt', got '${header.typ}'`,
-            )
+            errors.push(`Expected typ 'evp+sd-jwt', got '${header.typ}'`)
         }
 
         if (!header.kid) {
