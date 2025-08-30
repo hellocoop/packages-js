@@ -274,10 +274,10 @@ async function main() {
                 browserJWK.kty === 'OKP'
                     ? `${browserJWK.crv}`
                     : browserJWK.kty === 'EC'
-                        ? `${browserJWK.crv}`
-                        : browserJWK.kty === 'RSA'
-                            ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
-                            : browserJWK.kty
+                      ? `${browserJWK.crv}`
+                      : browserJWK.kty === 'RSA'
+                        ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
+                        : browserJWK.kty
 
             logSuccess(
                 `Generated ${keyType} key pair with ${chosenAlgorithm} algorithm`,
