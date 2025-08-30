@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Test script for Verified Email Autocomplete protocol
+ * Test script for Email Verification Protocol
  *
- * This script simulates the browser's role in the verified email autocomplete flow
- * as defined in https://github.com/dickhardt/verified-email-autocomplete
+ * This script simulates the browser's role in the email verification flow
+ * as defined in https://github.com/dickhardt/email-verification-protocol
  *
  * Usage: node test-verified-email.js <email> <cookie_name> <cookie_value>
  *
@@ -12,14 +12,14 @@
  * 1. Discover issuer from email domain via DNS
  * 2. Fetch issuer metadata (JWKS URI and issuance endpoint)
  * 3. Generate request token (simulating browser)
- * 4. Send request token to issuance endpoint with cookie
+ * 4. Send request token to issuance endpoint with cookie and required headers
  * 5. Verify and pretty print the returned SD-JWT
  */
 
 import { generateKeyPair, exportJWK } from 'jose'
 import {
     discoverIssuer,
-    fetchWebIdentityMetadata,
+    fetchEmailVerificationMetadata,
     generateRequestToken,
     verifyIssuanceToken,
     fetchJWKS,
@@ -84,9 +84,9 @@ function prettyPrintJWT(token, title) {
 
 function printHelp() {
     console.log(`
-${colors.bold}Verified Email Autocomplete Test Script${colors.reset}
+${colors.bold}Email Verification Protocol Test Script${colors.reset}
 
-This script simulates the browser's role in the verified email autocomplete flow.
+This script simulates the browser's role in the email verification flow.
 
 ${colors.bold}Usage:${colors.reset}
   node test-verified-email.js <email> <cookie_name> <cookie_value>
@@ -101,15 +101,15 @@ ${colors.bold}Example:${colors.reset}
 
 ${colors.bold}Flow:${colors.reset}
   1. Discover issuer from email domain via DNS TXT record
-  2. Fetch issuer's web-identity metadata (JWKS URI and issuance endpoint)
+  2. Fetch issuer's email-verification metadata (JWKS URI and issuance endpoint)
   3. Generate a request token (simulating browser key pair)
-  4. Send request token to issuance endpoint with authentication cookie
+  4. Send request token to issuance endpoint with authentication cookie and required headers
   5. Verify and pretty print the returned SD-JWT token
 
 ${colors.bold}Requirements:${colors.reset}
-  - Email domain must have DNS TXT record: email._web-identity.<domain>
-  - Issuer must have /.well-known/web-identity metadata endpoint
-  - Issuer must have working issuance endpoint that accepts a cookie for user authentication
+  - Email domain must have DNS TXT record: _email-verification_.<domain>
+  - Issuer must have /.well-known/email-verification metadata endpoint
+  - Issuer must have working issuance endpoint that accepts required headers and cookie for user authentication
 `)
 }
 
@@ -130,7 +130,7 @@ async function main() {
     const [email, cookieName, cookieValue] = args
 
     log(
-        `${colors.bold}Testing Verified Email Autocomplete Protocol${colors.reset}`,
+        `${colors.bold}Testing Email Verification Protocol${colors.reset}`,
     )
     log(`Email: ${email}`)
     log(`Cookie: ${cookieName}=${cookieValue.substring(0, 10)}...`)
@@ -139,7 +139,7 @@ async function main() {
         // Step 1: Discover issuer from email domain
         logStep(1, 'Discovering issuer from email domain')
         log(
-            `Looking up DNS TXT record for: email._web-identity.${email.split('@')[1]}`,
+            `Looking up DNS TXT record for: _email-verification_.${email.split('@')[1]}`,
         )
 
         let issuer
@@ -154,12 +154,12 @@ async function main() {
         // Step 2: Fetch issuer metadata
         logStep(2, 'Fetching issuer metadata')
         log(
-            `Fetching metadata from: https://${issuer}/.well-known/web-identity`,
+            `Fetching metadata from: https://${issuer}/.well-known/email-verification`,
         )
 
         let metadata
         try {
-            metadata = await fetchWebIdentityMetadata(issuer)
+            metadata = await fetchEmailVerificationMetadata(issuer)
             logSuccess('Metadata fetched successfully')
             log('Issuance Endpoint:', 'blue')
             console.log(`  ${metadata.issuance_endpoint}`)
@@ -319,18 +319,22 @@ async function main() {
         logStep(6, 'Sending request to issuance endpoint')
         log(`POST ${metadata.issuance_endpoint}`)
         log(`Cookie: ${cookieName}=${cookieValue.substring(0, 10)}...`)
+        log('Headers: Content-Type: application/x-www-form-urlencoded, Sec-Fetch-Dest: email-verification')
 
         let response
         try {
+            // Create form data as per Email Verification Protocol spec
+            const formData = new URLSearchParams()
+            formData.append('request_token', requestToken)
+
             response = await fetch(metadata.issuance_endpoint, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Sec-Fetch-Dest': 'email-verification',
                     Cookie: `${cookieName}=${cookieValue}`,
                 },
-                body: JSON.stringify({
-                    request_token: requestToken,
-                }),
+                body: formData.toString(),
             })
 
             log(`Response Status: ${response.status} ${response.statusText}`)
@@ -417,7 +421,7 @@ async function main() {
             process.exit(1)
         }
 
-        logStep('✓', 'Verified Email Autocomplete flow completed successfully!')
+        logStep('✓', 'Email Verification Protocol flow completed successfully!')
         log(
             '\nThe browser would now create a presentation token (SD-JWT+KB) and send it to the RP.',
             'cyan',

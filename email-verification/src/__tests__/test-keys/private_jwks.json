@@ -1,0 +1,25 @@
+{
+    "keys": [
+        {
+            "kty": "RSA",
+            "n": "z-q-lhr6i330yuiYqQE2KXOXkdXxzy2MlrKtSdfkeYSdM9IJVKZntLydVrQIcfkJqy0CGjm_gxD0k7w3_E5mR4N01f_neVBZdbvlf71zk8EVuNh08ieg5HCMDQtHgHOhg-DoTkCGy3bn0EUH6UYA9OXM1rIfq9KbnlXK1LCo1w9pXnl71t4Zp3zWogBdRIig-7gLzTE8CpeixQrOMWm8ShxS6KEx0EFU3YoOGnMqpDnmTu_zgPn9umBOqiVPYoIeKXdSxxOh4etCuA0wSGlBLpkAQ4jNl-eLEsV_MoqSo3uGljzCSoxR98E628xBUln9LyjWSK5C6KJxe4wVRYMetw",
+            "e": "AQAB",
+            "d": "zrIPxioL6aDOOuoA2gLaVVsU02ZdfhlKKoZ2v3JhMG0l2t5zaDQF5SedQxS3UJbDhei4rlm6ihHREw2KmslV5MJK5HQDKhc22FRzUwqEW98YOSr3F8VNrcw1bsJH0ushJnnwd9quJpeO3P3DX6S4Tr4lZUqvMaGuEzo26jq1nxVoJ12Z1n4LQ0CuwphjQyrYYnwTRt68ZmAH1eHgOmruA6_lTT_rED4Iwx7wh7HynPkT8uHsXPcg6ttF42kYWm0ML_n1C3_F8vCgXdVPFdjq_Z-wrKdR1d2SwNiKHAmKUZM9fgs0OTcU91o-DTNnq41j6bzT0er9HFQxYemW5hJ5",
+            "p": "7zJ8lOgyd1LFyP7q_mbpNDCD3k_r-92SKPuPAhjB6VRt7OP3wkowVC5hNI6zS_QTOvmbtoyiHFjyUaU0XhYN4pLBq5BUFgIyAMAJevIRLVbo-wy84E3gWoFIYpXLRKEvY28yxCqr5uKY-bzbl2di9UGAwJ5asaaBowiMokOL2ak",
+            "q": "3oW9xwq92-nKuSELKbJQWqKi3cK7bizo4K3ouWBIGvMMij3aAA603XkwMOgoAJQQ2a7ktmunWrVvzwE8ZrkRwUIwus6uoQzGQinYyAc5ZPraFgOnN7yDgm3cYI4VqS_zDna40hlrbWo4pExDMNZjGpJ-meHoIRKIG7DBHLDUMV8",
+            "dp": "5EMsqjlvt3kQ7_98p6vzje9iWCuyylcmnN97GIghvJXqlO7zx8BeoGbmMm6fYbMZCuWamDlalmy3Sfy6nbK0K2zbTurbo2kS6K5aHa6Vf8v5Z2I_eFo46IWJWzMRmHutKlm6e4MxKpNBYsm8UJ7Dy8JnqOk1KWT5P2jwNAT7l4k",
+            "dq": "sOHA9DpOp0PVeImStQdgJlvHeN31XWPnjcnQB6NITdvLqQv3gTovfSl7LDUurx8DsfX7KiKy-kDlarhByinsuiGiWKw4Vh6wbiGTh5Vugx2ARCWNQ5nfM8uedUYcY8uQunuW-LNqGKRp9_gDJQwV5SZz6mCPw9JWTSSYrPTHB6M",
+            "qi": "lf8ozcHiL0JYwAYgsn9_WxiMKQM4JVlahIbeXUFlFxtZ8XnsEEW6sE7q1o4Xb03M6A28AjG5rb4FXLvN2P54FOofCnFnI1HAcWcTbs1WSyz6QWLWIatTG9s2_Sx7oq6u5ZAVgajQ1LfFUlNmsHTSeKtYe6mFDXMjd6sawtO-18U",
+            "kid": "rsa-test-key-1",
+            "alg": "RS256"
+        },
+        {
+            "crv": "Ed25519",
+            "d": "XfygX18vWy58IRZ_LfN__Vk2Qe2S1qnAbGzb1chrFqM",
+            "x": "XFMIaFHwf2mFihPG1ajAefDq8rFUfza9rIPofHHDzAw",
+            "kty": "OKP",
+            "kid": "eddsa-test-key-1",
+            "alg": "EdDSA"
+        }
+    ]
+}

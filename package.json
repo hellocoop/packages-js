@@ -5,6 +5,7 @@
     "workspaces": [
         "api",
         "definitions",
+        "email-verification",
         "express",
         "fastify",
         "helper/browser",
