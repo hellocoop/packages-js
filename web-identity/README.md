@@ -1,6 +1,6 @@
 # @hellocoop/web-identity
 
-🧪 **Experimental** - This package implements the [Verified Email Autocomplete](https://github.com/dickhardt/verified-email-autocomplete) protocol and is currently in experimental status.
+⚠️ **DEPRECATED** - This package has been superseded by [@hellocoop/email-verification](../email-verification). 
 
 > **Development Note**: This package was collaboratively developed using spec-driven development with AI assistance. You can view the complete [requirements, design, and implementation specifications](https://github.com/hellocoop/packages-js/tree/main/web-identity/specs) that guided the development process.
 
