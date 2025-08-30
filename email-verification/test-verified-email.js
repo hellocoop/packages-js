@@ -107,7 +107,7 @@ ${colors.bold}Flow:${colors.reset}
   5. Verify and pretty print the returned SD-JWT token
 
 ${colors.bold}Requirements:${colors.reset}
-  - Email domain must have DNS TXT record: _email-verification_.<domain>
+  - Email domain must have DNS TXT record: _email-verification.<domain>
   - Issuer must have /.well-known/email-verification metadata endpoint
   - Issuer must have working issuance endpoint that accepts required headers and cookie for user authentication
 `)
@@ -137,7 +137,7 @@ async function main() {
         // Step 1: Discover issuer from email domain
         logStep(1, 'Discovering issuer from email domain')
         log(
-            `Looking up DNS TXT record for: _email-verification_.${email.split('@')[1]}`,
+            `Looking up DNS TXT record for: _email-verification.${email.split('@')[1]}`,
         )
 
         let issuer
@@ -274,10 +274,10 @@ async function main() {
                 browserJWK.kty === 'OKP'
                     ? `${browserJWK.crv}`
                     : browserJWK.kty === 'EC'
-                      ? `${browserJWK.crv}`
-                      : browserJWK.kty === 'RSA'
-                        ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
-                        : browserJWK.kty
+                        ? `${browserJWK.crv}`
+                        : browserJWK.kty === 'RSA'
+                            ? `RSA-${browserJWK.n ? Math.ceil(Math.log2(Buffer.from(browserJWK.n, 'base64url').length * 8)) : '2048'}`
+                            : browserJWK.kty
 
             logSuccess(
                 `Generated ${keyType} key pair with ${chosenAlgorithm} algorithm`,

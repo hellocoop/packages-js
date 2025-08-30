@@ -15,7 +15,7 @@ Want to see the Email Verification Protocol in action? You can test it right now
 1. **Add DNS Record**: Add this TXT record to your domain:
 
     ```
-    _email-verification_.yourdomain.com TXT "iss=hello.coop"
+    _email-verification.yourdomain.com TXT "iss=hello.coop"
     ```
 
 2. **Get User Hint Cookie**: Visit [Hellō Wallet](https://wallet.hello.coop), create a wallet if needed by logging in, and verify an email address at your domain. In your browser, inspect the page, select the application tab, and find the `user-hint` cookie for wallet.hello.coop, and get its value.
@@ -303,7 +303,7 @@ Discovers the email-verification issuer for an email address or domain via DNS T
 
 **Returns:** `Promise<string>` - Issuer identifier (domain)
 
-**DNS Record Format:** The function looks for TXT records at `_email-verification_.$EMAIL_DOMAIN` with format `iss=issuer.example`
+**DNS Record Format:** The function looks for TXT records at `_email-verification.$EMAIL_DOMAIN` with format `iss=issuer.example`
 
 **Example:**
 
@@ -319,7 +319,7 @@ const issuer = await discoverIssuer('example.com')
 **DNS Setup Example:**
 
 ```
-_email-verification_.example.com   TXT   iss=issuer.example
+_email-verification.example.com   TXT   iss=issuer.example
 ```
 
 #### `fetchEmailVerificationMetadata(issuerIdentifier, options?)`

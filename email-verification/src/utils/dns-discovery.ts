@@ -72,7 +72,7 @@ function isValidDomain(domain: string): boolean {
 
 /**
  * Discovers the email-verification issuer for an email address or domain via DNS TXT record lookup
- * Looks for TXT record with format: "iss=issuer.example" at "_email-verification_.$EMAIL_DOMAIN"
+ * Looks for TXT record with format: "iss=issuer.example" at "_email-verification.$EMAIL_DOMAIN"
  *
  * NOTE: Spec should clarify that there can only be one iss= record per domain
  *
@@ -96,8 +96,8 @@ export async function discoverIssuer(emailOrDomain: string): Promise<string> {
         )
     }
 
-    // Construct the DNS lookup domain per spec: _email-verification_.$EMAIL_DOMAIN
-    const lookupDomain = `_email-verification_.${normalizedDomain}`
+    // Construct the DNS lookup domain per spec: _email-verification.$EMAIL_DOMAIN
+    const lookupDomain = `_email-verification.${normalizedDomain}`
 
     try {
         // Look up TXT records for the lookup domain

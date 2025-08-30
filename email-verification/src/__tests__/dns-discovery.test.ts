@@ -39,7 +39,7 @@ describe('DNS Discovery Functions', () => {
 
             expect(result).toBe('issuer.example')
             expect(mockDns).toHaveBeenCalledWith(
-                '_email-verification_.example.com',
+                '_email-verification.example.com',
             )
         })
 
@@ -51,7 +51,7 @@ describe('DNS Discovery Functions', () => {
 
             expect(result).toBe('issuer.example')
             expect(mockDns).toHaveBeenCalledWith(
-                '_email-verification_.example.com',
+                '_email-verification.example.com',
             )
         })
 
@@ -63,7 +63,7 @@ describe('DNS Discovery Functions', () => {
 
             expect(result).toBe('issuer.example')
             expect(mockDns).toHaveBeenCalledWith(
-                '_email-verification_.example.com',
+                '_email-verification.example.com',
             )
         })
 
