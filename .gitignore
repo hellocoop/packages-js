@@ -80,3 +80,6 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Security reports
+security-reports/

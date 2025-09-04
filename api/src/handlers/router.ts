@@ -82,6 +82,7 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
             return await handleTokenExchange(req, res)
         }
         res.status(500)
+        res.setHeader('Content-Type', 'text/plain')
         res.send('unknown op parameter:\n' + JSON.stringify(query, null, 4))
         return
     }
@@ -109,6 +110,7 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
     }
 
     res.status(500)
+    res.setHeader('Content-Type', 'text/plain')
     res.send('unknown query:\n' + JSON.stringify(query, null, 4))
 }
 

@@ -22,7 +22,40 @@ const handleInvite = async (req: HelloRequest, res: HelloResponse) => {
     const redirectURI = config.redirectURI || (redirect_uri as string)
     if (!redirectURI) {
         console.log('Hellō: Discovering API RedirectURI route ...')
-        return res.send(redirectURIBounce())
+
+        // Validate query parameters server-side before bounce
+        const allowedParams = [
+            'op',
+            'target_uri',
+            'app_name',
+            'prompt',
+            'role',
+            'tenant',
+            'state',
+            'redirect_uri',
+        ]
+        const safeQuery: Record<string, string> = {}
+
+        Object.entries(req.query).forEach(([key, value]) => {
+            if (allowedParams.includes(key) && typeof value === 'string') {
+                // Remove any HTML/script content
+                const cleanValue = value.replace(/<[^>]*>/g, '').trim()
+                if (cleanValue) {
+                    safeQuery[key] = cleanValue
+                }
+            }
+        })
+
+        // Add security headers
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.setHeader('X-Content-Type-Options', 'nosniff')
+        res.setHeader('X-Frame-Options', 'DENY')
+        res.setHeader(
+            'Content-Security-Policy',
+            "script-src 'unsafe-inline'; object-src 'none'; base-uri 'self';",
+        )
+
+        return res.send(redirectURIBounce(safeQuery))
     }
 
     const parsedRedirectURI = new URL(redirectURI)
