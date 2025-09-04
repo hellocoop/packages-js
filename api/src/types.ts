@@ -51,6 +51,7 @@ export interface Config {
         error?: string
     }
     cookieToken?: boolean
+    cookieDomain?: string
     logConfig?: boolean
     apiRoute?: string
 }

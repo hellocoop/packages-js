@@ -33,6 +33,7 @@ export const saveAuthCookie = async (
             secure: SECURE,
             sameSite: SAME_SITE,
             path: '/', // let any server side route call getAuth
+            ...(config.cookieDomain && { domain: config.cookieDomain }),
         })
         return true
     } catch (e) {
@@ -57,6 +58,7 @@ export const clearAuthCookieParams = (): {
         options: {
             expires: new Date(0), // Set the expiry date to a date in the past
             path: '/', // Specify the path
+            ...(config.cookieDomain && { domain: config.cookieDomain }),
         },
     }
 }

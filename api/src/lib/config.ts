@@ -21,6 +21,7 @@ export interface IConfig {
     logoutSync?: GenericSync
     commandHandler?: CommandHandler
     cookieToken?: boolean // include encrypted cookie in auth response
+    cookieDomain?: string // domain for auth cookies (e.g., '.example.com')
     // built from HELLO_API_ROUTE
     apiRoute: string
     authApiRoute: string
@@ -139,6 +140,8 @@ export const configure = function (config: Config) {
         !!process.env.HELLO_SAME_SITE_STRICT || config.sameSiteStrict
     _configuration.cookieToken =
         !!process.env.HELLO_COOKIE_TOKEN || config.cookieToken
+    _configuration.cookieDomain =
+        process.env.HELLO_COOKIE_DOMAIN || config.cookieDomain
 
     isConfigured = true
     if (!_configuration.clientId) {
