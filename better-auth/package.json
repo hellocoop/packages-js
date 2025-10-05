@@ -1,0 +1,65 @@
+{
+    "name": "@hellocoop/better-auth",
+    "version": "1.0.0",
+    "description": "Better Auth plugin for Hellō - https://hello.dev",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://www.hello.dev/docs/",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./dist/index.js",
+        "./client": "./dist/client.js"
+    },
+    "files": [
+        "dist/"
+    ],
+    "keywords": [
+        "better-auth",
+        "hello",
+        "hellocoop",
+        "openid",
+        "oidc",
+        "oauth",
+        "authentication",
+        "sso"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "test": "vitest --run",
+        "test:watch": "vitest --watch",
+        "watch": "tsc --watch --declaration",
+        "prebuild": "rimraf dist",
+        "build": "tsc --declaration"
+    },
+    "peerDependencies": {
+        "better-auth": "^1.0.0",
+        "react": "^18.0.0 || ^19.0.0"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.2",
+        "@types/node": "*",
+        "@types/react": "^18.0.0",
+        "better-auth": "^1.0.0",
+        "react": "^18.0.0",
+        "rimraf": "^5.0.1",
+        "typescript": "^5.2.2",
+        "vitest": "^2.0.0"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@hellocoop/definitions": "^1.0.11"
+    }
+}

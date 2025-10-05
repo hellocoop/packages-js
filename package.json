@@ -4,6 +4,7 @@
     "description": "Monorepo of JS packages",
     "workspaces": [
         "api",
+        "better-auth",
         "definitions",
         "email-verification",
         "express",
