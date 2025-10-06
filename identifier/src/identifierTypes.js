@@ -3,21 +3,24 @@
 
 const identifierTypeDescriptions = {
     // Customer exposed
-    sub: 'Hellō directed identifier - `sub` in ID token',
     app: 'Hellō application identifier (client_id) - `aud` in ID token',
-    // Wallet internal
-    usr: 'Hellō internal user identifier',
+    cod: 'Hellō authorization code',
     jti: 'ID Token jti',
-    ses: 'Hellō session identifier',
+    non: 'Hellō nonce identifier',
+    sub: 'Hellō directed identifier - `sub` in ID token',
+    ten: 'Hellō tenant identifier',
+    // Wallet internal
+    con: 'Hellō connection identifier',
     dvc: 'Hellō device cookie identifier',
     inv: 'Hellō invitation identifier',
     pky: 'Hellō passkey identifier',
-    non: 'Hellō nonce identifier',
-    cod: 'Hellō authorization code',
-    org: 'Hellō organization identifier',
     req: 'Internal HTTP request identifier',
+    ses: 'Hellō session identifier',
+    usr: 'Hellō internal user identifier',
     // Admin internal
     pub: 'Hellō publisher identifier',
+    // Deprecated
+    org: 'Hellō organization identifier',
 }
 
 const identifierTypesSet = new Set(Object.keys(identifierTypeDescriptions))
