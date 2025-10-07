@@ -19,6 +19,10 @@ import type {
 } from 'better-auth'
 import { DISCOVERY_URL, PROVIDER_ID } from './constants'
 
+// Export button and client
+export { ContinueButton } from './button'
+export { hellocoopClient } from './client'
+
 /**
  * Configuration interface for generic OAuth providers.
  */
@@ -43,9 +47,9 @@ export interface GenericOAuthConfig {
      */
     responseType?: string
     /**
-	 * The response mode to use for the authorization code request.
+     * The response mode to use for the authorization code request.
 
-	 */
+     */
     responseMode?: 'query' | 'form_post'
     /**
      * Prompt parameter for the authorization request.
