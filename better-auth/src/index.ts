@@ -124,7 +124,7 @@ export interface GenericOAuthConfig {
      *
      * This will update the user info with the provider info,
      * when the user signs in with the provider.
-     * @default false
+     * @default true (for HelloCoop to ensure claims are updated)
      */
     overrideUserInfo?: boolean
     /**
@@ -150,9 +150,9 @@ export interface GenericOAuthConfig {
 
 interface GenericOAuthOptions {
     /**
-     * Array of OAuth provider configurations.
+     * OAuth provider configuration for HelloCoop.
      */
-    config: GenericOAuthConfig[]
+    config: GenericOAuthConfig
 }
 
 async function getUserInfo(
@@ -216,85 +216,80 @@ export const hellocoop = (options: GenericOAuthOptions) => {
     return {
         id: 'hellocoop',
         init: (ctx) => {
-            const genericProviders = options.config.map((c) => {
-                let finalUserInfoUrl = c.userInfoUrl
-                return {
-                    id: PROVIDER_ID,
-                    name: PROVIDER_ID,
-                    createAuthorizationURL(data) {
-                        return createAuthorizationURL({
-                            id: PROVIDER_ID,
-                            options: {
-                                clientId: c.clientId,
-                                clientSecret: c.clientSecret,
-                                redirectURI: c.redirectURI,
-                            },
-                            authorizationEndpoint: c.authorizationUrl!,
-                            state: data.state,
-                            codeVerifier: c.pkce
-                                ? data.codeVerifier
-                                : undefined,
-                            scopes: c.scopes || ['openid'], // Default scope for HelloCoop
-                            redirectURI: `${ctx.baseURL}/hellocoop/callback`,
+            const c = options.config
+            let finalUserInfoUrl = c.userInfoUrl
+            const provider = {
+                id: PROVIDER_ID,
+                name: PROVIDER_ID,
+                createAuthorizationURL(data) {
+                    return createAuthorizationURL({
+                        id: PROVIDER_ID,
+                        options: {
+                            clientId: c.clientId,
+                            clientSecret: c.clientSecret,
+                            redirectURI: c.redirectURI,
+                        },
+                        authorizationEndpoint: c.authorizationUrl!,
+                        state: data.state,
+                        codeVerifier: c.pkce ? data.codeVerifier : undefined,
+                        scopes: c.scopes || ['openid'], // Default scope for HelloCoop
+                        redirectURI: `${ctx.baseURL}/hellocoop/callback`,
+                    })
+                },
+                async validateAuthorizationCode(data) {
+                    let finalTokenUrl = c.tokenUrl
+                    const discovery = await betterFetch<{
+                        token_endpoint: string
+                        userinfo_endpoint: string
+                    }>(DISCOVERY_URL, {
+                        method: 'GET',
+                    })
+                    if (discovery.data) {
+                        finalTokenUrl = discovery.data.token_endpoint
+                        finalUserInfoUrl = discovery.data.userinfo_endpoint
+                    }
+                    if (!finalTokenUrl) {
+                        throw new APIError('BAD_REQUEST', {
+                            message:
+                                'Invalid OAuth configuration. Token URL not found.',
                         })
-                    },
-                    async validateAuthorizationCode(data) {
-                        let finalTokenUrl = c.tokenUrl
-                        const discovery = await betterFetch<{
-                            token_endpoint: string
-                            userinfo_endpoint: string
-                        }>(DISCOVERY_URL, {
-                            method: 'GET',
-                        })
-                        if (discovery.data) {
-                            finalTokenUrl = discovery.data.token_endpoint
-                            finalUserInfoUrl = discovery.data.userinfo_endpoint
-                        }
-                        if (!finalTokenUrl) {
-                            throw new APIError('BAD_REQUEST', {
-                                message:
-                                    'Invalid OAuth configuration. Token URL not found.',
-                            })
-                        }
-                        return validateAuthorizationCode({
-                            code: data.code,
-                            codeVerifier: data.codeVerifier,
-                            redirectURI: data.redirectURI,
-                            options: {
-                                clientId: c.clientId,
-                                clientSecret: c.clientSecret,
-                                redirectURI: c.redirectURI,
-                            },
-                            tokenEndpoint: finalTokenUrl,
-                            authentication: c.authentication,
-                        })
-                    },
-                    async getUserInfo(tokens) {
-                        const userInfo = c.getUserInfo
-                            ? await c.getUserInfo(tokens)
-                            : await getUserInfo(tokens, finalUserInfoUrl)
-                        if (!userInfo) {
-                            return null
-                        }
-                        return {
-                            user: {
-                                id: userInfo?.id,
-                                email: userInfo?.email,
-                                emailVerified: userInfo?.emailVerified,
-                                image: userInfo?.image,
-                                name: userInfo?.name,
-                                ...c.mapProfileToUser?.(userInfo),
-                            },
-                            data: userInfo,
-                        }
-                    },
-                } as OAuthProvider
-            })
+                    }
+                    return validateAuthorizationCode({
+                        code: data.code,
+                        codeVerifier: data.codeVerifier,
+                        redirectURI: data.redirectURI,
+                        options: {
+                            clientId: c.clientId,
+                            clientSecret: c.clientSecret,
+                            redirectURI: c.redirectURI,
+                        },
+                        tokenEndpoint: finalTokenUrl,
+                        authentication: c.authentication,
+                    })
+                },
+                async getUserInfo(tokens) {
+                    const userInfo = c.getUserInfo
+                        ? await c.getUserInfo(tokens)
+                        : await getUserInfo(tokens, finalUserInfoUrl)
+                    if (!userInfo) {
+                        return null
+                    }
+                    return {
+                        user: {
+                            id: userInfo?.id,
+                            email: userInfo?.email,
+                            emailVerified: userInfo?.emailVerified,
+                            image: userInfo?.image,
+                            name: userInfo?.name,
+                            ...c.mapProfileToUser?.(userInfo),
+                        },
+                        data: userInfo,
+                    }
+                },
+            } as OAuthProvider
             return {
                 context: {
-                    socialProviders: genericProviders.concat(
-                        ctx.socialProviders,
-                    ),
+                    socialProviders: [provider].concat(ctx.socialProviders),
                 },
             }
         },
@@ -414,7 +409,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                 },
                 async (ctx) => {
                     // Since this is a HelloCoop-specific endpoint, we know the providerId is always "hellocoop"
-                    const config = options.config[0]
+                    const config = options.config
                     if (!config) {
                         throw new APIError('BAD_REQUEST', {
                             message: `No config found for provider hellocoop`,
@@ -596,7 +591,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                     } = parsedState
                     const code = ctx.query.code
 
-                    const provider = options.config[0]
+                    const provider = options.config
                     if (!provider) {
                         throw new APIError('BAD_REQUEST', {
                             message: `No config found for provider hellocoop`,
@@ -793,7 +788,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                             (provider.disableImplicitSignUp &&
                                 !requestSignUp) ||
                             provider.disableSignUp,
-                        overrideUserInfo: provider.overrideUserInfo,
+                        overrideUserInfo: provider.overrideUserInfo ?? true, // Default to true for HelloCoop to update user claims
                     })
 
                     if (result.error) {
