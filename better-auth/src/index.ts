@@ -11,7 +11,7 @@ import {
 } from 'better-auth/oauth2'
 import type { OAuth2Tokens, OAuth2UserInfo, OAuthProvider } from 'better-auth'
 import { handleOAuthUserInfo } from 'better-auth/oauth2'
-import { generateState, parseState } from 'better-auth/auth2'
+import { generateState, parseState } from 'better-auth/oauth2'
 import type {
     BetterAuthPlugin,
     GenericEndpointContext,
@@ -414,9 +414,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                 },
                 async (ctx) => {
                     // Since this is a HelloCoop-specific endpoint, we know the providerId is always "hellocoop"
-                    const config = options.config.find(
-                        (i: any) => i === PROVIDER_ID,
-                    )
+                    const config = options.config[0]
                     if (!config) {
                         throw new APIError('BAD_REQUEST', {
                             message: `No config found for provider hellocoop`,
@@ -598,9 +596,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                     } = parsedState
                     const code = ctx.query.code
 
-                    const provider = options.config.find(
-                        (i: any) => i === PROVIDER_ID,
-                    )
+                    const provider = options.config[0]
                     if (!provider) {
                         throw new APIError('BAD_REQUEST', {
                             message: `No config found for provider hellocoop`,
