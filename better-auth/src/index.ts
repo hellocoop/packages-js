@@ -193,19 +193,16 @@ async function getUserInfo(
     finalUserInfoUrl: string | undefined,
 ): Promise<OAuth2UserInfo | null> {
     if (tokens.idToken) {
-        const decoded = decodeJwt(tokens.idToken) as {
-            sub: string
-            email_verified: boolean
-            email: string
-            name: string
-            picture: string
-        }
+        // Decode the full ID token to get all Hellō Coop claims
+        const decoded = decodeJwt(tokens.idToken) as Record<string, any>
         if (decoded) {
             if (decoded.sub && decoded.email) {
                 return {
                     id: decoded.sub,
                     emailVerified: decoded.email_verified,
-                    image: decoded.picture,
+                    image: decoded.picture || decoded.image,
+                    // Spread all decoded claims to preserve Hellō Coop specific fields
+                    // like nickname, ethereum, phone, social accounts, etc.
                     ...decoded,
                 }
             }
@@ -216,25 +213,19 @@ async function getUserInfo(
         return null
     }
 
-    const userInfo = await betterFetch<{
-        email: string
-        sub?: string
-        name: string
-        email_verified: boolean
-        picture: string
-    }>(finalUserInfoUrl, {
+    const userInfo = await betterFetch<Record<string, any>>(finalUserInfoUrl, {
         method: 'GET',
         headers: {
             Authorization: `Bearer ${tokens.accessToken}`,
         },
     })
     return {
-        // @ts-expect-error sub is optional in the type
         id: userInfo.data?.sub,
         emailVerified: userInfo.data?.email_verified ?? false,
         email: userInfo.data?.email,
-        image: userInfo.data?.picture,
+        image: userInfo.data?.picture || userInfo.data?.image,
         name: userInfo.data?.name,
+        // Spread all user info data to preserve all Hellō Coop claims
         ...userInfo.data,
     }
 }
@@ -248,6 +239,65 @@ export const hellocoop = (options: GenericOAuthOptions) => {
     } as const
     return {
         id: 'hellocoop',
+        schema: {
+            user: {
+                fields: {
+                    // Hellō Coop specific claims
+                    nickname: {
+                        type: 'string',
+                        required: false,
+                    },
+                    ethereum: {
+                        type: 'string',
+                        required: false,
+                    },
+                    phone: {
+                        type: 'string',
+                        required: false,
+                    },
+                    phone_number: {
+                        type: 'string',
+                        required: false,
+                    },
+                    phone_verified: {
+                        type: 'boolean',
+                        required: false,
+                    },
+                    phone_number_verified: {
+                        type: 'boolean',
+                        required: false,
+                    },
+                    github: {
+                        type: 'string',
+                        required: false,
+                    },
+                    gitlab: {
+                        type: 'string',
+                        required: false,
+                    },
+                    twitter: {
+                        type: 'string',
+                        required: false,
+                    },
+                    discord: {
+                        type: 'string',
+                        required: false,
+                    },
+                    family_name: {
+                        type: 'string',
+                        required: false,
+                    },
+                    given_name: {
+                        type: 'string',
+                        required: false,
+                    },
+                    tenant: {
+                        type: 'string',
+                        required: false,
+                    },
+                },
+            },
+        },
         init: (ctx) => {
             const c = options.config
             let finalUserInfoUrl = c.userInfoUrl
@@ -689,7 +739,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         errorURL,
                         requestSignUp,
                         newUserURL,
-                        link,
+                        // link,
                     } = parsedState
                     const code = ctx.query.code
 
@@ -781,7 +831,31 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                             }
                             const mapUser = provider.mapProfileToUser
                                 ? await provider.mapProfileToUser(userInfo)
-                                : userInfo
+                                : {
+                                      ...userInfo,
+                                      // Convert complex objects to JSON strings for database storage
+                                      github: (userInfo as any).github
+                                          ? JSON.stringify(
+                                                (userInfo as any).github,
+                                            )
+                                          : undefined,
+                                      gitlab: (userInfo as any).gitlab
+                                          ? JSON.stringify(
+                                                (userInfo as any).gitlab,
+                                            )
+                                          : undefined,
+                                      twitter: (userInfo as any).twitter
+                                          ? JSON.stringify(
+                                                (userInfo as any).twitter,
+                                            )
+                                          : undefined,
+                                      discord: (userInfo as any).discord
+                                          ? JSON.stringify(
+                                                (userInfo as any).discord,
+                                            )
+                                          : undefined,
+                                  }
+                            console.log(456, 'mapUser', mapUser)
                             const email = mapUser.email
                                 ? mapUser.email.toLowerCase()
                                 : userInfo.email?.toLowerCase()
@@ -813,69 +887,6 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                                 name,
                             }
                         })()
-                    if (link) {
-                        if (
-                            ctx.context.options.account?.accountLinking
-                                ?.allowDifferentEmails !== true &&
-                            link.email !== userInfo.email
-                        ) {
-                            return redirectOnError("email_doesn't_match")
-                        }
-                        const existingAccount =
-                            await ctx.context.internalAdapter.findAccountByProviderId(
-                                String(userInfo.id),
-                                provider.providerId || PROVIDER_ID,
-                            )
-                        if (existingAccount) {
-                            if (existingAccount.userId !== link.userId) {
-                                return redirectOnError(
-                                    'account_already_linked_to_different_user',
-                                )
-                            }
-                            /* eslint-disable @typescript-eslint/no-unused-vars */
-                            const updateData = Object.fromEntries(
-                                Object.entries({
-                                    accessToken: tokens.accessToken,
-                                    idToken: tokens.idToken,
-                                    accessTokenExpiresAt:
-                                        tokens.accessTokenExpiresAt,
-                                    scope: tokens.scopes?.join(','),
-                                }).filter(
-                                    ([_, value]) => value !== undefined,
-                                ) as [string, any][],
-                            )
-                            await ctx.context.internalAdapter.updateAccount(
-                                existingAccount.id,
-                                updateData,
-                            )
-                        } else {
-                            const newAccount =
-                                await ctx.context.internalAdapter.createAccount(
-                                    {
-                                        userId: link.userId,
-                                        providerId:
-                                            provider.providerId || PROVIDER_ID,
-                                        accountId: userInfo.id,
-                                        accessToken: tokens.accessToken,
-                                        accessTokenExpiresAt:
-                                            tokens.accessTokenExpiresAt,
-                                        scope: tokens.scopes?.join(','),
-                                        idToken: tokens.idToken,
-                                    },
-                                )
-                            if (!newAccount) {
-                                return redirectOnError('unable_to_link_account')
-                            }
-                        }
-                        let toRedirectTo: string
-                        try {
-                            const url = callbackURL
-                            toRedirectTo = url.toString()
-                        } catch {
-                            toRedirectTo = callbackURL
-                        }
-                        throw ctx.redirect(toRedirectTo)
-                    }
 
                     const result = await handleOAuthUserInfo(ctx, {
                         userInfo,
@@ -920,4 +931,47 @@ export const hellocoop = (options: GenericOAuthOptions) => {
         },
         $ERROR_CODES: ERROR_CODES,
     } satisfies BetterAuthPlugin
+}
+
+/**
+ * Utility function to parse Hellō Coop social account JSON strings back to objects
+ * @param user - User object from Better Auth session
+ * @returns User object with parsed social accounts
+ */
+export function parseHellocoopSocialAccounts(user: any) {
+    if (!user) return user
+
+    const parsedUser = { ...user }
+
+    // Parse social account JSON strings back to objects
+    if (parsedUser.github && typeof parsedUser.github === 'string') {
+        try {
+            parsedUser.github = JSON.parse(parsedUser.github)
+        } catch {
+            // Keep as string if parsing fails
+        }
+    }
+    if (parsedUser.gitlab && typeof parsedUser.gitlab === 'string') {
+        try {
+            parsedUser.gitlab = JSON.parse(parsedUser.gitlab)
+        } catch {
+            // Keep as string if parsing fails
+        }
+    }
+    if (parsedUser.twitter && typeof parsedUser.twitter === 'string') {
+        try {
+            parsedUser.twitter = JSON.parse(parsedUser.twitter)
+        } catch {
+            // Keep as string if parsing fails
+        }
+    }
+    if (parsedUser.discord && typeof parsedUser.discord === 'string') {
+        try {
+            parsedUser.discord = JSON.parse(parsedUser.discord)
+        } catch {
+            // Keep as string if parsing fails
+        }
+    }
+
+    return parsedUser
 }
