@@ -6,7 +6,7 @@
         "type": "git",
         "url": "git+https://github.com/hellocoop/packages.git"
     },
-    "homepage": "https://www.hello.dev/docs/",
+    "homepage": "https://www.hello.dev/",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
