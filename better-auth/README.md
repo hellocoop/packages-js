@@ -36,7 +36,7 @@ export const auth = betterAuth({
     plugins: [
         hellocoop({
             config: {
-                clientId: 'app_123_xyz', // REQUIRED - your Hellō Client ID from previous step
+                clientId: 'app_123_xyz',       // REQUIRED - your Hellō Client ID from previous step
                 scopes: ['openid', 'profile'], // OPTIONAL - defaults to openid profile
                 // other config options
             },
@@ -84,29 +84,31 @@ if (error) {
 
 #### Advanced Sign-In Options
 
+You can also override the configuration options set during setup for each `signInWithHello` call:
 ```ts
 const { data, error } = await authClient.signInWithHello({
-    callbackURL: '/dashboard',
-    errorCallbackURL: '/error-page',
-    scopes: ['openid', 'profile', 'email'],
-    prompt: 'consent', // Force consent screen
-    providerHint: 'google,github', // Suggest specific providers
-    loginHint: 'user@example.com', // Pre-fill email
-    domainHint: 'company.com', // Suggest domain for login
+    callbackURL: '/dashboard',       // OPTIONAL - URL to redirect to after sign in
+    errorCallbackURL: '/error-page', // OPTIONAL - URL to redirect to if an error occurs
+    scopes: ['openid', 'profile'],   // OPTIONAL - defaults to openid profile
+    loginHint: 'user@example.com',   // OPTIONAL - a hint for which user account to use
+    providerHint: 'google-- github', // OPTIONAL - suggest specific providers
 })
 ```
 
 ### Configuration Options
 
+#### Better Auth
 | Parameter           | Description                                                                                                            | Type       | Default      |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
+| **Beter Auth** | | |
 | `callbackURL?`      | URL to redirect after successful sign-in                                                                               | `string`   | `/`          |
 | `errorCallbackURL?` | URL to redirect if an error occurs                                                                                     | `string`   | `/error`     |
-| `scopes?`           | Array of scopes to request. [See supported scopes](https://www.hello.dev/docs/scopes/)                                 | `string[]` | `['openid']` |
-| `providerHint?`     | Comma-separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users | `string`   | -            |
-| `loginHint?`        | [Pre-fill email](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters) in the login form                 | `string`   | -            |
-| `domainHint?`       | [Suggest domain](https://www.hello.dev/docs/apis/wallet/#domain_hint) for user login                                   | `string`   | -            |
+| **Open ID** | | |
+| `loginHint?`        | A hint for which user account to use. [See login_hint docs](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters)                 | `string`   | -            |
 | `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                         | `string`   | -            |
+| **Hellō** | | |
+| `providerHint?`     | Space separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users | `string`   | `apple/microsoft` depending on the OS and `google email`            |
+| `domainHint?`       | A hint for which domain or type of account (`domain.example`, `managed`, or `personal`) [See domain_hint domain](https://www.hello.dev/docs/oidc/request/#hell%C5%8D-parameters) for user login                                   | `string`   | -            |
 
 ### Auth Callback
 
@@ -114,27 +116,21 @@ The plugin automatically handles the Auth callback at `/api/auth/hellocoop/callb
 
 ### Sign-Out
 
-#### Basic Sign-Out
-
+To signout a user, you can use the `signOut` function provided by the `authClient`.
 ```ts
-// Sign out the current user
 await authClient.signOut()
 ```
 
-#### Sign-Out with Redirect
+You can pass `fetchOptions` to redirect onSuccess
 
 ```ts
 await authClient.signOut({
-    fetchOptions: {
-        onSuccess: () => {
-            // Redirect after successful sign-out
-            window.location.href = '/login'
-        },
-        onError: (error) => {
-            console.error('Sign-out failed:', error)
-        },
+  fetchOptions: {
+    onSuccess: () => {
+      router.push("/login"); // redirect to login page
     },
-})
+  },
+});
 ```
 
 ## UI Components
@@ -149,7 +145,7 @@ Include the Hellō button styles in your HTML document:
 <link rel="stylesheet" href="https://cdn.hello.coop/css/hello-btn.css" />
 ```
 
-#### 2. Use the ContinueButton Component
+#### 2. Use the `<ContinueButton/>` Component
 
 ```tsx
 import { ContinueButton } from '@hellocoop/better-auth'
@@ -190,47 +186,7 @@ function LoginPage() {
 </ContinueButton>
 ```
 
-**Available Button Styles:**
-
-- `hello-btn-black` - Black button (default)
-- `hello-btn-white` - White button
-- `hello-btn-hover-glow` - Glow effect on hover
-- `hello-btn-hover-flare` - Flare effect on hover
-
 See the [complete button customization guide](https://www.hello.dev/docs/buttons/) for more styling options.
-
-> **Note:** Advanced theming properties from `@hellocoop/react` are coming soon. Currently, use CSS classes via the `className` prop for customization.
-
-## Configuration Reference
-
-### Plugin Configuration
-
-Configure the Hellō plugin with these options:
-
-```ts
-interface HellocoopConfig {
-    /** Your Hellō application client ID (required) */
-    clientId: string
-
-    /** OAuth scopes to request (optional) */
-    scopes?: string[]
-
-    /** Authentication prompt behavior (optional) */
-    prompt?: 'login' | 'consent'
-
-    /** Enable PKCE for enhanced security (optional, defaults to true) */
-    pkce?: boolean
-}
-```
-
-### Configuration Options Explained
-
-| Option     | Type                   | Default      | Description                                                                            |
-| ---------- | ---------------------- | ------------ | -------------------------------------------------------------------------------------- |
-| `clientId` | `string`               | **Required** | Your Hellō application client ID from [console.hello.coop](https://console.hello.coop) |
-| `scopes`   | `string[]`             | `['openid']` | OAuth scopes to request. [See available scopes](https://www.hello.dev/docs/scopes/)    |
-| `prompt`   | `'login' \| 'consent'` | `undefined`  | `login` forces fresh authentication; `consent` shows profile update screen             |
-| `pkce`     | `boolean`              | `true`       | Enables PKCE (Proof Key for Code Exchange) for enhanced security                       |
 
 ## Advanced Usage
 
@@ -274,23 +230,6 @@ hellocoop({
 **Issue: Button styles not loading**
 
 - **Solution:** Ensure you've included the Hellō CSS: `<link rel="stylesheet" href="https://cdn.hello.coop/css/hello-btn.css" />`
-
-### Debug Mode
-
-Enable debug logging to troubleshoot issues:
-
-```ts
-export const auth = betterAuth({
-    logger: {
-        level: 'debug', // Enable debug logs
-    },
-    plugins: [
-        hellocoop({
-            /* config */
-        }),
-    ],
-})
-```
 
 ## Examples & Resources
 
