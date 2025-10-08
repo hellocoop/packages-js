@@ -111,9 +111,9 @@ const { data, error } = await authClient.signInWithHello({
 | `domainHint?`       | [Suggest domain](https://www.hello.dev/docs/apis/wallet/#domain_hint) for user login                                   | `string`   | -            |
 | `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                         | `string`   | -            |
 
-### Authentication Callback
+### Auth Callback
 
-The plugin automatically handles the OAuth callback at `/api/auth/hellocoop/callback`. No additional setup required.
+The plugin automatically handles the Auth callback at `/api/auth/hellocoop/callback`. No additional setup required.
 
 ### Sign-Out
 
@@ -240,37 +240,6 @@ interface HellocoopConfig {
 ### Error Handling
 
 The plugin includes built-in error handling for common OAuth issues. Errors are typically redirected to your application's error page with an appropriate error message in the URL parameters. If the errorCallback URL is not provided, the user will be redirected to Better Auth's default error page.
-
-```ts
-const { data, error } = await authClient.signInWithHello({
-    callbackURL: '/dashboard',
-    errorCallbackURL: '/auth-error',
-})
-
-if (error) {
-    // Handle different error types
-    switch (error.message) {
-        case 'oauth_code_verification_failed':
-            console.error('Invalid authorization code')
-            break
-        case 'user_info_is_missing':
-            console.error('Could not retrieve user information')
-            break
-        case 'email_is_missing':
-            console.error('User email not provided by Hellō')
-            break
-        default:
-            console.error('Authentication error:', error.message)
-    }
-}
-```
-
-**Common Error Codes:**
-
-- `oauth_code_verification_failed` - Invalid or expired authorization code
-- `user_info_is_missing` - Unable to fetch user profile from Hellō
-- `email_is_missing` - User email not available in the response
-- `name_is_missing` - User name not available in the response
 
 ### Environment Variables
 
