@@ -47,7 +47,7 @@ export const auth = betterAuth({
                 clientId: 'app_0123456789abcdefghijklmn_xyz', // REQUIRED
                 // Defaults to openid profile
                 scopes: ['openid', 'profile'], // OPTIONAL
-                
+
                 // Default values (can be overridden in signInWithHello calls)
                 callbackURL: '/dashboard', // OPTIONAL - default callback URL
                 errorCallbackURL: '/auth-error', // OPTIONAL - default error callback URL
@@ -55,7 +55,7 @@ export const auth = betterAuth({
                 domainHint: 'managed', // OPTIONAL - default domain hint
                 loginHint: 'user@example.com', // OPTIONAL - default login hint
                 prompt: 'login', // OPTIONAL - default prompt behavior
-                
+
                 // ... See Configuration Options for other OAuth settings
             },
         }),
@@ -73,15 +73,14 @@ import { createAuthClient } from 'better-auth/client'
 import { hellocoopClient } from '@hellocoop/better-auth'
 
 export const authClient = createAuthClient({
-    plugins: [
-        hellocoopClient()
-    ],
+    plugins: [hellocoopClient()],
 })
 ```
+
 See [Better Auth Plugins](https://www.better-auth.com/docs/concepts/plugins#using-a-plugin) for more information.
 
-
 ## Provider Hints
+
 When Hellō does not know the user's preferred provider (new user or new browser), they are presented with a recommended list of providers to choose from, with the option to show all the other supported providers.
 
 You can change which providers are recommended by setting the `providerHint` property in the configuration option like in the third step. See all the supported provider hint values [here](https://www.hello.dev/docs/apis/wallet/#provider_hint).
@@ -91,6 +90,7 @@ You can change which providers are recommended by setting the `providerHint` pro
 ### Sign In
 
 To sign in the user, you use the Hellō `signInWithHello()` function:
+
 ```ts
 authClient.signInWithHello({
     // ... See Configuration Options section
@@ -100,6 +100,7 @@ authClient.signInWithHello({
 ### Sign Out
 
 To sign out the user, you use the standard Better Auth `signOut()` function:
+
 ```ts
 authClient.signOut({
     // ... See configuration options:
@@ -109,7 +110,7 @@ authClient.signOut({
 
 ## Hellō Button
 
-####  - Add the Hellō CSS
+#### - Add the Hellō CSS
 
 Include the Hellō button style in your `<head>` of your HTML document:
 
@@ -117,16 +118,15 @@ Include the Hellō button style in your `<head>` of your HTML document:
 <head>
     <!-- ... -->
     <link rel="stylesheet" href="https://cdn.hello.coop/css/hello-btn.css" />
-<head>
+    <head></head>
+</head>
 ```
 
 #### - Usage and Styling
 
 ```tsx
 // Apply custom CSS classes
-<ContinueButton
-    className="hello-btn-white-on-light hello-btn-hover-flare"
-/>
+<ContinueButton className="hello-btn-white-on-light hello-btn-hover-flare" />
 ```
 
 See the [complete button customization guide](https://www.hello.dev/docs/buttons/) for more styling options.
@@ -190,7 +190,7 @@ function DashboardPage() {
 ```tsx
 // src/layouts/Layout.astro
 // ...
-<head>
+;<head>
     // ...
     <link rel="stylesheet" href="https://cdn.hello.coop/css/hello-btn.css" />
 </head>
@@ -199,15 +199,17 @@ function DashboardPage() {
 import { authClient } from '../lib/auth-client'
 import { ContinueButton } from '@hellocoop/better-auth'
 
-{/* ... Content ... */}
-<ContinueButton
+{
+    /* ... Content ... */
+}
+;<ContinueButton
     className="hello-btn-hover-flare"
     onClick={() => {
         authClient.signInWithHello({
-                callbackURL: '/dashboard',
-                errorCallbackURL: '/error-page',
-                providerHint: 'google apple',
-                loginHint: 'specific-user@example.com',
+            callbackURL: '/dashboard',
+            errorCallbackURL: '/error-page',
+            providerHint: 'google apple',
+            loginHint: 'specific-user@example.com',
         })
     }}
 />
@@ -215,16 +217,20 @@ import { ContinueButton } from '@hellocoop/better-auth'
 // src/pages/dashboard.astro
 import { authClient } from '../lib/auth-client'
 
-{/* ... Content ... */}
-<button onClick={() => {
-    authClient.signOut({
-        fetchOptions: {
-            onSuccess: () => {
-                window.location.href = "/login" // redirect to login page
+{
+    /* ... Content ... */
+}
+;<button
+    onClick={() => {
+        authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    window.location.href = '/login' // redirect to login page
+                },
             },
-        },
-    });
-}}>
+        })
+    }}
+>
     Sign out
 </button>
 ```
@@ -234,13 +240,14 @@ import { authClient } from '../lib/auth-client'
 The following parameters can be configured in both the plugin config and the `signInWithHello` function. When specified in both places, the runtime parameter in `signInWithHello` takes precedence over the config default:
 
 - `callbackURL` - URL to redirect to after successful sign-in
-- `errorCallbackURL` - URL to redirect to if an error occurs  
+- `errorCallbackURL` - URL to redirect to if an error occurs
 - `loginHint` - Hint for which user account to use
 - `prompt` - OAuth prompt parameter (`login`, `consent`, etc.)
 - `providerHint` - Space-separated list of preferred providers
 - `domainHint` - Domain or account type hint
 
 **Example:**
+
 ```ts
 // Config defaults
 hellocoop({
@@ -248,7 +255,7 @@ hellocoop({
         clientId: 'app_0123456789abcdefghijklmn_xyz',
         callbackURL: '/dashboard',
         providerHint: 'google email',
-    }
+    },
 })
 
 // Runtime override
