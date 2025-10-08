@@ -13,9 +13,11 @@ npm install @hellocoop/better-auth
 ### 2. Get your Hellō Client ID
 
 **Option 1: Quick Setup (Recommended)**
+
 ```bash
 npx @hellocoop/quickstart
 ```
+
 This streamlines the entire process and displays your `client_id` in the terminal.
 
 > **Tip:** The quickstart command accepts various CLI flags. See the [CLI parameters documentation](https://www.hello.dev/docs/sdks/quickstart/#cli-parameters) for details.
@@ -39,6 +41,7 @@ export const auth = betterAuth({
                 clientId: 'app_123_xyz', // Your Hellō client ID from step 2
                 scopes: ['openid', 'profile', 'email'], // Optional: customize scopes
                 prompt: 'consent', // Optional: 'login' or 'consent'
+                // other config options
             },
         }),
     ],
@@ -55,7 +58,6 @@ import { createAuthClient } from 'better-auth/client'
 import { hellocoopClient } from '@hellocoop/better-auth'
 
 export const authClient = createAuthClient({
-    baseURL: 'http://localhost:3000', // Your app's base URL
     plugins: [hellocoopClient()],
 })
 ```
@@ -99,15 +101,15 @@ const { data, error } = await authClient.signInWithHello({
 
 ### Configuration Options
 
-| Parameter           | Description                                                                                                                                          | Type       | Default |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------- |
-| `callbackURL?`      | URL to redirect after successful sign-in                                                                                                             | `string`   | `/`     |
-| `errorCallbackURL?` | URL to redirect if an error occurs                                                                                                                   | `string`   | `/error`|
-| `scopes?`           | Array of scopes to request. [See supported scopes](https://www.hello.dev/docs/scopes/)                                                             | `string[]` | `['openid']` |
-| `providerHint?`     | Comma-separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users                            | `string`   | -       |
-| `loginHint?`        | [Pre-fill email](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters) in the login form                                             | `string`   | -       |
-| `domainHint?`       | [Suggest domain](https://www.hello.dev/docs/apis/wallet/#domain_hint) for user login                                                               | `string`   | -       |
-| `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                                                      | `string`   | -       |
+| Parameter           | Description                                                                                                            | Type       | Default      |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
+| `callbackURL?`      | URL to redirect after successful sign-in                                                                               | `string`   | `/`          |
+| `errorCallbackURL?` | URL to redirect if an error occurs                                                                                     | `string`   | `/error`     |
+| `scopes?`           | Array of scopes to request. [See supported scopes](https://www.hello.dev/docs/scopes/)                                 | `string[]` | `['openid']` |
+| `providerHint?`     | Comma-separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users | `string`   | -            |
+| `loginHint?`        | [Pre-fill email](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters) in the login form                 | `string`   | -            |
+| `domainHint?`       | [Suggest domain](https://www.hello.dev/docs/apis/wallet/#domain_hint) for user login                                   | `string`   | -            |
+| `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                         | `string`   | -            |
 
 ### Authentication Callback
 
@@ -162,7 +164,7 @@ function LoginPage() {
             errorCallbackURL: '/error-page',
             scopes: ['openid', 'profile', 'email'],
         })
-        
+
         if (error) {
             console.error('Sign-in failed:', error)
         }
@@ -183,7 +185,7 @@ function LoginPage() {
 
 ```tsx
 // Apply custom CSS classes
-<ContinueButton 
+<ContinueButton
     className="hello-btn-white hello-btn-hover-flare"
     onClick={handleSignIn}
 >
@@ -192,6 +194,7 @@ function LoginPage() {
 ```
 
 **Available Button Styles:**
+
 - `hello-btn-black` - Black button (default)
 - `hello-btn-white` - White button
 - `hello-btn-hover-glow` - Glow effect on hover
@@ -211,32 +214,26 @@ Configure the Hellō plugin with these options:
 interface HellocoopConfig {
     /** Your Hellō application client ID (required) */
     clientId: string
-    
+
     /** OAuth scopes to request (optional) */
     scopes?: string[]
-    
+
     /** Authentication prompt behavior (optional) */
     prompt?: 'login' | 'consent'
-    
+
     /** Enable PKCE for enhanced security (optional, defaults to true) */
     pkce?: boolean
-    
-    /** Override user info on each login (optional, defaults to true) */
-    overrideUserInfo?: boolean
-    
-    /** Custom user info mapping function (optional) */
-    mapProfileToUser?: (profile: Record<string, any>) => Partial<User>
 }
 ```
 
 ### Configuration Options Explained
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `clientId` | `string` | **Required** | Your Hellō application client ID from [console.hello.coop](https://console.hello.coop) |
-| `scopes` | `string[]` | `['openid']` | OAuth scopes to request. [See available scopes](https://www.hello.dev/docs/scopes/) |
-| `prompt` | `'login' \| 'consent'` | `undefined` | `login` forces fresh authentication; `consent` shows profile update screen |
-| `pkce` | `boolean` | `true` | Enables PKCE (Proof Key for Code Exchange) for enhanced security |
+| Option     | Type                   | Default      | Description                                                                            |
+| ---------- | ---------------------- | ------------ | -------------------------------------------------------------------------------------- |
+| `clientId` | `string`               | **Required** | Your Hellō application client ID from [console.hello.coop](https://console.hello.coop) |
+| `scopes`   | `string[]`             | `['openid']` | OAuth scopes to request. [See available scopes](https://www.hello.dev/docs/scopes/)    |
+| `prompt`   | `'login' \| 'consent'` | `undefined`  | `login` forces fresh authentication; `consent` shows profile update screen             |
+| `pkce`     | `boolean`              | `true`       | Enables PKCE (Proof Key for Code Exchange) for enhanced security                       |
 
 ## Advanced Usage
 
@@ -269,6 +266,7 @@ if (error) {
 ```
 
 **Common Error Codes:**
+
 - `oauth_code_verification_failed` - Invalid or expired authorization code
 - `user_info_is_missing` - Unable to fetch user profile from Hellō
 - `email_is_missing` - User email not available in the response
@@ -282,7 +280,7 @@ Set up environment variables for different environments:
 # .env.local
 HELLOCOOP_CLIENT_ID=app_123_xyz
 
-# .env.production  
+# .env.production
 HELLOCOOP_CLIENT_ID=app_456_abc
 ```
 
@@ -291,7 +289,7 @@ HELLOCOOP_CLIENT_ID=app_456_abc
 hellocoop({
     config: {
         clientId: process.env.HELLOCOOP_CLIENT_ID!,
-    }
+    },
 })
 ```
 
@@ -300,15 +298,19 @@ hellocoop({
 ### Common Issues
 
 **Issue: "Invalid OAuth configuration" error**
+
 - **Solution:** Ensure your `clientId` is correct and the application is properly configured in [console.hello.coop](https://console.hello.coop)
 
 **Issue: User claims not updating**
+
 - **Solution:** Set `overrideUserInfo: true` in your configuration (this is now the default)
 
 **Issue: Callback URL not working**
+
 - **Solution:** Verify your redirect URI in the Hellō console matches your application's callback URL format: `https://yourdomain.com/api/auth/hellocoop/callback`
 
 **Issue: Button styles not loading**
+
 - **Solution:** Ensure you've included the Hellō CSS: `<link rel="stylesheet" href="https://cdn.hello.coop/css/hello-btn.css" />`
 
 ### Debug Mode
@@ -320,7 +322,11 @@ export const auth = betterAuth({
     logger: {
         level: 'debug', // Enable debug logs
     },
-    plugins: [hellocoop({ /* config */ })],
+    plugins: [
+        hellocoop({
+            /* config */
+        }),
+    ],
 })
 ```
 
