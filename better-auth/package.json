@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/better-auth",
-    "version": "1.0.2-canary.11",
+    "version": "1.0.2",
     "description": "Better Auth plugin for Hellō - https://hello.dev",
     "repository": {
         "type": "git",
