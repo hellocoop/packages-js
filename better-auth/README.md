@@ -301,7 +301,6 @@ hellocoop({
 
 - **Solution:** Ensure your `clientId` is correct and the application is properly configured in [console.hello.coop](https://console.hello.coop)
 
-
 **Issue: Callback URL not working**
 
 - **Solution:** Verify your redirect URI in the Hellō console matches your application's callback URL format: `https://yourdomain.com/api/auth/hellocoop/callback`
