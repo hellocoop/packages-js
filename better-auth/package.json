@@ -14,7 +14,8 @@
         "./client": "./dist/client.js"
     },
     "files": [
-        "dist/"
+        "dist/",
+        "README.md"
     ],
     "keywords": [
         "better-auth",

@@ -12,18 +12,16 @@ npm install @hellocoop/better-auth
 
 ### 2. Get your Hellō Client ID
 
-**Option 1: Quick Setup (Recommended)**
+**Option 1: Quick CLI Setup**
 
 ```bash
 npx @hellocoop/quickstart
 ```
 
-This streamlines the entire process and displays your `client_id` in the terminal.
+This will open your browser, log you into Hellō, prompt you for your app name, and output your `client_id`. Set `clientId` to this value in the next step.
 
-> **Tip:** The quickstart command accepts various CLI flags. See the [CLI parameters documentation](https://www.hello.dev/docs/sdks/quickstart/#cli-parameters) for details.
-
-**Option 2: Manual Setup**
-Visit [console.hello.coop](https://console.hello.coop) to create a free application and obtain your `clientId`.
+**Option 2: Web Console Setup**
+Visit [console.hello.coop](https://console.hello.coop) to create a free application and obtain your Client ID which is the `clientId` in the next step.
 
 ### 3. Add the plugin to your auth config
 
@@ -38,9 +36,8 @@ export const auth = betterAuth({
     plugins: [
         hellocoop({
             config: {
-                clientId: 'app_123_xyz', // Your Hellō client ID from step 2
-                scopes: ['openid', 'profile', 'email'], // Optional: customize scopes
-                prompt: 'consent', // Optional: 'login' or 'consent'
+                clientId: 'app_123_xyz', // REQUIRED - your Hellō Client ID from previous step
+                scopes: ['openid', 'profile'], // OPTIONAL - defaults to openid profile
                 // other config options
             },
         }),
