@@ -239,7 +239,7 @@ interface HellocoopConfig {
 
 ### Error Handling
 
-The plugin provides comprehensive error handling for authentication flows:
+The plugin includes built-in error handling for common OAuth issues. Errors are typically redirected to your application's error page with an appropriate error message in the URL parameters. If the errorCallback URL is not provided, the user will be redirected to Better Auth's default error page.
 
 ```ts
 const { data, error } = await authClient.signInWithHello({
@@ -301,9 +301,6 @@ hellocoop({
 
 - **Solution:** Ensure your `clientId` is correct and the application is properly configured in [console.hello.coop](https://console.hello.coop)
 
-**Issue: User claims not updating**
-
-- **Solution:** Set `overrideUserInfo: true` in your configuration (this is now the default)
 
 **Issue: Callback URL not working**
 
