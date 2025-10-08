@@ -96,15 +96,15 @@ export interface GenericOAuthConfig {
      * Warning: Search-params added here overwrite any default params.
      */
     authorizationUrlParams?:
-        | Record<string, string>
-        | ((ctx: GenericEndpointContext) => Record<string, string>)
+    | Record<string, string>
+    | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Additional search-params to add to the tokenUrl.
      * Warning: Search-params added here overwrite any default params.
      */
     tokenUrlParams?:
-        | Record<string, string>
-        | ((ctx: GenericEndpointContext) => Record<string, string>)
+    | Record<string, string>
+    | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Disable implicit sign up for new users. When set to true for the provider,
      * sign-in need to be called with with requestSignUp as true to create new users.
@@ -146,6 +146,39 @@ export interface GenericOAuthConfig {
      * Unique identifier for the OAuth provider
      */
     providerId?: string
+
+    // Default values for signInWithHello parameters (can be overridden at runtime)
+    /**
+     * Default callback URL to redirect to after sign in.
+     * Can be overridden in signInWithHello calls.
+     * @default "/"
+     */
+    callbackURL?: string
+    /**
+     * Default error callback URL to redirect to if an error occurs.
+     * Can be overridden in signInWithHello calls.
+     * @default "/error"
+     */
+    errorCallbackURL?: string
+    /**
+     * Default login hint for which user account to use.
+     * Can be overridden in signInWithHello calls.
+     * @see https://www.hello.dev/docs/oidc/request/#openid-connect-parameters
+     */
+    loginHint?: string
+    /**
+     * Default provider hint - space separated list of preferred providers to show new users.
+     * Can be overridden in signInWithHello calls.
+     * @default "apple/microsoft" depending on OS and "google email"
+     * @see https://www.hello.dev/docs/apis/wallet/#provider_hint
+     */
+    providerHint?: string
+    /**
+     * Default domain hint for which domain or type of account to use.
+     * Can be overridden in signInWithHello calls.
+     * @see https://www.hello.dev/docs/oidc/request/#hell%C5%8D-parameters
+     */
+    domainHint?: string
 }
 
 interface GenericOAuthOptions {
@@ -427,6 +460,12 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         accessType,
                         authorizationUrlParams,
                         responseMode,
+                        // Default values from config that can be overridden by runtime parameters
+                        callbackURL: defaultCallbackURL,
+                        errorCallbackURL: defaultErrorCallbackURL,
+                        providerHint: defaultProviderHint,
+                        domainHint: defaultDomainHint,
+                        loginHint: defaultLoginHint,
                     } = config
                     // PKCE is always enabled for HelloCoop for security
                     const pkce = true
@@ -473,7 +512,25 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                             ? authorizationUrlParams(ctx)
                             : authorizationUrlParams
 
-                    const { state, codeVerifier } = await generateState(ctx)
+                    // Merge config defaults with runtime parameters (runtime takes precedence)
+                    const finalProviderHint = ctx.body.providerHint ?? defaultProviderHint
+                    const finalDomainHint = ctx.body.domainHint ?? defaultDomainHint
+                    const finalLoginHint = ctx.body.loginHint ?? defaultLoginHint
+                    const finalCallbackURL = ctx.body.callbackURL ?? defaultCallbackURL
+                    const finalErrorCallbackURL = ctx.body.errorCallbackURL ?? defaultErrorCallbackURL
+                    const finalPrompt = ctx.body.prompt ?? prompt // prompt can come from config or runtime
+
+                    // Create a modified context with merged values for generateState
+                    const modifiedCtx = {
+                        ...ctx,
+                        body: {
+                            ...ctx.body,
+                            callbackURL: finalCallbackURL,
+                            errorCallbackURL: finalErrorCallbackURL,
+                        }
+                    }
+
+                    const { state, codeVerifier } = await generateState(modifiedCtx)
                     const authUrl = await createAuthorizationURL({
                         id: 'hellocoop',
                         options: {
@@ -486,26 +543,26 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         codeVerifier: pkce ? codeVerifier : undefined,
                         scopes: ctx.body.scopes
                             ? [
-                                  ...ctx.body.scopes,
-                                  ...(scopes || ['openid', 'profile']),
-                              ]
+                                ...ctx.body.scopes,
+                                ...(scopes || ['openid', 'profile']),
+                            ]
                             : scopes || ['openid', 'profile'], // Default scope for HelloCoop
                         redirectURI: `${ctx.context.baseURL}/hellocoop/callback`,
-                        prompt: ctx.body.prompt || prompt, // Use request body prompt if provided, otherwise use config
+                        prompt: finalPrompt, // Use merged prompt value
                         accessType,
                         responseType,
                         responseMode,
                         additionalParams: {
                             ...additionalParams,
-                            // Add HelloCoop-specific parameters
-                            ...(ctx.body.providerHint && {
-                                provider_hint: ctx.body.providerHint,
+                            // Add HelloCoop-specific parameters (runtime overrides config defaults)
+                            ...(finalProviderHint && {
+                                provider_hint: finalProviderHint,
                             }),
-                            ...(ctx.body.domainHint && {
-                                domain_hint: ctx.body.domainHint,
+                            ...(finalDomainHint && {
+                                domain_hint: finalDomainHint,
                             }),
-                            ...(ctx.body.loginHint && {
-                                login_hint: ctx.body.loginHint,
+                            ...(finalLoginHint && {
+                                login_hint: finalLoginHint,
                             }),
                         },
                     })
@@ -576,8 +633,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         `${ctx.context.baseURL}/error`
                     if (ctx.query.error || !ctx.query.code) {
                         throw ctx.redirect(
-                            `${defaultErrorURL}?error=${
-                                ctx.query.error || 'oAuth_code_missing'
+                            `${defaultErrorURL}?error=${ctx.query.error || 'oAuth_code_missing'
                             }&error_description=${ctx.query.error_description}`,
                         )
                     }
@@ -673,9 +729,9 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                                 provider.getUserInfo
                                     ? await provider.getUserInfo(tokens)
                                     : await getUserInfo(
-                                          tokens,
-                                          finalUserInfoUrl,
-                                      )
+                                        tokens,
+                                        finalUserInfoUrl,
+                                    )
                             ) as OAuth2UserInfo | null
                             if (!userInfo) {
                                 throw redirectOnError('user_info_is_missing')
