@@ -262,4 +262,28 @@ describe('hellocoop', () => {
         expect(plugin.endpoints.hellocoopSignIn).toBeDefined()
         expect(plugin.endpoints.oAuth2Callback).toBeDefined()
     })
+
+    it('should support configuration with default HelloCoop-specific parameters', () => {
+        const plugin = hellocoop({
+            config: {
+                clientId: clientId,
+                clientSecret: clientSecret,
+                // HelloCoop-specific default parameters
+                loginHint: 'rohan@xyz.com', // As in user's example
+                domainHint: 'xyz.com',
+                providerHint: 'google',
+                scopes: ['openid', 'profile', 'email'],
+                prompt: 'login',
+            },
+        })
+
+        expect(plugin).toBeDefined()
+        expect(plugin.id).toBe('hellocoop')
+        expect(plugin.endpoints).toBeDefined()
+        expect(plugin.endpoints.hellocoopSignIn).toBeDefined()
+
+        // The hellocoopSignIn endpoint should handle parameter overrides
+        // Runtime parameters like signInWithHello({ loginHint: "test@xyz.com" })
+        // should override the config default of "rohan@xyz.com"
+    })
 })

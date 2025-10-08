@@ -254,7 +254,32 @@ export const hellocoop = (options: GenericOAuthOptions) => {
             const provider = {
                 id: PROVIDER_ID,
                 name: PROVIDER_ID,
-                createAuthorizationURL(data) {
+                createAuthorizationURL(data: any) {
+                    // Build additional parameters for HelloCoop-specific features
+                    const additionalParams: Record<string, string> = {}
+
+                    // Add HelloCoop-specific parameters if provided
+                    if (data.loginHint) {
+                        additionalParams.login_hint = data.loginHint
+                    }
+                    if (data.domainHint) {
+                        additionalParams.domain_hint = data.domainHint
+                    }
+                    if (data.providerHint) {
+                        additionalParams.provider_hint = data.providerHint
+                    }
+
+                    // Add any additional parameters from config
+                    if (c.authorizationUrlParams) {
+                        const configParams =
+                            typeof c.authorizationUrlParams === 'function'
+                                ? c.authorizationUrlParams({
+                                      context: ctx,
+                                  } as GenericEndpointContext)
+                                : c.authorizationUrlParams
+                        Object.assign(additionalParams, configParams)
+                    }
+
                     return createAuthorizationURL({
                         id: PROVIDER_ID,
                         options: {
@@ -267,6 +292,11 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         codeVerifier: c.pkce ? data.codeVerifier : undefined,
                         scopes: c.scopes || ['openid', 'profile'], // Default scope for HelloCoop
                         redirectURI: `${ctx.baseURL}/hellocoop/callback`,
+                        prompt: c.prompt,
+                        accessType: c.accessType,
+                        responseType: c.responseType,
+                        responseMode: c.responseMode,
+                        additionalParams,
                     })
                 },
                 async validateAuthorizationCode(data) {
@@ -513,17 +543,27 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                             : authorizationUrlParams
 
                     // Merge config defaults with runtime parameters (runtime takes precedence)
+                    // Use runtime parameters first, then fall back to config defaults
                     const finalProviderHint =
-                        ctx.body.providerHint ?? defaultProviderHint
+                        ctx.body.providerHint !== undefined
+                            ? ctx.body.providerHint
+                            : defaultProviderHint
                     const finalDomainHint =
-                        ctx.body.domainHint ?? defaultDomainHint
+                        ctx.body.domainHint !== undefined
+                            ? ctx.body.domainHint
+                            : defaultDomainHint
                     const finalLoginHint =
-                        ctx.body.loginHint ?? defaultLoginHint
+                        ctx.body.loginHint !== undefined
+                            ? ctx.body.loginHint
+                            : defaultLoginHint
                     const finalCallbackURL =
                         ctx.body.callbackURL ?? defaultCallbackURL
                     const finalErrorCallbackURL =
                         ctx.body.errorCallbackURL ?? defaultErrorCallbackURL
-                    const finalPrompt = ctx.body.prompt ?? prompt // prompt can come from config or runtime
+                    const finalPrompt =
+                        ctx.body.prompt !== undefined ? ctx.body.prompt : prompt // prompt can come from config or runtime
+                    const finalScopes =
+                        ctx.body.scopes !== undefined ? ctx.body.scopes : scopes // scopes can be overridden at runtime
 
                     // Create a modified context with merged values for generateState
                     const modifiedCtx = {
@@ -547,12 +587,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         authorizationEndpoint: finalAuthUrl,
                         state,
                         codeVerifier: pkce ? codeVerifier : undefined,
-                        scopes: ctx.body.scopes
-                            ? [
-                                  ...ctx.body.scopes,
-                                  ...(scopes || ['openid', 'profile']),
-                              ]
-                            : scopes || ['openid', 'profile'], // Default scope for HelloCoop
+                        scopes: finalScopes || ['openid', 'profile'], // Use merged scopes with default fallback
                         redirectURI: `${ctx.context.baseURL}/hellocoop/callback`,
                         prompt: finalPrompt, // Use merged prompt value
                         accessType,
@@ -561,13 +596,14 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         additionalParams: {
                             ...additionalParams,
                             // Add HelloCoop-specific parameters (runtime overrides config defaults)
-                            ...(finalProviderHint && {
+                            // These MUST come after additionalParams to ensure runtime values override config
+                            ...(finalProviderHint !== undefined && {
                                 provider_hint: finalProviderHint,
                             }),
-                            ...(finalDomainHint && {
+                            ...(finalDomainHint !== undefined && {
                                 domain_hint: finalDomainHint,
                             }),
-                            ...(finalLoginHint && {
+                            ...(finalLoginHint !== undefined && {
                                 login_hint: finalLoginHint,
                             }),
                         },
