@@ -96,15 +96,15 @@ export interface GenericOAuthConfig {
      * Warning: Search-params added here overwrite any default params.
      */
     authorizationUrlParams?:
-    | Record<string, string>
-    | ((ctx: GenericEndpointContext) => Record<string, string>)
+        | Record<string, string>
+        | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Additional search-params to add to the tokenUrl.
      * Warning: Search-params added here overwrite any default params.
      */
     tokenUrlParams?:
-    | Record<string, string>
-    | ((ctx: GenericEndpointContext) => Record<string, string>)
+        | Record<string, string>
+        | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Disable implicit sign up for new users. When set to true for the provider,
      * sign-in need to be called with with requestSignUp as true to create new users.
@@ -485,7 +485,10 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         state,
                         codeVerifier: pkce ? codeVerifier : undefined,
                         scopes: ctx.body.scopes
-                            ? [...ctx.body.scopes, ...(scopes || ['openid', 'profile'])]
+                            ? [
+                                  ...ctx.body.scopes,
+                                  ...(scopes || ['openid', 'profile']),
+                              ]
                             : scopes || ['openid', 'profile'], // Default scope for HelloCoop
                         redirectURI: `${ctx.context.baseURL}/hellocoop/callback`,
                         prompt: ctx.body.prompt || prompt, // Use request body prompt if provided, otherwise use config
@@ -573,7 +576,8 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         `${ctx.context.baseURL}/error`
                     if (ctx.query.error || !ctx.query.code) {
                         throw ctx.redirect(
-                            `${defaultErrorURL}?error=${ctx.query.error || 'oAuth_code_missing'
+                            `${defaultErrorURL}?error=${
+                                ctx.query.error || 'oAuth_code_missing'
                             }&error_description=${ctx.query.error_description}`,
                         )
                     }
@@ -669,9 +673,9 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                                 provider.getUserInfo
                                     ? await provider.getUserInfo(tokens)
                                     : await getUserInfo(
-                                        tokens,
-                                        finalUserInfoUrl,
-                                    )
+                                          tokens,
+                                          finalUserInfoUrl,
+                                      )
                             ) as OAuth2UserInfo | null
                             if (!userInfo) {
                                 throw redirectOnError('user_info_is_missing')

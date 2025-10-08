@@ -36,7 +36,7 @@ export const auth = betterAuth({
     plugins: [
         hellocoop({
             config: {
-                clientId: 'app_123_xyz',       // REQUIRED - your Hellō Client ID from previous step
+                clientId: 'app_123_xyz', // REQUIRED - your Hellō Client ID from previous step
                 scopes: ['openid', 'profile'], // OPTIONAL - defaults to openid profile
                 // other config options
             },
@@ -85,12 +85,13 @@ if (error) {
 #### Advanced Sign-In Options
 
 You can also override the configuration options set during setup for each `signInWithHello` call:
+
 ```ts
 const { data, error } = await authClient.signInWithHello({
-    callbackURL: '/dashboard',       // OPTIONAL - URL to redirect to after sign in
+    callbackURL: '/dashboard', // OPTIONAL - URL to redirect to after sign in
     errorCallbackURL: '/error-page', // OPTIONAL - URL to redirect to if an error occurs
-    scopes: ['openid', 'profile'],   // OPTIONAL - defaults to openid profile
-    loginHint: 'user@example.com',   // OPTIONAL - a hint for which user account to use
+    scopes: ['openid', 'profile'], // OPTIONAL - defaults to openid profile
+    loginHint: 'user@example.com', // OPTIONAL - a hint for which user account to use
     providerHint: 'google-- github', // OPTIONAL - suggest specific providers
 })
 ```
@@ -98,17 +99,18 @@ const { data, error } = await authClient.signInWithHello({
 ### Configuration Options
 
 #### Better Auth
-| Parameter           | Description                                                                                                            | Type       | Default      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------- | ------------ |
-| **Beter Auth** | | |
-| `callbackURL?`      | URL to redirect after successful sign-in                                                                               | `string`   | `/`          |
-| `errorCallbackURL?` | URL to redirect if an error occurs                                                                                     | `string`   | `/error`     |
-| **Open ID** | | |
-| `loginHint?`        | A hint for which user account to use. [See login_hint docs](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters)                 | `string`   | -            |
-| `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                         | `string`   | -            |
-| **Hellō** | | |
-| `providerHint?`     | Space separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users | `string`   | `apple/microsoft` depending on the OS and `google email`            |
-| `domainHint?`       | A hint for which domain or type of account (`domain.example`, `managed`, or `personal`) [See domain_hint domain](https://www.hello.dev/docs/oidc/request/#hell%C5%8D-parameters) for user login                                   | `string`   | -            |
+
+| Parameter           | Description                                                                                                                                                                                     | Type     | Default                                                  |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
+| **Beter Auth**      |                                                                                                                                                                                                 |          |
+| `callbackURL?`      | URL to redirect after successful sign-in                                                                                                                                                        | `string` | `/`                                                      |
+| `errorCallbackURL?` | URL to redirect if an error occurs                                                                                                                                                              | `string` | `/error`                                                 |
+| **Open ID**         |                                                                                                                                                                                                 |          |
+| `loginHint?`        | A hint for which user account to use. [See login_hint docs](https://www.hello.dev/docs/oidc/request/#openid-connect-parameters)                                                                 | `string` | -                                                        |
+| `prompt?`           | `login` forces fresh login; `consent` shows consent screen for profile updates                                                                                                                  | `string` | -                                                        |
+| **Hellō**           |                                                                                                                                                                                                 |          |
+| `providerHint?`     | Space separated list of [preferred providers](https://www.hello.dev/docs/apis/wallet/#provider_hint) to show new users                                                                          | `string` | `apple/microsoft` depending on the OS and `google email` |
+| `domainHint?`       | A hint for which domain or type of account (`domain.example`, `managed`, or `personal`) [See domain_hint domain](https://www.hello.dev/docs/oidc/request/#hell%C5%8D-parameters) for user login | `string` | -                                                        |
 
 ### Auth Callback
 
@@ -117,6 +119,7 @@ The plugin automatically handles the Auth callback at `/api/auth/hellocoop/callb
 ### Sign-Out
 
 To signout a user, you can use the `signOut` function provided by the `authClient`.
+
 ```ts
 await authClient.signOut()
 ```
@@ -125,12 +128,12 @@ You can pass `fetchOptions` to redirect onSuccess
 
 ```ts
 await authClient.signOut({
-  fetchOptions: {
-    onSuccess: () => {
-      router.push("/login"); // redirect to login page
+    fetchOptions: {
+        onSuccess: () => {
+            router.push('/login') // redirect to login page
+        },
     },
-  },
-});
+})
 ```
 
 ## UI Components
