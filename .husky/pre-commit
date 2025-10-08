@@ -1,1 +1,7 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Ensure npm is available in PATH
+export PATH="/usr/local/bin:$PATH:/opt/homebrew/bin"
+
 npm run check
