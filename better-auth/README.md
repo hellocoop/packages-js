@@ -242,6 +242,7 @@ Errors handling is done by the [Better Auth Error Handling](https://www.better-a
 
 ## Resources
 
+- [Hellō Better Auth Demo](https://github.com/hellocoop/better-auth-demo)
 - [Hellō Developer Console](https://console.hello.coop)
 - [Provider Hints](https://www.hello.dev/docs)
 - [Hellō Button Customization Guide](https://www.hello.dev/docs/buttons/)
