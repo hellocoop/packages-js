@@ -65,5 +65,8 @@
         "typescript-eslint": "^8.27.0",
         "wait-on": "^8.0.1"
     },
-    "private": true
+    "private": true,
+    "dependencies": {
+        "next": "^16.0.7"
+    }
 }
