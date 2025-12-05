@@ -96,15 +96,15 @@ export interface GenericOAuthConfig {
      * Warning: Search-params added here overwrite any default params.
      */
     authorizationUrlParams?:
-        | Record<string, string>
-        | ((ctx: GenericEndpointContext) => Record<string, string>)
+    | Record<string, string>
+    | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Additional search-params to add to the tokenUrl.
      * Warning: Search-params added here overwrite any default params.
      */
     tokenUrlParams?:
-        | Record<string, string>
-        | ((ctx: GenericEndpointContext) => Record<string, string>)
+    | Record<string, string>
+    | ((ctx: GenericEndpointContext) => Record<string, string>)
     /**
      * Disable implicit sign up for new users. When set to true for the provider,
      * sign-in need to be called with with requestSignUp as true to create new users.
@@ -324,8 +324,8 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         const configParams =
                             typeof c.authorizationUrlParams === 'function'
                                 ? c.authorizationUrlParams({
-                                      context: ctx,
-                                  } as GenericEndpointContext)
+                                    context: ctx,
+                                } as GenericEndpointContext)
                                 : c.authorizationUrlParams
                         Object.assign(additionalParams, configParams)
                     }
@@ -728,8 +728,7 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         `${ctx.context.baseURL}/error`
                     if (ctx.query.error || !ctx.query.code) {
                         throw ctx.redirect(
-                            `${defaultErrorURL}?error=${
-                                ctx.query.error || 'oAuth_code_missing'
+                            `${defaultErrorURL}?error=${ctx.query.error || 'oAuth_code_missing'
                             }&error_description=${ctx.query.error_description}`,
                         )
                     }
@@ -825,9 +824,9 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                                 provider.getUserInfo
                                     ? await provider.getUserInfo(tokens)
                                     : await getUserInfo(
-                                          tokens,
-                                          finalUserInfoUrl,
-                                      )
+                                        tokens,
+                                        finalUserInfoUrl,
+                                    )
                             ) as OAuth2UserInfo | null
                             if (!userInfo) {
                                 throw redirectOnError('user_info_is_missing')
@@ -835,29 +834,29 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                             const mapUser = provider.mapProfileToUser
                                 ? await provider.mapProfileToUser(userInfo)
                                 : {
-                                      ...userInfo,
-                                      // Convert complex objects to JSON strings for database storage
-                                      github: (userInfo as any).github
-                                          ? JSON.stringify(
-                                                (userInfo as any).github,
-                                            )
-                                          : undefined,
-                                      gitlab: (userInfo as any).gitlab
-                                          ? JSON.stringify(
-                                                (userInfo as any).gitlab,
-                                            )
-                                          : undefined,
-                                      twitter: (userInfo as any).twitter
-                                          ? JSON.stringify(
-                                                (userInfo as any).twitter,
-                                            )
-                                          : undefined,
-                                      discord: (userInfo as any).discord
-                                          ? JSON.stringify(
-                                                (userInfo as any).discord,
-                                            )
-                                          : undefined,
-                                  }
+                                    ...userInfo,
+                                    // Convert complex objects to JSON strings for database storage
+                                    github: (userInfo as any).github
+                                        ? JSON.stringify(
+                                            (userInfo as any).github,
+                                        )
+                                        : undefined,
+                                    gitlab: (userInfo as any).gitlab
+                                        ? JSON.stringify(
+                                            (userInfo as any).gitlab,
+                                        )
+                                        : undefined,
+                                    twitter: (userInfo as any).twitter
+                                        ? JSON.stringify(
+                                            (userInfo as any).twitter,
+                                        )
+                                        : undefined,
+                                    discord: (userInfo as any).discord
+                                        ? JSON.stringify(
+                                            (userInfo as any).discord,
+                                        )
+                                        : undefined,
+                                }
                             console.log(456, 'mapUser', mapUser)
                             const email = mapUser.email
                                 ? mapUser.email.toLowerCase()
