@@ -625,8 +625,11 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                         },
                     }
 
-                    const { state, codeVerifier } =
-                        await generateState(modifiedCtx, undefined, undefined)
+                    const { state, codeVerifier } = await generateState(
+                        modifiedCtx,
+                        undefined,
+                        undefined,
+                    )
                     const authUrl = await createAuthorizationURL({
                         id: 'hellocoop',
                         options: {
