@@ -69,8 +69,7 @@ export const createLoginURL = async (params: {
         | Scope[]
         | undefined
 
-    if ((!scope || scope.length === 0) && config.scope)
-        scope = config.scope
+    if ((!scope || scope.length === 0) && config.scope) scope = config.scope
 
     const request: ICreateAuthRequest = {
         redirect_uri: redirectURI,
