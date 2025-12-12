@@ -328,10 +328,10 @@ test.describe(`Testing ${APP_HOME}`, () => {
         // Simulate the OAuth flow by exchanging the code
         const exchangeResponse = await page.request.get(
             APP_API +
-                '?op=exchange&code=' +
-                encodeURIComponent(code) +
-                '&state=' +
-                encodeURIComponent(body.state),
+            '?op=exchange&code=' +
+            encodeURIComponent(code) +
+            '&state=' +
+            encodeURIComponent(body.state),
         )
         expect(exchangeResponse.status()).toBe(200)
 
@@ -400,10 +400,10 @@ test.describe(`Testing ${APP_HOME}`, () => {
         // Simulate the OAuth flow by exchanging the code
         const exchangeResponse = await page.request.get(
             APP_API +
-                '?op=exchange&code=' +
-                encodeURIComponent(code) +
-                '&state=' +
-                encodeURIComponent(body.state),
+            '?op=exchange&code=' +
+            encodeURIComponent(code) +
+            '&state=' +
+            encodeURIComponent(body.state),
         )
         expect(exchangeResponse.status()).toBe(200)
 
@@ -412,5 +412,202 @@ test.describe(`Testing ${APP_HOME}`, () => {
         expect(exchangeBody.auth).toBeDefined()
         expect(exchangeBody.auth.isLoggedIn).toBe(true)
         expect(exchangeBody.auth.sub).toBeDefined()
+    })
+
+    test('domain_hint with default scope - should use default scope when scope not provided', async ({
+        page,
+    }) => {
+        const data = new URLSearchParams({
+            op: 'loginURL',
+            domain_hint: 'example.org',
+            redirect_uri: MOCKIN,
+        })
+
+        const response = await page.request.get(
+            APP_API + '?' + data.toString(),
+        )
+
+        expect(response.status()).toBe(200)
+
+        const body = await response.json()
+        expect(body.url).toBeDefined()
+        expect(body.state).toBeDefined()
+
+        // URL should contain domain_hint and default scope
+        const url = new URL(body.url)
+        expect(url.searchParams.get('domain_hint')).toBe('example.org')
+        // Default scope should be 'openid name email picture'
+        const scope = url.searchParams.get('scope')
+        expect(scope).toBeDefined()
+        const scopes = scope?.split(' ') || []
+        expect(scopes).toContain('openid')
+        expect(scopes).toContain('name')
+        expect(scopes).toContain('email')
+        expect(scopes).toContain('picture')
+    })
+
+    test('domain_hint flow with default scope in login redirect', async ({
+        page,
+    }) => {
+        const data = new URLSearchParams({
+            op: 'login',
+            domain_hint: 'example.org',
+        })
+
+        // Intercept the redirect to get the authorization URL
+        let authUrl: string | null = null
+        page.on('response', (response) => {
+            const status = response.status()
+            if (status >= 300 && status < 400) {
+                const location = response.headers()['location']
+                // Capture the redirect to the authorization server (MOCKIN)
+                if (location && location.startsWith(MOCKIN)) {
+                    authUrl = location
+                }
+            }
+        })
+
+        // Make the request - it will redirect
+        await page.goto(APP_API + '?' + data.toString(), {
+            waitUntil: 'domcontentloaded',
+        })
+
+        // Check that we captured the authorization URL
+        expect(authUrl).toBeDefined()
+        expect(authUrl).not.toBeNull()
+        if (!authUrl) {
+            throw new Error('Authorization URL was not captured')
+        }
+
+        // Parse the authorization URL
+        const url = new URL(authUrl)
+
+        // Check that domain_hint is in the URL
+        expect(url.searchParams.get('domain_hint')).toBe('example.org')
+
+        // Check that default scope is present
+        const scope = url.searchParams.get('scope')
+        expect(scope).toBeDefined()
+        const scopes = scope?.split(' ') || []
+        expect(scopes).toContain('openid')
+        expect(scopes).toContain('name')
+        expect(scopes).toContain('email')
+        expect(scopes).toContain('picture')
+    })
+
+    test('loginURL with explicit scope - Priority 1: inline scopes override defaults', async ({
+        page,
+    }) => {
+        // Priority order: 1. inline scopes > 2. environment scopes > 3. default scopes
+        // This test verifies priority 1: inline scope parameter overrides default scopes
+        const params = new URLSearchParams({
+            op: 'loginURL',
+            scope: 'openid name',
+            redirect_uri: MOCKIN,
+        })
+
+        const response = await page.request.get(
+            APP_API + '?' + params.toString(),
+        )
+
+        expect(response.status()).toBe(200)
+
+        const body = await response.json()
+        expect(body.url).toBeDefined()
+        expect(body.state).toBeDefined()
+
+        // URL should contain the explicitly provided scope
+        const url = new URL(body.url)
+        const scope = url.searchParams.get('scope')
+        expect(scope).toBeDefined()
+        const scopes = scope?.split(' ') || []
+        // Should contain the explicitly provided scopes (priority 1)
+        expect(scopes).toContain('openid')
+        expect(scopes).toContain('name')
+        // Should not contain other default scopes when explicitly overridden
+        expect(scopes).not.toContain('email')
+        expect(scopes).not.toContain('picture')
+    })
+
+    test('loginURL with explicit scope in login redirect - Priority 1: inline scopes override defaults', async ({
+        page,
+    }) => {
+        // Priority order: 1. inline scopes > 2. environment scopes > 3. default scopes
+        // This test verifies priority 1: inline scope parameter overrides default scopes in redirect flow
+        const data = new URLSearchParams({
+            op: 'login',
+            scope: 'openid email picture',
+        })
+
+        // Intercept the redirect to get the authorization URL
+        let authUrl: string | null = null
+        page.on('response', (response) => {
+            const status = response.status()
+            if (status >= 300 && status < 400) {
+                const location = response.headers()['location']
+                // Capture the redirect to the authorization server (MOCKIN)
+                if (location && location.startsWith(MOCKIN)) {
+                    authUrl = location
+                }
+            }
+        })
+
+        // Make the request - it will redirect
+        await page.goto(APP_API + '?' + data.toString(), {
+            waitUntil: 'domcontentloaded',
+        })
+
+        // Check that we captured the authorization URL
+        expect(authUrl).toBeDefined()
+        expect(authUrl).not.toBeNull()
+        if (!authUrl) {
+            throw new Error('Authorization URL was not captured')
+        }
+
+        // Parse the authorization URL
+        const url = new URL(authUrl)
+
+        // Check that explicit scope is present
+        const scope = url.searchParams.get('scope')
+        expect(scope).toBeDefined()
+        const scopes = scope?.split(' ') || []
+        // Should contain the explicitly provided scopes
+        expect(scopes).toContain('openid')
+        expect(scopes).toContain('email')
+        expect(scopes).toContain('picture')
+        // Should not contain name when not explicitly requested
+        expect(scopes).not.toContain('name')
+    })
+
+    test('loginURL without scope parameter - Priority 3: uses default scopes when no inline or environment scopes', async ({
+        page,
+    }) => {
+        // Priority order: 1. inline scopes > 2. environment scopes > 3. default scopes
+        // This test verifies priority 3: default scopes are used when no inline scope and no HELLO_SCOPES env var
+        const params = new URLSearchParams({
+            op: 'loginURL',
+            redirect_uri: MOCKIN,
+        })
+
+        const response = await page.request.get(
+            APP_API + '?' + params.toString(),
+        )
+
+        expect(response.status()).toBe(200)
+
+        const body = await response.json()
+        expect(body.url).toBeDefined()
+        expect(body.state).toBeDefined()
+
+        // URL should contain default scope (priority 3)
+        const url = new URL(body.url)
+        const scope = url.searchParams.get('scope')
+        expect(scope).toBeDefined()
+        const scopes = scope?.split(' ') || []
+        // Should contain default scopes
+        expect(scopes).toContain('openid')
+        expect(scopes).toContain('name')
+        expect(scopes).toContain('email')
+        expect(scopes).toContain('picture')
     })
 })
