@@ -328,10 +328,10 @@ test.describe(`Testing ${APP_HOME}`, () => {
         // Simulate the OAuth flow by exchanging the code
         const exchangeResponse = await page.request.get(
             APP_API +
-            '?op=exchange&code=' +
-            encodeURIComponent(code) +
-            '&state=' +
-            encodeURIComponent(body.state),
+                '?op=exchange&code=' +
+                encodeURIComponent(code) +
+                '&state=' +
+                encodeURIComponent(body.state),
         )
         expect(exchangeResponse.status()).toBe(200)
 
@@ -400,10 +400,10 @@ test.describe(`Testing ${APP_HOME}`, () => {
         // Simulate the OAuth flow by exchanging the code
         const exchangeResponse = await page.request.get(
             APP_API +
-            '?op=exchange&code=' +
-            encodeURIComponent(code) +
-            '&state=' +
-            encodeURIComponent(body.state),
+                '?op=exchange&code=' +
+                encodeURIComponent(code) +
+                '&state=' +
+                encodeURIComponent(body.state),
         )
         expect(exchangeResponse.status()).toBe(200)
 
@@ -423,9 +423,7 @@ test.describe(`Testing ${APP_HOME}`, () => {
             redirect_uri: MOCKIN,
         })
 
-        const response = await page.request.get(
-            APP_API + '?' + data.toString(),
-        )
+        const response = await page.request.get(APP_API + '?' + data.toString())
 
         expect(response.status()).toBe(200)
 

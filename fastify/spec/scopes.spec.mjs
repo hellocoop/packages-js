@@ -160,4 +160,3 @@ describe('default scopes when HELLO_SCOPES not set', () => {
         expect(scopes).to.include('picture')
     })
 })
-
