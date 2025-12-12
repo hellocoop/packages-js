@@ -65,9 +65,12 @@ export const createLoginURL = async (params: {
     const scopeString = (
         Array.isArray(scopeParam) ? scopeParam[0] : scopeParam
     ) as string
-    const scope = scopeString?.split(' ').map((s) => s.trim()) as
+    let scope = scopeString?.split(' ').map((s) => s.trim()) as
         | Scope[]
         | undefined
+
+    if ((!scope || scope.length === 0) && config.scope)
+        scope = config.scope
 
     const request: ICreateAuthRequest = {
         redirect_uri: redirectURI,
