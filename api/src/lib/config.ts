@@ -1,5 +1,5 @@
 import { Config, GenericSync, CommandHandler } from '../types'
-import { Scope, ProviderHint } from '@hellocoop/definitions'
+import { Scope, ProviderHint, VALID_SCOPES } from '@hellocoop/definitions'
 import { checkSecret } from '@hellocoop/helper-server'
 
 export interface IConfig {
@@ -127,6 +127,23 @@ export const configure = function (config: Config) {
     if (process.env.HELLO_SCOPES)
         _configuration.scope = process.env.HELLO_SCOPES.split(' ') as Scope[]
     else _configuration.scope = config.scope
+
+    // Filter out invalid scopes
+    if (_configuration.scope) {
+        const validScopesSet = new Set(VALID_SCOPES)
+        const filteredScopes = _configuration.scope.filter((scope) =>
+            validScopesSet.has(scope),
+        )
+        if (filteredScopes.length !== _configuration.scope.length) {
+            const invalidScopes = _configuration.scope.filter(
+                (scope) => !validScopesSet.has(scope),
+            )
+            console.warn(
+                `Invalid scopes removed: ${invalidScopes.join(', ')}. Valid scopes are: ${VALID_SCOPES.join(', ')}`,
+            )
+        }
+        _configuration.scope = filteredScopes as Scope[]
+    }
 
     if (process.env.HELLO_PROVIDER_HINT)
         _configuration.provider_hint = process.env.HELLO_PROVIDER_HINT.split(
