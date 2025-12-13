@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/api",
-    "version": "2.4.5",
+    "version": "2.4.6",
     "description": "Client API for Hellō https://hello.dev",
     "repository": {
         "type": "git",
