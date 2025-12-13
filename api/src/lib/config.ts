@@ -118,10 +118,10 @@ export const configure = function (config: Config) {
             confirmPath('process.env.HELLO_ERROR', process.env.HELLO_ERROR) ||
             confirmPath('config routes.error', config.routes?.error),
     }
-    ;(_configuration.redirectURI = HOST
-        ? `https://${HOST}${apiRoute}`
-        : undefined),
-        (_configuration.loginSync = config.loginSync)
+        ; (_configuration.redirectURI = HOST
+            ? `https://${HOST}${apiRoute}`
+            : undefined),
+            (_configuration.loginSync = config.loginSync)
     _configuration.logoutSync = config.logoutSync
 
     if (process.env.HELLO_SCOPES)
@@ -212,6 +212,11 @@ export const getAuthApiRoute = (): string => {
 }
 export const getApiRoute = (): string => {
     return _configuration.apiRoute
+}
+
+// Reset configuration state - useful for testing
+export const resetConfiguration = (): void => {
+    isConfigured = false
 }
 
 export default _configuration

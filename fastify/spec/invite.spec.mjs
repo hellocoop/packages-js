@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import Fastify from 'fastify'
 import { helloAuth } from '@hellocoop/fastify'
+import { resetConfiguration } from '@hellocoop/api'
 import * as utils from './utils.mjs'
 
 const config = {
@@ -27,6 +28,7 @@ describe('login', () => {
     let cookies = {}
 
     before(async () => {
+        resetConfiguration()
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()

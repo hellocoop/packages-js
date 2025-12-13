@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import Fastify from 'fastify'
 import { helloAuth } from '@hellocoop/fastify'
+import { resetConfiguration } from '@hellocoop/api'
 
 const config = {
     client_id: '8c3a40a9-b235-4029-8d16-c70592ca94bb',
@@ -11,6 +12,7 @@ describe('provider initiated login', () => {
     let cookies = {}
 
     before(async () => {
+        resetConfiguration()
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -54,6 +56,7 @@ describe('provider initiated login with login_hint', () => {
     const loginHint = 'dan.brown@example.net'
 
     before(async () => {
+        resetConfiguration()
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()
@@ -100,6 +103,7 @@ describe('provider initiated login with domain_hint', () => {
     const domainHint = 'rsandh.com'
 
     before(async () => {
+        resetConfiguration()
         fastify = Fastify()
         fastify.register(helloAuth, config)
         await Fastify().ready()

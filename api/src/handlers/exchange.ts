@@ -64,14 +64,6 @@ export const performTokenExchange = async (params: {
             }
         }
 
-        console.log('Token exchange params:', {
-            code: code.toString(),
-            wallet: config.helloWallet,
-            code_verifier,
-            redirect_uri,
-            client_id: config.clientId,
-        })
-
         // Exchange code for token
         const token = await fetchToken({
             code: code.toString(),
