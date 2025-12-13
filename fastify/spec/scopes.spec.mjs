@@ -4,8 +4,6 @@ import { helloAuth } from '@hellocoop/fastify'
 import { resetConfiguration } from '@hellocoop/api'
 import * as utils from './utils.mjs'
 
-
-
 describe('scopes from environment and default scopes', () => {
     let fastify = null
     let cookies = {}
@@ -100,8 +98,6 @@ describe('scopes from environment and default scopes', () => {
     })
 })
 
-
-
 describe('scopes from config overriding default scopes', () => {
     let fastify = null
     let cookies = {}
@@ -163,7 +159,6 @@ describe('scopes from config overriding default scopes', () => {
         expect(scopes).to.not.include('name')
         expect(scopes.length).to.eql(3)
     })
-
 })
 
 describe('default scopes when HELLO_SCOPES not set', () => {
