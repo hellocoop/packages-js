@@ -118,7 +118,6 @@ export const performTokenExchange = async (params: {
             const value = (payload as any)[claim]
             if (value) (auth as any)[claim] = value
         })
-        if (auth.isLoggedIn && payload.org) auth.org = payload.org
 
         // Handle loginSync if provided
         if (config?.loginSync && loginSyncWrapper) {

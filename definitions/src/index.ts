@@ -15,7 +15,7 @@ export const VALID_IDENTITY_STRING_CLAIMS = [
     'given_name',
     'family_name',
     'email',
-    'phone',
+    'phone_number',
     'picture',
     'ethereum',
 ] as const
@@ -27,22 +27,23 @@ export const VALID_IDENTITY_ACCOUNT_CLAIMS = [
     'gitlab',
 ] as const
 
-export const ORG_CLAIM = 'org' as const
+export const TENANT_CLAIM = 'tenant' as const
 
 export const VALID_IDENTITY_CLAIMS = [
     ...VALID_IDENTITY_STRING_CLAIMS,
     ...VALID_IDENTITY_ACCOUNT_CLAIMS,
-    'org',
+    'tenant',
     'email_verified',
-    'phone_verified',
+    'phone_number_verified',
 ] as const
 
 export const VALID_SCOPES = [
-    ...VALID_IDENTITY_STRING_CLAIMS,
+    ...VALID_IDENTITY_STRING_CLAIMS.map((scope) =>
+        scope === 'phone_number' ? 'phone' : scope,
+    ),
     ...VALID_IDENTITY_ACCOUNT_CLAIMS,
     'profile',
     'openid',
-    'profile_update',
 ] as const
 
 export const VALID_RESPONSE_TYPE = ['id_token', 'code'] as const
@@ -92,15 +93,14 @@ type OptionalAccountClaims = {
     }
 }
 
-type OptionalOrgClaim = {
-    org?: {
-        id: string
-        domain: string
-    }
+type OptionalTenantClaim = {
+    // org_*_* is deprecated -- TBD remove once DB is cleaned up
+    tenant?: 'personal' | `ten_${string}_${string}` | `org_${string}_${string}`
 }
+
 export type Claims = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalOrgClaim & { sub: string }
+    OptionalTenantClaim
 
 type AuthCookie = {
     sub: string
@@ -120,16 +120,7 @@ export type Auth =
 
 export type TokenPayload = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalOrgClaim & {
-        iss: string
-        aud: string
-        nonce: string
-        jti: string
-        sub: string
-        scope: string[]
-        iat: number
-        exp: number
-    }
+    OptionalTenantClaim
 
 export type TokenHeader = {
     typ: string
