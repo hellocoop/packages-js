@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/helper-browser",
-    "version": "2.5.5",
+    "version": "2.5.6",
     "description": "Hellō helper functions for the browser",
     "main": "dist/index.js",
     "files": [
@@ -40,7 +40,7 @@
         "typescript": "^5.2.2"
     },
     "dependencies": {
-        "@hellocoop/definitions": "^1.0.11"
+        "@hellocoop/definitions": "^1.0.12"
     },
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }
