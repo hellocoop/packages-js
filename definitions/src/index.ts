@@ -106,17 +106,17 @@ type AuthCookie = {
     sub: string
     iat: number
 } & Claims & {
-    [key: string]: any // Allow arbitrary optional properties
-}
+        [key: string]: any // Allow arbitrary optional properties
+    }
 
 export type Auth =
     | {
-        isLoggedIn: false
-    }
+          isLoggedIn: false
+      }
     | ({
-        isLoggedIn: true
-        cookieToken?: string
-    } & AuthCookie)
+          isLoggedIn: true
+          cookieToken?: string
+      } & AuthCookie)
 
 export type TokenPayload = OptionalStringClaims &
     OptionalAccountClaims &
