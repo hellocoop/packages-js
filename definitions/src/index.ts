@@ -100,27 +100,35 @@ type OptionalTenantClaim = {
 
 export type Claims = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalTenantClaim
+    OptionalTenantClaim & { sub: string }
 
 type AuthCookie = {
     sub: string
     iat: number
 } & Claims & {
-        [key: string]: any // Allow arbitrary optional properties
-    }
+    [key: string]: any // Allow arbitrary optional properties
+}
 
 export type Auth =
     | {
-          isLoggedIn: false
-      }
+        isLoggedIn: false
+    }
     | ({
-          isLoggedIn: true
-          cookieToken?: string
-      } & AuthCookie)
+        isLoggedIn: true
+        cookieToken?: string
+    } & AuthCookie)
 
 export type TokenPayload = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalTenantClaim
+    OptionalTenantClaim & {
+        iss: string
+        aud: string
+        nonce: string
+        jti: string
+        sub: string
+        iat: number
+        exp: number
+    }
 
 export type TokenHeader = {
     typ: string
