@@ -126,11 +126,23 @@ const appAuthHandler = (config: Config): HandlerFunction => {
         const helloReq = convertToHelloRequest(req, internalResponse)
         const helloRes = convertToHelloResponse(internalResponse)
         await router(helloReq, helloRes)
-        if (internalResponse.redirect)
-            return NextResponse.redirect(
-                new URL(internalResponse.redirect, req.url),
-                { headers: internalResponse.headers },
-            )
+        if (internalResponse.redirect) {
+            // For relative redirects, just set Location header directly to avoid host/protocol issues
+            // For absolute redirects, use NextResponse.redirect
+            if (internalResponse.redirect.startsWith('http://') || internalResponse.redirect.startsWith('https://')) {
+                return NextResponse.redirect(
+                    internalResponse.redirect,
+                    { headers: internalResponse.headers },
+                )
+            } else {
+                // Relative redirect - set Location header directly
+                internalResponse.headers.set('Location', internalResponse.redirect)
+                return new NextResponse(null, {
+                    status: 302,
+                    headers: internalResponse.headers,
+                })
+            }
+        }
         if (internalResponse.json)
             return NextResponse.json(internalResponse.json, {
                 headers: internalResponse.headers,
