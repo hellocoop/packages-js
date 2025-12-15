@@ -35,7 +35,6 @@ export const VALID_IDENTITY_CLAIMS = [
     'tenant',
     'email_verified',
     'phone_number_verified',
-    'cnf',
 ] as const
 
 export const VALID_SCOPES = [
@@ -98,48 +97,30 @@ type OptionalTenantClaim = {
     // org_*_* is deprecated -- TBD remove once DB is cleaned up
     tenant?: 'personal' | `ten_${string}_${string}` | `org_${string}_${string}`
 }
-type OptionalCnfClaim = {
-    cnf?: {
-        jwk: {
-            crv?: string
-            kty: string
-            x?: string
-        }
-    }
-}
+
 export type Claims = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalTenantClaim &
-    OptionalCnfClaim & { sub: string }
+    OptionalTenantClaim
 
 type AuthCookie = {
     sub: string
     iat: number
 } & Claims & {
-        [key: string]: any // Allow arbitrary optional properties
-    }
+    [key: string]: any // Allow arbitrary optional properties
+}
 
 export type Auth =
     | {
-          isLoggedIn: false
-      }
+        isLoggedIn: false
+    }
     | ({
-          isLoggedIn: true
-          cookieToken?: string
-      } & AuthCookie)
+        isLoggedIn: true
+        cookieToken?: string
+    } & AuthCookie)
 
 export type TokenPayload = OptionalStringClaims &
     OptionalAccountClaims &
-    OptionalTenantClaim &
-    OptionalCnfClaim & {
-        iss: string
-        aud: string
-        nonce: string
-        jti: string
-        sub: string
-        iat: number
-        exp: number
-    }
+    OptionalTenantClaim
 
 export type TokenHeader = {
     typ: string
