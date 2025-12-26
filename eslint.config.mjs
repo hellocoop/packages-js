@@ -8,7 +8,7 @@ export default [
     ...tseslint.configs.recommended,
     prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
-        ignores: ['**/dist', '**/node_modules', 'archive*/'],
+        ignores: ['**/dist', '**/dist-test', '**/node_modules', 'archive*/'],
     },
     {
         languageOptions: {

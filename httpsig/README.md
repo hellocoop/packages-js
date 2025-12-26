@@ -1,0 +1,637 @@
+# @hellocoop/httpsig
+
+HTTP Message Signatures (RFC 9421) implementation with Signature-Key header support for Node.js and browsers.
+
+## Overview
+
+This package implements [RFC 9421 HTTP Message Signatures](https://datatracker.ietf.org/doc/html/rfc9421) with support for the [Signature-Key header proposal](https://github.com/DickHardt/signature-key), enabling cryptographic signing and verification of HTTP requests.
+
+**Key Features:**
+
+- Zero dependencies
+- TypeScript support with full type definitions
+- Works in Node.js and modern browsers
+- Three key distribution schemes: `hwk`, `jwt`, and `jwks`
+- Simple API: `fetch()` wrapper and `verify()` middleware helper
+- Automatic signature generation and header management
+- Built-in JWKS caching for performance
+
+## Installation
+
+```bash
+npm install @hellocoop/httpsig
+```
+
+## Quick Start
+
+### Signing Requests
+
+```typescript
+import { fetch } from '@hellocoop/httpsig'
+
+// Make a signed GET request with inline public key (hwk)
+const response = await fetch('https://api.example.com/data', {
+    signingKey: privateKeyJwk, // JsonWebKey with private key
+    signatureKey: { type: 'hwk' },
+})
+
+// Make a signed POST request
+const response = await fetch('https://api.example.com/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ foo: 'bar' }),
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+})
+```
+
+### Verifying Requests
+
+```typescript
+import { verify } from '@hellocoop/httpsig'
+
+// In Express middleware
+app.use(async (req, res, next) => {
+    try {
+        const result = await verify({
+            method: req.method,
+            url: req.url,
+            headers: req.headers,
+            body: req.body,
+        })
+
+        if (result.verified) {
+            req.signature = result
+            next()
+        } else {
+            res.status(401).json({ error: 'Invalid signature' })
+        }
+    } catch (error) {
+        res.status(401).json({ error: error.message })
+    }
+})
+```
+
+## API Reference
+
+### `fetch(url, options)`
+
+A drop-in replacement for the standard `fetch()` that automatically signs requests.
+
+**Parameters:**
+
+- `url` (string | URL): The URL to fetch
+- `options` (HttpSigFetchOptions): Standard fetch options plus signing parameters
+
+**HttpSigFetchOptions extends RequestInit:**
+
+```typescript
+interface HttpSigFetchOptions extends RequestInit {
+    // Required: Private key as JWK
+    signingKey: JsonWebKey
+
+    // Required: Signature-Key header configuration
+    signatureKey:
+        | { type: 'hwk' }
+        | { type: 'jwt'; jwt: string }
+        | { type: 'jwks'; id: string; kid: string; wellKnown?: string }
+
+    // Optional parameters
+    label?: string // Signature label (default: 'sig')
+
+    // Testing mode
+    dryRun?: boolean // Return headers without fetching (still returns Promise)
+}
+```
+
+**Returns:**
+
+- `Promise<Response>` - Standard fetch Response object
+- If `dryRun: true`, returns `Promise<{ headers: Headers }>` with the headers that would be sent
+
+**Example with hwk:**
+
+```typescript
+const response = await fetch('https://api.example.com/data', {
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+})
+```
+
+**Example with JWT:**
+
+```typescript
+const response = await fetch('https://api.example.com/data', {
+    signingKey: privateKeyJwk,
+    signatureKey: {
+        type: 'jwt',
+        jwt: 'eyJhbGciOiJFZERTQSIsInR5cCI6ImFnZW50K2p3dCJ9...',
+    },
+})
+```
+
+**Example with JWKS:**
+
+```typescript
+const response = await fetch('https://api.example.com/data', {
+    signingKey: privateKeyJwk,
+    signatureKey: {
+        type: 'jwks',
+        id: 'https://agent.example',
+        kid: 'key-1',
+        wellKnown: 'agent-server', // Optional
+    },
+})
+```
+
+**Testing mode (dry run):**
+
+```typescript
+const { headers } = await fetch('https://api.example.com/data', {
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+    dryRun: true,
+})
+
+console.log(headers.get('Signature'))
+console.log(headers.get('Signature-Input'))
+console.log(headers.get('Signature-Key'))
+```
+
+### `verify(request, options?)`
+
+Verifies HTTP Message Signatures on incoming requests.
+
+**Parameters:**
+
+- `request` (VerifyRequest): The request to verify
+- `options?` (VerifyOptions): Optional verification configuration
+
+**VerifyRequest:**
+
+```typescript
+interface VerifyRequest {
+    method: string
+    url: string
+    headers: Headers | Record<string, string | string[]>
+    body?: string | Buffer | object
+}
+```
+
+**VerifyOptions:**
+
+```typescript
+interface VerifyOptions {
+    // Timestamp validation
+    maxClockSkew?: number // Max clock skew in seconds (default: 60)
+
+    // JWKS caching
+    jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
+}
+```
+
+**Returns:** `Promise<VerificationResult>`
+
+```typescript
+interface VerificationResult {
+    verified: boolean // Overall verification status
+    label: string // Signature label used
+    keyType: 'hwk' | 'jwt' | 'jwks'
+    publicKey: JsonWebKey // Extracted public key
+    thumbprint: string // JWK thumbprint (RFC 7638) - stable key identifier
+    created: number // Signature timestamp
+
+    // JWT-specific fields (if keyType === 'jwt')
+    // Note: JWT is NOT validated - caller must validate issuer, expiration, etc.
+    jwt?: {
+        header: object
+        payload: object
+        raw: string // Raw JWT for caller to validate
+    }
+
+    // JWKS-specific fields (if keyType === 'jwks')
+    jwks?: {
+        id: string
+        kid: string
+        wellKnown?: string
+    }
+
+    // Error information
+    error?: string
+}
+```
+
+**Example with Express:**
+
+```typescript
+import express from 'express'
+import { expressVerify } from '@hellocoop/httpsig'
+
+const app = express()
+
+// IMPORTANT: Use express.raw() NOT express.json()!
+app.use(express.raw({ type: 'application/json' }))
+
+app.use(async (req, res, next) => {
+    const result = await expressVerify(req)
+
+    if (result.verified) {
+        req.signature = result
+        next()
+    } else {
+        res.status(401).json({ error: result.error })
+    }
+})
+```
+
+**Example with Fastify:**
+
+```typescript
+import Fastify from 'fastify'
+import { fastifyVerify } from '@hellocoop/httpsig'
+
+const fastify = Fastify({
+    // Preserve raw body for signature verification
+    preParsing: async (request, reply, payload) => {
+        const chunks: Buffer[] = []
+        for await (const chunk of payload) {
+            chunks.push(chunk)
+        }
+        request.rawBody = Buffer.concat(chunks)
+        return Buffer.concat(chunks)
+    },
+})
+
+fastify.addHook('preHandler', async (request, reply) => {
+    const result = await fastifyVerify(request)
+
+    if (!result.verified) {
+        reply.code(401).send({ error: result.error })
+        return
+    }
+
+    request.signature = result
+})
+```
+
+**Example with Next.js App Router:**
+
+```typescript
+import { nextJsVerify } from '@hellocoop/httpsig'
+
+export async function POST(request: Request) {
+    // IMPORTANT: Consume body BEFORE verification!
+    const body = await request.text()
+
+    const result = await nextJsVerify(request, body)
+
+    if (!result.verified) {
+        return Response.json({ error: result.error }, { status: 401 })
+    }
+
+    // Parse body after verification
+    const data = JSON.parse(body)
+
+    // ... handle request
+}
+```
+
+**Example with JWT validation:**
+
+```typescript
+const result = await verify(request)
+
+if (result.verified && result.keyType === 'jwt') {
+    // Caller is responsible for validating the JWT
+    const jwt = result.jwt
+
+    // Decode and validate JWT claims
+    const isValid = await validateJWT(jwt.raw, {
+        trustedIssuers: ['https://auth.example.com'],
+        // ... other validation logic
+    })
+
+    if (!isValid) {
+        throw new Error('Invalid JWT')
+    }
+}
+```
+
+**Example using thumbprint for authorization:**
+
+```typescript
+// Store allowed public key thumbprints (e.g., from registration)
+const ALLOWED_THUMBPRINTS = new Set([
+    'NZQltk3VvFCjGIx8-UtxKBwkjRZ6O8kPKYNa3mRYFX8',
+    'kOzFrbnFA0SWOSKmY76ok0Ke-soe9Ja41xzhlK9v8Yo',
+])
+
+app.use(async (req, res, next) => {
+    const result = await expressVerify(req)
+
+    if (!result.verified) {
+        return res.status(401).json({ error: result.error })
+    }
+
+    // Use thumbprint as stable identifier for rate limiting, access control, etc.
+    if (!ALLOWED_THUMBPRINTS.has(result.thumbprint)) {
+        return res.status(403).json({
+            error: 'Public key not authorized',
+            thumbprint: result.thumbprint,
+        })
+    }
+
+    // Store thumbprint for logging/auditing
+    req.callerThumbprint = result.thumbprint
+    next()
+})
+```
+
+## Framework Integration Requirements
+
+### Critical Requirements for `verify()`
+
+When verifying HTTP Message Signatures, you **MUST** provide:
+
+1. **Raw Body Bytes** - NOT parsed JSON objects
+2. **Full URL** - NOT just the path
+
+#### ❌ Common Mistakes
+
+```typescript
+// ❌ WRONG - body is parsed object
+app.use(express.json())
+app.use((req, res) => {
+    verify({
+        body: req.body, // This is { foo: "bar" }, not raw bytes!
+    })
+})
+
+// ❌ WRONG - url is just the path
+verify({
+    url: req.url, // This is "/api/data", not "https://example.com/api/data"
+})
+```
+
+#### ✅ Correct Approach
+
+Use the framework-specific verify functions which handle these requirements automatically:
+
+```typescript
+import { expressVerify } from '@hellocoop/httpsig'
+
+app.use(express.raw({ type: 'application/json' }))
+app.use(async (req, res) => {
+    const result = await expressVerify(req)
+})
+```
+
+### Why These Requirements Matter
+
+**Raw Body**: The `content-digest` is computed over the **exact bytes** of the body. If you parse JSON and re-serialize it:
+
+- Whitespace might differ: `{"foo":"bar"}` vs `{"foo": "bar"}`
+- Key order might change
+- The digest won't match → verification fails
+
+**Full URL**: The signature covers the complete `@target-uri`, including protocol and hostname. Using just the path will produce a different signature base → verification fails.
+
+### Framework-Specific Verify Functions
+
+The package provides framework-specific functions that handle URL construction and body handling automatically:
+
+- `expressVerify(req, options?)` - Express.js
+- `fastifyVerify(request, options?)` - Fastify
+- `nextJsVerify(request, body?, options?)` - Next.js App Router
+- `nextJsPagesVerify(req, body?, host?, options?)` - Next.js Pages Router
+
+These functions call `verify()` internally after correctly transforming the request.
+
+See examples in the [`verify()` documentation](#verify-request-options) above.
+
+## Signature Components
+
+All requests include the Signature-Key header in the covered components:
+
+### GET Requests (no body)
+
+```
+Signature-Input: sig=("@method" "@target-uri" "signature-key");created=1730217600
+```
+
+### POST/PUT/PATCH Requests (with body)
+
+```
+Signature-Input: sig=("@method" "@target-uri" "content-type" "content-digest" "signature-key");created=1730217600
+```
+
+The `content-digest` is computed as:
+
+```
+Content-Digest: sha-256=:BASE64(SHA256(body)):
+```
+
+## Signature-Key Types
+
+### hwk (Header Web Key)
+
+Inline public key in the header for pseudonymous verification.
+
+```typescript
+const response = await fetch(url, {
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+})
+```
+
+Generated headers:
+
+```http
+Signature-Key: sig=hwk; kty="OKP"; crv="Ed25519"; x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"
+```
+
+**Use cases:**
+
+- Privacy-preserving agents
+- Temporary or experimental access
+- Rate limiting per key
+
+### jwt (JWT Confirmation Key)
+
+Public key embedded in a signed JWT using the `cnf.jwk` claim.
+
+```typescript
+const response = await fetch(url, {
+    signingKey: privateKeyJwk,
+    signatureKey: {
+        type: 'jwt',
+        jwt: agentToken, // JWT with cnf.jwk claim
+    },
+})
+```
+
+Generated headers:
+
+```http
+Signature-Key: sig=jwt; jwt="eyJhbGciOiJFZERTQSIsInR5cCI6ImFnZW50K2p3dCJ9..."
+```
+
+The JWT must contain:
+
+```json
+{
+    "iss": "https://issuer.example",
+    "sub": "instance-123",
+    "exp": 1732210000,
+    "cnf": {
+        "jwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"
+        }
+    }
+}
+```
+
+**Use cases:**
+
+- Distributed services with ephemeral keys
+- Delegation scenarios
+- Short-lived credentials for horizontal scaling
+
+### jwks (JWKS Discovery)
+
+Key discovery via HTTPS URLs with automatic caching.
+
+```typescript
+const response = await fetch(url, {
+    signingKey: privateKeyJwk,
+    signatureKey: {
+        type: 'jwks',
+        id: 'https://agent.example',
+        kid: 'key-1',
+    },
+})
+```
+
+Generated headers:
+
+```http
+Signature-Key: sig=jwks; id="https://agent.example"; kid="key-1"
+```
+
+With well-known metadata:
+
+```typescript
+const response = await fetch(url, {
+    signingKey: privateKeyJwk,
+    signatureKey: {
+        type: 'jwks',
+        id: 'https://agent.example',
+        kid: 'key-1',
+        wellKnown: 'agent-server',
+    },
+})
+```
+
+Generated headers:
+
+```http
+Signature-Key: sig=jwks; id="https://agent.example"; well-known="agent-server"; kid="key-1"
+```
+
+**Discovery process:**
+
+1. If `well-known` present: fetch `{id}/.well-known/{well-known}`, extract `jwks_uri`, fetch JWKS
+2. If `well-known` absent: fetch `{id}` directly as JWKS
+3. Find key with matching `kid`
+4. Cache JWKS with configurable TTL (default 1 hour)
+
+**Use cases:**
+
+- Identified services with stable HTTPS identity
+- Search engine crawlers
+- Services requiring explicit entity identification
+
+## Supported Algorithms
+
+- **Ed25519** (EdDSA with Curve25519) - Recommended
+- **ES256** (ECDSA with P-256 and SHA-256)
+- **RS256** (RSA-PSS with SHA-256 and 2048-bit keys)
+
+## Security Considerations
+
+### Timestamp Validation
+
+- Signatures must have a `created` timestamp
+- Timestamp must be within ±60 seconds (configurable via `maxClockSkew`)
+- Prevents replay attacks
+
+### JWT Handling
+
+When verifying `jwt` signature-key types:
+
+- The JWT is decoded and the `cnf.jwk` claim is extracted
+- The extracted public key is used to verify the HTTP signature
+- **JWT validation is NOT performed** - the raw JWT is returned to the caller
+- Caller is responsible for validating JWT signature, issuer, expiration, etc.
+
+### JWKS Caching
+
+- JWKS responses are cached to prevent excessive fetches
+- Default TTL: 1 hour (configurable)
+- Cache respects HTTP `Cache-Control` headers
+- Cache keyed by JWKS URL
+
+### Key Validation
+
+- All cryptographic material is validated before use
+- JWK structure and parameters are verified
+- Algorithm/key type mismatches are rejected
+
+## Testing
+
+The package includes a comprehensive test suite:
+
+```bash
+npm test
+```
+
+To run tests with coverage:
+
+```bash
+npm run test:coverage
+```
+
+## Examples
+
+See the `examples/` directory for complete examples:
+
+- `examples/basic-fetch.ts` - Simple GET and POST requests
+- `examples/express-middleware.ts` - Express integration
+- `examples/fastify-middleware.ts` - Fastify integration
+- `examples/all-key-types.ts` - Using hwk, jwt, and jwks
+
+## Standards Compliance
+
+This implementation follows:
+
+- [RFC 9421: HTTP Message Signatures](https://datatracker.ietf.org/doc/html/rfc9421)
+- [RFC 9530: Digest Fields](https://datatracker.ietf.org/doc/html/rfc9530)
+- [RFC 7515: JSON Web Signature (JWS)](https://datatracker.ietf.org/doc/html/rfc7515)
+- [RFC 7517: JSON Web Key (JWK)](https://datatracker.ietf.org/doc/html/rfc7517)
+- [RFC 7800: Proof-of-Possession Key Semantics for JWTs](https://datatracker.ietf.org/doc/html/rfc7800)
+- [Signature-Key Header Proposal](https://github.com/DickHardt/signature-key)
+
+## License
+
+MIT
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for details.
+
+## Related Packages
+
+- `@hellocoop/api` - Hellō client API
+- `@hellocoop/better-auth` - Better Auth integration

@@ -1,0 +1,18 @@
+# Build outputs
+dist/
+dist-test/
+
+# Dependencies
+node_modules/
+
+# Editor
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*

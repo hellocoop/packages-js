@@ -1,0 +1,54 @@
+{
+    "name": "@hellocoop/httpsig",
+    "version": "0.1.0",
+    "description": "HTTP Message Signatures (RFC 9421) with Signature-Key header support",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/hellocoop/packages.git"
+    },
+    "homepage": "https://github.com/hellocoop/packages/tree/main/httpsig",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "files": [
+        "dist/"
+    ],
+    "keywords": [
+        "http",
+        "signature",
+        "rfc9421",
+        "httpsig",
+        "message-signatures",
+        "jwk",
+        "jwt",
+        "jwks",
+        "authentication"
+    ],
+    "author": {
+        "name": "Hello Identity Co-op",
+        "email": "contact@hello.coop",
+        "url": "https://hello.coop"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/hellocoop/packages/issues"
+    },
+    "scripts": {
+        "watch": "tsc --watch",
+        "prebuild": "rimraf dist dist-test",
+        "build": "tsc",
+        "pretest": "tsc -p tsconfig.test.json",
+        "test": "node --test dist-test/tests/test-*.js",
+        "test:watch": "tsc -p tsconfig.test.json --watch & node --test --watch dist-test/tests/test-*.js"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.2",
+        "rimraf": "^5.0.1",
+        "typescript": "^5.2.2"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}
