@@ -23,7 +23,7 @@
         "message-signatures",
         "hwk",
         "jwt",
-        "jwks",
+        "jwks_uri",
         "authentication"
     ],
     "author": {

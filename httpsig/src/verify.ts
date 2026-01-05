@@ -73,32 +73,23 @@ async function fetchJWKS(url: string, cacheTtl: number): Promise<any> {
 }
 
 /**
- * Get public key from JWKS
+ * Get public key from JWKS via metadata document
  */
 async function getPublicKeyFromJWKS(
     id: string,
     kid: string,
-    wellKnown: string | undefined,
+    wellKnown: string,
     cacheTtl: number,
 ): Promise<JsonWebKey> {
-    let jwksUrl: string
+    // Fetch metadata document first
+    const metadataUrl = `${id}/.well-known/${wellKnown}`
+    const metadata = await fetchJWKS(metadataUrl, cacheTtl)
 
-    if (wellKnown) {
-        // Fetch metadata document first
-        const metadataUrl = `${id}/.well-known/${wellKnown}`
-        const metadata = await fetchJWKS(metadataUrl, cacheTtl)
-
-        if (!metadata.jwks_uri) {
-            throw new Error(
-                `Metadata document missing jwks_uri: ${metadataUrl}`,
-            )
-        }
-
-        jwksUrl = metadata.jwks_uri
-    } else {
-        // Direct JWKS URL
-        jwksUrl = id
+    if (!metadata.jwks_uri) {
+        throw new Error(`Metadata document missing jwks_uri: ${metadataUrl}`)
     }
+
+    const jwksUrl = metadata.jwks_uri
 
     // Fetch JWKS
     const jwks = await fetchJWKS(jwksUrl, cacheTtl)
@@ -217,8 +208,8 @@ export async function verify(
         // Get public key based on type
         let publicJwk: JsonWebKey
         let jwtData: { header: any; payload: any; raw: string } | undefined
-        let jwksData:
-            | { id: string; kid: string; wellKnown?: string }
+        let jwksUriData:
+            | { id: string; kid: string; wellKnown: string }
             | undefined
 
         if (signatureKey.type === 'hwk') {
@@ -232,20 +223,20 @@ export async function verify(
                 payload,
                 raw: jwtValue.jwt,
             }
-        } else if (signatureKey.type === 'jwks') {
-            const jwksValue = signatureKey.value as {
+        } else if (signatureKey.type === 'jwks_uri') {
+            const jwksUriValue = signatureKey.value as {
                 id: string
                 kid: string
-                wellKnown?: string
+                wellKnown: string
             }
-            const { id, kid, wellKnown } = jwksValue
+            const { id, kid, wellKnown } = jwksUriValue
             publicJwk = await getPublicKeyFromJWKS(
                 id,
                 kid,
                 wellKnown,
                 jwksCacheTtl,
             )
-            jwksData = { id, kid, wellKnown }
+            jwksUriData = { id, kid, wellKnown }
         } else {
             // Note: x509 scheme not yet implemented
             // Future implementation would:
@@ -389,8 +380,8 @@ export async function verify(
             result.jwt = jwtData
         }
 
-        if (jwksData) {
-            result.jwks = jwksData
+        if (jwksUriData) {
+            result.jwks_uri = jwksUriData
         }
 
         return result

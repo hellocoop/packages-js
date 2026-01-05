@@ -86,7 +86,7 @@ function setupMockFetch(publicJwk: JsonWebKey) {
     }
 }
 
-test('jwks: GET request with direct JWKS URL', async () => {
+test('jwks_uri: GET request with metadata discovery', async () => {
     // Generate key pair
     const { privateJwk, publicJwk } = await generateEd25519KeyPair()
 
@@ -99,8 +99,9 @@ test('jwks: GET request with direct JWKS URL', async () => {
             method: 'GET',
             signingKey: privateJwk,
             signatureKey: {
-                type: 'jwks',
+                type: 'jwks_uri',
                 id: 'https://agent.example',
+                wellKnown: 'agent-server',
                 kid: 'key-1',
             },
             dryRun: true,
@@ -116,7 +117,7 @@ test('jwks: GET request with direct JWKS URL', async () => {
         console.log('Signature-Input:', result.headers.get('signature-input'))
         console.log('Signature-Key:', result.headers.get('signature-key'))
 
-        // Verify (this will fetch the JWKS)
+        // Verify (this will fetch the JWKS via metadata)
         const verifyResult = await verify({
             method: 'GET',
             path: '/data',
@@ -127,62 +128,18 @@ test('jwks: GET request with direct JWKS URL', async () => {
         console.log('\nVerification result:', verifyResult)
 
         assert.strictEqual(verifyResult.verified, true)
-        assert.strictEqual(verifyResult.keyType, 'jwks')
-        assert.ok(verifyResult.jwks)
-        assert.strictEqual(verifyResult.jwks?.id, 'https://agent.example')
-        assert.strictEqual(verifyResult.jwks?.kid, 'key-1')
+        assert.strictEqual(verifyResult.keyType, 'jwks_uri')
+        assert.ok(verifyResult.jwks_uri)
+        assert.strictEqual(verifyResult.jwks_uri?.id, 'https://agent.example')
+        assert.strictEqual(verifyResult.jwks_uri?.kid, 'key-1')
+        assert.strictEqual(verifyResult.jwks_uri?.wellKnown, 'agent-server')
         assert.strictEqual(verifyResult.publicKey.kty, 'OKP')
     } finally {
         mock.restore()
     }
 })
 
-test('jwks: GET request with well-known metadata', async () => {
-    // Generate key pair
-    const { privateJwk, publicJwk } = await generateEd25519KeyPair()
-
-    // Setup mock fetch
-    const mock = setupMockFetch(publicJwk)
-
-    try {
-        // Sign a request with well-known
-        const result = (await fetch('https://api.example.com/data', {
-            method: 'GET',
-            signingKey: privateJwk,
-            signatureKey: {
-                type: 'jwks',
-                id: 'https://agent.example',
-                kid: 'key-1',
-                wellKnown: 'agent-server',
-            },
-            dryRun: true,
-        })) as { headers: Headers }
-
-        console.log(
-            '\nGenerated Signature-Key with well-known:',
-            result.headers.get('signature-key'),
-        )
-
-        // Verify (should fetch metadata first, then JWKS)
-        const verifyResult = await verify({
-            method: 'GET',
-            path: '/data',
-            authority: 'api.example.com',
-            headers: result.headers,
-        })
-
-        console.log('\nVerification result:', verifyResult)
-
-        assert.strictEqual(verifyResult.verified, true)
-        assert.strictEqual(verifyResult.keyType, 'jwks')
-        assert.strictEqual(verifyResult.jwks?.id, 'https://agent.example')
-        assert.strictEqual(verifyResult.jwks?.wellKnown, 'agent-server')
-    } finally {
-        mock.restore()
-    }
-})
-
-test('jwks: POST request with body', async () => {
+test('jwks_uri: POST request with body', async () => {
     // Generate key pair
     const { privateJwk, publicJwk } = await generateEd25519KeyPair()
 
@@ -191,12 +148,21 @@ test('jwks: POST request with body', async () => {
     const mockJWKS = {
         keys: [{ ...publicJwk, kid: 'key-post', use: 'sig' }],
     }
+    const mockMetadata = {
+        jwks_uri: 'https://agent-post.example/jwks.json',
+    }
     globalThis.fetch = (async (
         url: string | URL | Request,
         init?: RequestInit,
     ) => {
         const urlStr = typeof url === 'string' ? url : url.toString()
-        if (urlStr === 'https://agent-post.example') {
+        if (urlStr === 'https://agent-post.example/.well-known/agent-server') {
+            return new Response(JSON.stringify(mockMetadata), {
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+            })
+        }
+        if (urlStr === 'https://agent-post.example/jwks.json') {
             return new Response(JSON.stringify(mockJWKS), {
                 status: 200,
                 headers: { 'content-type': 'application/json' },
@@ -223,8 +189,9 @@ test('jwks: POST request with body', async () => {
             body,
             signingKey: privateJwk,
             signatureKey: {
-                type: 'jwks',
+                type: 'jwks_uri',
                 id: 'https://agent-post.example',
+                wellKnown: 'agent-server',
                 kid: 'key-post',
             },
             dryRun: true,
@@ -248,13 +215,13 @@ test('jwks: POST request with body', async () => {
             true,
             `Verification failed: ${verifyResult.error}`,
         )
-        assert.strictEqual(verifyResult.keyType, 'jwks')
+        assert.strictEqual(verifyResult.keyType, 'jwks_uri')
     } finally {
         mock.restore()
     }
 })
 
-test('jwks: Should fail if key not found in JWKS', async () => {
+test('jwks_uri: Should fail if key not found in JWKS', async () => {
     // Generate key pair
     const { privateJwk, publicJwk } = await generateEd25519KeyPair()
 
@@ -267,8 +234,9 @@ test('jwks: Should fail if key not found in JWKS', async () => {
             method: 'GET',
             signingKey: privateJwk,
             signatureKey: {
-                type: 'jwks',
+                type: 'jwks_uri',
                 id: 'https://agent.example',
+                wellKnown: 'agent-server',
                 kid: 'nonexistent-key', // This key doesn't exist in mock JWKS
             },
             dryRun: true,
@@ -291,7 +259,7 @@ test('jwks: Should fail if key not found in JWKS', async () => {
     }
 })
 
-test('jwks: Caching should work (second verify should not re-fetch)', async () => {
+test('jwks_uri: Caching should work (second verify should not re-fetch)', async () => {
     // Generate key pair
     const { privateJwk, publicJwk } = await generateEd25519KeyPair()
 
@@ -308,10 +276,23 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
         ],
     }
 
+    const mockMetadata = {
+        jwks_uri: 'https://agent-cache.example/jwks.json',
+    }
+
     const mockFetch = async (url: string | URL | Request) => {
         const urlStr = typeof url === 'string' ? url : url.toString()
 
-        if (urlStr === 'https://agent-cache.example') {
+        if (urlStr === 'https://agent-cache.example/.well-known/agent-server') {
+            fetchCount++
+            console.log(`Metadata fetch #${fetchCount}`)
+            return new Response(JSON.stringify(mockMetadata), {
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+            })
+        }
+
+        if (urlStr === 'https://agent-cache.example/jwks.json') {
             fetchCount++
             console.log(`JWKS fetch #${fetchCount}`)
             return new Response(JSON.stringify(mockJWKS), {
@@ -331,8 +312,9 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
             method: 'GET',
             signingKey: privateJwk,
             signatureKey: {
-                type: 'jwks',
+                type: 'jwks_uri',
                 id: 'https://agent-cache.example',
+                wellKnown: 'agent-server',
                 kid: 'key-cache',
             },
             dryRun: true,
@@ -351,8 +333,8 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
 
         assert.strictEqual(
             fetchCount,
-            1,
-            `Should have fetched JWKS once, but got ${fetchCount}`,
+            2,
+            `Should have fetched metadata + JWKS (2 fetches), but got ${fetchCount}`,
         )
 
         // Second verify - should use cache
@@ -368,8 +350,8 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
 
         assert.strictEqual(
             fetchCount,
-            1,
-            'Should still only have fetched JWKS once (cached)',
+            2,
+            'Should still only have fetched twice (cached)',
         )
 
         console.log(

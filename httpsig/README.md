@@ -11,7 +11,7 @@ This package implements [RFC 9421 HTTP Message Signatures](https://datatracker.i
 - Zero dependencies
 - TypeScript support with full type definitions
 - Works in Node.js and modern browsers
-- Three key distribution schemes: `hwk`, `jwt`, and `jwks`
+- Three key distribution schemes: `hwk`, `jwt`, and `jwks_uri`
 - Simple API: `fetch()` wrapper and `verify()` middleware helper
 - Automatic signature generation and header management
 - Built-in JWKS caching for performance
@@ -102,7 +102,7 @@ interface HttpSigFetchOptions extends RequestInit {
     signatureKey:
         | { type: 'hwk' }
         | { type: 'jwt'; jwt: string }
-        | { type: 'jwks'; id: string; kid: string; wellKnown?: string }
+        | { type: 'jwks_uri'; id: string; kid: string; wellKnown: string }
 
     // Optional parameters
     label?: string // Signature label (default: 'sig')
@@ -145,7 +145,7 @@ const response = await fetch('https://api.example.com/data', {
 const response = await fetch('https://api.example.com/data', {
     signingKey: privateKeyJwk,
     signatureKey: {
-        type: 'jwks',
+        type: 'jwks_uri',
         id: 'https://agent.example',
         kid: 'key-1',
         wellKnown: 'agent-server', // Optional
@@ -260,7 +260,7 @@ interface VerifyOptions {
 interface VerificationResult {
     verified: boolean // Overall verification status
     label: string // Signature label used
-    keyType: 'hwk' | 'jwt' | 'jwks'
+    keyType: 'hwk' | 'jwt' | 'jwks_uri'
     publicKey: JsonWebKey // Extracted public key
     thumbprint: string // JWK thumbprint (RFC 7638) - stable key identifier
     created: number // Signature timestamp
@@ -273,11 +273,11 @@ interface VerificationResult {
         raw: string // Raw JWT for caller to validate
     }
 
-    // JWKS-specific fields (if keyType === 'jwks')
-    jwks?: {
+    // JWKS-specific fields (if keyType === 'jwks_uri')
+    jwks_uri?: {
         id: string
         kid: string
-        wellKnown?: string
+        wellKnown: string
     }
 
     // Error information
@@ -635,7 +635,7 @@ The JWT must contain:
 - Delegation scenarios
 - Short-lived credentials for horizontal scaling
 
-### jwks (JWKS Discovery)
+### jwks_uri (JWKS URI Discovery)
 
 Key discovery via HTTPS URLs with automatic caching.
 
@@ -643,7 +643,7 @@ Key discovery via HTTPS URLs with automatic caching.
 const response = await fetch(url, {
     signingKey: privateKeyJwk,
     signatureKey: {
-        type: 'jwks',
+        type: 'jwks_uri',
         id: 'https://agent.example',
         kid: 'key-1',
     },
@@ -653,7 +653,7 @@ const response = await fetch(url, {
 Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=jwks;id="https://agent.example";kid="key-1"
+Signature-Key: sig=jwks_uri;id="https://agent.example";kid="key-1"
 ```
 
 With well-known metadata:
@@ -662,7 +662,7 @@ With well-known metadata:
 const response = await fetch(url, {
     signingKey: privateKeyJwk,
     signatureKey: {
-        type: 'jwks',
+        type: 'jwks_uri',
         id: 'https://agent.example',
         kid: 'key-1',
         wellKnown: 'agent-server',
@@ -673,7 +673,7 @@ const response = await fetch(url, {
 Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=jwks;id="https://agent.example";kid="key-1";well-known="agent-server"
+Signature-Key: sig=jwks_uri;id="https://agent.example";kid="key-1";well-known="agent-server"
 ```
 
 **Discovery process:**

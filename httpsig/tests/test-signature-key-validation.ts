@@ -39,8 +39,7 @@ test('Validation: Invalid Signature-Key format (parentheses instead of semicolon
         authority: 'api.example.com',
         path: '/data',
         headers: {
-            'signature-key':
-                'sig=(hwk kty="OKP" crv="Ed25519" x="test")', // Invalid: uses parentheses instead of semicolons
+            'signature-key': 'sig=(hwk kty="OKP" crv="Ed25519" x="test")', // Invalid: uses parentheses instead of semicolons
             'signature-input':
                 'sig=("@method" "@authority" "@path");created=1234567890',
             signature: 'sig=:dGVzdA==:',

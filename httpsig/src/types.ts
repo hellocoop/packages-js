@@ -44,7 +44,7 @@ export const DEFAULT_COMPONENTS_BODY = [
 export type SignatureKeyType =
     | { type: 'hwk' }
     | { type: 'jwt'; jwt: string }
-    | { type: 'jwks'; id: string; kid: string; wellKnown?: string }
+    | { type: 'jwks_uri'; id: string; kid: string; wellKnown: string }
 // Note: x509 scheme support can be added in the future
 // | { type: 'x509'; cert: string }
 // Recommended implementation: use @peculiar/x509 for certificate parsing
@@ -89,7 +89,7 @@ export interface VerifyOptions {
 export interface VerificationResult {
     verified: boolean // Overall verification status
     label: string // Signature label used
-    keyType: 'hwk' | 'jwt' | 'jwks'
+    keyType: 'hwk' | 'jwt' | 'jwks_uri'
     publicKey: JsonWebKey // Extracted public key
     thumbprint: string // JWK thumbprint (RFC 7638) - stable key identifier
     created: number // Signature timestamp
@@ -102,11 +102,11 @@ export interface VerificationResult {
         raw: string // Raw JWT for caller to validate
     }
 
-    // JWKS-specific fields (if keyType === 'jwks')
-    jwks?: {
+    // JWKS URI-specific fields (if keyType === 'jwks_uri')
+    jwks_uri?: {
         id: string
         kid: string
-        wellKnown?: string
+        wellKnown: string
     }
 
     // Error information
@@ -124,8 +124,8 @@ export interface ParsedSignatureInput {
 
 export interface ParsedSignatureKey {
     label: string
-    type: 'hwk' | 'jwt' | 'jwks'
-    value: HwkValue | JwtValue | JwksValue
+    type: 'hwk' | 'jwt' | 'jwks_uri'
+    value: HwkValue | JwtValue | JwksUriValue
 }
 
 export interface HwkValue {
@@ -141,10 +141,10 @@ export interface JwtValue {
     jwt: string
 }
 
-export interface JwksValue {
+export interface JwksUriValue {
     id: string
     kid: string
-    wellKnown?: string
+    wellKnown: string
 }
 
 /**

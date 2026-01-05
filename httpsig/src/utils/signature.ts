@@ -45,7 +45,7 @@ export function generateSignatureInputHeader(
  * Generate Signature-Key header value as RFC 8941 Dictionary
  * Format: label=scheme;param1="value1";param2="value2"
  *
- * The scheme (hwk, jwt, jwks, x509) is the item value, and
+ * The scheme (hwk, jwt, jwks_uri, x509) is the item value, and
  * scheme-specific parameters are semicolon-separated.
  */
 export function generateSignatureKeyHeader(
@@ -74,14 +74,14 @@ export function generateSignatureKeyHeader(
         return `${label}=jwt;jwt="${signatureKey.jwt}"`
     }
 
-    if (signatureKey.type === 'jwks') {
-        const params = [`id="${signatureKey.id}"`, `kid="${signatureKey.kid}"`]
+    if (signatureKey.type === 'jwks_uri') {
+        const params = [
+            `id="${signatureKey.id}"`,
+            `well-known="${signatureKey.wellKnown}"`,
+            `kid="${signatureKey.kid}"`,
+        ]
 
-        if (signatureKey.wellKnown) {
-            params.push(`well-known="${signatureKey.wellKnown}"`)
-        }
-
-        return `${label}=jwks;${params.join(';')}`
+        return `${label}=jwks_uri;${params.join(';')}`
     }
 
     // Note: x509 scheme not yet implemented
@@ -187,7 +187,7 @@ export function parseSignatureInput(header: string): ParsedSignatureInput[] {
  * Parse Signature-Key header as RFC 8941 Dictionary
  * Format: label=scheme;param1="value1";param2="value2"
  *
- * The scheme (hwk, jwt, jwks, x509) is the item value (a token),
+ * The scheme (hwk, jwt, jwks_uri, x509) is the item value (a token),
  * and parameters are semicolon-separated key-value pairs.
  *
  * Per AAuth requirements:
@@ -223,7 +223,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
     }
 
     const label = match[1]
-    const scheme = match[2] as 'hwk' | 'jwt' | 'jwks' | 'x509'
+    const scheme = match[2] as 'hwk' | 'jwt' | 'jwks_uri' | 'x509'
     const paramsStr = match[3]
 
     // Parse parameters (semicolon-separated)
@@ -242,7 +242,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
         }
     }
 
-    if (!['hwk', 'jwt', 'jwks', 'x509'].includes(scheme)) {
+    if (!['hwk', 'jwt', 'jwks_uri', 'x509'].includes(scheme)) {
         throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
     }
 
@@ -270,18 +270,18 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
         ]
     }
 
-    if (scheme === 'jwks') {
-        // Validate jwks has required parameters
-        if (!params.id || !params.kid) {
+    if (scheme === 'jwks_uri') {
+        // Validate jwks_uri has required parameters
+        if (!params.id || !params['well-known'] || !params.kid) {
             throw new Error(
-                'Signature-Key jwks scheme missing required id/kid parameters',
+                'Signature-Key jwks_uri scheme missing required id/well-known/kid parameters',
             )
         }
 
         return [
             {
                 label,
-                type: 'jwks',
+                type: 'jwks_uri',
                 value: {
                     id: params.id,
                     kid: params.kid,
