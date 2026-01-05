@@ -88,7 +88,8 @@ test('jwt: GET request with JWT containing cnf.jwk', async () => {
     // Verify the signature
     const verifyResult = await verify({
         method: 'GET',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
     })
 
@@ -147,7 +148,8 @@ test('jwt: POST request with body and JWT', async () => {
     // Verify
     const verifyResult = await verify({
         method: 'POST',
-        url: 'https://api.example.com/resource',
+        path: '/resource',
+        authority: 'api.example.com',
         headers: result.headers,
         body,
     })
@@ -192,7 +194,8 @@ test('jwt: Should fail verification if JWT missing cnf.jwk claim', async () => {
     // Verification should fail because JWT lacks cnf.jwk
     const verifyResult = await verify({
         method: 'GET',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
     })
 
@@ -230,7 +233,8 @@ test('jwt: Custom label should work', async () => {
     // Verify with custom label
     const verifyResult = await verify({
         method: 'GET',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
     })
 

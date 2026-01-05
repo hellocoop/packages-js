@@ -49,20 +49,8 @@ export async function calculateThumbprint(jwk: JsonWebKey): Promise<string> {
             break
         }
 
-        case 'RSA': {
-            // Required: e, kty, n (in lexicographic order)
-            if (!jwk.e || !jwk.n) {
-                throw new Error('RSA key missing required fields (e, n)')
-            }
-            canonical = JSON.stringify({
-                e: jwk.e,
-                kty: jwk.kty,
-                n: jwk.n,
-            })
-            break
-        }
-
         default:
+            // Note: RSA is not supported by this library (Ed25519 and ES256 only)
             throw new Error(`Unsupported key type: ${jwk.kty}`)
     }
 

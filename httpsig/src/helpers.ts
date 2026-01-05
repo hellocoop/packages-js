@@ -8,7 +8,9 @@ import { verify } from './verify.js'
 /**
  * Verify HTTP Message Signature for Express request
  *
- * IMPORTANT: Must use express.raw() middleware, NOT express.json()!
+ * IMPORTANT:
+ * - Must use express.raw() middleware, NOT express.json()!
+ * - Must provide canonical authority (NOT from request headers - security!)
  *
  * @example
  * ```typescript
@@ -21,7 +23,8 @@ import { verify } from './verify.js'
  * app.use(express.raw({ type: 'application/json' }));
  *
  * app.use(async (req, res, next) => {
- *   const result = await expressVerify(req);
+ *   // Provide your server's canonical authority (per AAuth Section 10.3.1)
+ *   const result = await expressVerify(req, 'api.example.com');
  *   if (result.verified) {
  *     req.signature = result;
  *     next();
@@ -40,15 +43,18 @@ export async function expressVerify(
         headers: Record<string, string | string[]>
         body?: Buffer | string
     },
+    authority: string,
     options?: VerifyOptions,
 ): Promise<VerificationResult> {
-    // Construct full URL from Express request
-    const fullUrl = `${req.protocol}://${req.hostname}${req.originalUrl}`
+    // Parse URL to extract path and query
+    const urlObj = new URL(req.originalUrl, `${req.protocol}://${req.hostname}`)
 
     return verify(
         {
             method: req.method,
-            url: fullUrl,
+            authority,
+            path: urlObj.pathname,
+            query: urlObj.search ? urlObj.search.substring(1) : undefined,
             headers: req.headers,
             body: req.body,
         },
@@ -59,7 +65,9 @@ export async function expressVerify(
 /**
  * Verify HTTP Message Signature for Fastify request
  *
- * IMPORTANT: Must configure Fastify to preserve raw body!
+ * IMPORTANT:
+ * - Must configure Fastify to preserve raw body!
+ * - Must provide canonical authority (NOT from request headers - security!)
  *
  * @example
  * ```typescript
@@ -79,7 +87,8 @@ export async function expressVerify(
  * });
  *
  * fastify.addHook('preHandler', async (request, reply) => {
- *   const result = await fastifyVerify(request);
+ *   // Provide your server's canonical authority (per AAuth Section 10.3.1)
+ *   const result = await fastifyVerify(request, 'api.example.com');
  *   if (!result.verified) {
  *     reply.code(401).send({ error: result.error });
  *     return;
@@ -97,15 +106,21 @@ export async function fastifyVerify(
         headers: Record<string, string | string[]>
         rawBody?: Buffer | string
     },
+    authority: string,
     options?: VerifyOptions,
 ): Promise<VerificationResult> {
-    // Construct full URL from Fastify request
-    const fullUrl = `${request.protocol}://${request.hostname}${request.url}`
+    // Parse URL to extract path and query
+    const urlObj = new URL(
+        request.url,
+        `${request.protocol}://${request.hostname}`,
+    )
 
     return verify(
         {
             method: request.method,
-            url: fullUrl,
+            authority,
+            path: urlObj.pathname,
+            query: urlObj.search ? urlObj.search.substring(1) : undefined,
             headers: request.headers,
             body: request.rawBody,
         },
@@ -116,7 +131,9 @@ export async function fastifyVerify(
 /**
  * Verify HTTP Message Signature for Next.js App Router
  *
- * IMPORTANT: You must consume the body BEFORE verification!
+ * IMPORTANT:
+ * - You must consume the body BEFORE verification!
+ * - Must provide canonical authority (NOT from request URL - security!)
  *
  * @example
  * ```typescript
@@ -126,7 +143,8 @@ export async function fastifyVerify(
  *   // Consume body as text BEFORE verification
  *   const body = await request.text();
  *
- *   const result = await nextJsVerify(request, body);
+ *   // Provide your server's canonical authority (per AAuth Section 10.3.1)
+ *   const result = await nextJsVerify(request, 'api.example.com', body);
  *
  *   if (!result.verified) {
  *     return Response.json({ error: result.error }, { status: 401 });
@@ -140,13 +158,19 @@ export async function fastifyVerify(
  */
 export async function nextJsVerify(
     request: Request,
+    authority: string,
     body?: string,
     options?: VerifyOptions,
 ): Promise<VerificationResult> {
+    // Parse URL to extract path and query
+    const urlObj = new URL(request.url)
+
     return verify(
         {
             method: request.method,
-            url: request.url,
+            authority,
+            path: urlObj.pathname,
+            query: urlObj.search ? urlObj.search.substring(1) : undefined,
             headers: request.headers,
             body,
         },
@@ -157,7 +181,9 @@ export async function nextJsVerify(
 /**
  * Verify HTTP Message Signature for Next.js Pages Router
  *
- * IMPORTANT: Must disable body parsing and read raw body!
+ * IMPORTANT:
+ * - Must disable body parsing and read raw body!
+ * - Must provide canonical authority (NOT from request headers - security!)
  *
  * @example
  * ```typescript
@@ -178,7 +204,8 @@ export async function nextJsVerify(
  *   // Read raw body
  *   const rawBody = await getRawBody(req);
  *
- *   const result = await nextJsPagesVerify(req, rawBody);
+ *   // Provide your server's canonical authority (per AAuth Section 10.3.1)
+ *   const result = await nextJsPagesVerify(req, 'api.example.com', rawBody);
  *
  *   if (!result.verified) {
  *     return res.status(401).json({ error: result.error });
@@ -194,20 +221,21 @@ export async function nextJsPagesVerify(
         headers: Record<string, string | string[]>
         url?: string
     },
+    authority: string,
     body?: Buffer | string,
-    host?: string,
     options?: VerifyOptions,
 ): Promise<VerificationResult> {
-    // Construct full URL
-    const protocol = 'https' // Next.js production is always HTTPS
-    const hostname = host || (req.headers.host as string) || 'localhost'
-    const path = req.url || '/'
-    const fullUrl = `${protocol}://${hostname}${path}`
+    const reqUrl = req.url || '/'
+
+    // Parse URL to extract path and query
+    const urlObj = new URL(reqUrl, `https://${authority}`)
 
     return verify(
         {
             method: req.method || 'GET',
-            url: fullUrl,
+            authority,
+            path: urlObj.pathname,
+            query: urlObj.search ? urlObj.search.substring(1) : undefined,
             headers: req.headers,
             body,
         },

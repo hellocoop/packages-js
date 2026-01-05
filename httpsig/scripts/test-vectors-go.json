@@ -1,0 +1,143 @@
+[
+    {
+        "name": "Ed25519: GET request",
+        "method": "GET",
+        "url": "https://example.com/api/data",
+        "headers": {},
+        "algorithm": "Ed25519",
+        "publicKey": {
+            "crv": "Ed25519",
+            "kty": "OKP",
+            "x": "ki1njC7OefXt2DlsENfg30xtp6jeJjOn-YdJrfZT6Ls"
+        },
+        "signature": "sig=:hKbbEc5kU5Qjg4YMwiZXTJDxDRtIn/E+Yktb9bJKB4qWEtIW7Jq0cXbtj0Kl7ED61BxlVts/cWgKBsk2BPFBDg==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ed25519\""
+    },
+    {
+        "name": "Ed25519: POST with JSON",
+        "method": "POST",
+        "url": "https://example.com/api/users",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": "{\"name\":\"Alice\"}",
+        "algorithm": "Ed25519",
+        "publicKey": {
+            "crv": "Ed25519",
+            "kty": "OKP",
+            "x": "Ujk8LjivfH867teEncceGtSlJ9RnZIUdck8qqKmibDQ"
+        },
+        "signature": "sig=:qb9UYn0DDj+ImvTG9NnietfCHaT3doIGaTN25M02BehwZUBiwm6cYkdJ0/dyCn/EvO3nOzFPnhZSC2Te9w8oDA==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ed25519\""
+    },
+    {
+        "name": "Ed25519: DELETE request",
+        "method": "DELETE",
+        "url": "https://example.com/api/resource/99",
+        "headers": {},
+        "algorithm": "Ed25519",
+        "publicKey": {
+            "crv": "Ed25519",
+            "kty": "OKP",
+            "x": "PjYXPI00PG2bOIXzSCR4Dqa2rYa0aPr_Gog0CwUyIgg"
+        },
+        "signature": "sig=:S4J51d5OduBlFG4oRmzGJA0XopetAlrupkM2G3lphYavcDr47UGPPyAjBRgEHnl5ymW5Sw5dJBNWHnJziUX9BQ==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ed25519\""
+    },
+    {
+        "name": "ES256: GET request",
+        "method": "GET",
+        "url": "https://example.com/api/data",
+        "headers": {},
+        "algorithm": "ES256",
+        "publicKey": {
+            "crv": "P-256",
+            "kty": "EC",
+            "x": "yHrxW8FrC4PywnWlMzB9IwgCAHarhh-eEDKJm0wncnk",
+            "y": "rFTS3QT-3wSgP-9hucb186ho-UsQIE301k8iqqYlnNg"
+        },
+        "signature": "sig=:++Dv53QNobaZSbfigG2XW91RuwBQU5izojpSx17jipCnSE41YzJyys5Deze82NcxB1hxwuP8wTd1Liol28fwnQ==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ecdsa-p256-sha256\""
+    },
+    {
+        "name": "ES256: POST with JSON",
+        "method": "POST",
+        "url": "https://example.com/api/users",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": "{\"name\":\"Bob\"}",
+        "algorithm": "ES256",
+        "publicKey": {
+            "crv": "P-256",
+            "kty": "EC",
+            "x": "Kr8_cGSLiSU-zxDc0FrQAbPCBZ59WCfA8QuhvYEkrPA",
+            "y": "u4_NeUCxbffQpG0uuwAx0y34l3qi2p_S8Fy7QbXCvEk"
+        },
+        "signature": "sig=:+3qeav2Oy/UW9OdPx1gJUkUfcai4wx/HP7JrVKwcE3mJFISB93IgL55QziOW4rsbnLHse1mBVNmXmgoaMmofrg==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ecdsa-p256-sha256\""
+    },
+    {
+        "name": "ES256: PUT request",
+        "method": "PUT",
+        "url": "https://example.com/api/resource/42",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": "{\"status\":\"updated\"}",
+        "algorithm": "ES256",
+        "publicKey": {
+            "crv": "P-256",
+            "kty": "EC",
+            "x": "pGDUsoK-SMAjcrw8ibPtnw1kfDRJKFf7rlHXQ8LXQGU",
+            "y": "L4R8EJqINdO3lkk6DnTBbe7E-kty07JPtEEBEcamBgQ"
+        },
+        "signature": "sig=:O1Qgzwn9VYhRFXLTqqZWGL+l3JfauhBrXAyqfXPv4sAC+GZDF0UIwpjYJHLN7inQkVe53glMKRvU2Gy6NI3fQQ==:",
+        "sigInput": "sig=();created=1767021027;alg=\"ecdsa-p256-sha256\""
+    },
+    {
+        "name": "RS256: GET request",
+        "method": "GET",
+        "url": "https://example.com/api/data",
+        "headers": {},
+        "algorithm": "RS256",
+        "publicKey": {
+            "e": "AQAB",
+            "kty": "RSA",
+            "n": "mQiKsMsOrQijUXVyBUg6phmmEqTP30WKedkIeEGLSWOIWlnWXMaJnWuly-HFuyBwBtxM-nBFyMSaM65gATi8aZLh_ccZriPwEbKowaN_4vs0MqOZRpt3vFMFccMIG6SQXRzt97Ss6V4Hn-YO3yrd1FJT_Tegp5KsRKx8WuxjhAQ8DUYKur_rtaKRrxUr4DnXxKcC0A0rhsIuJiXFxq0Mws1Ba1MdCpHrTYky672pGP2UHkvHSTQlc1jcB0K6tzUbDr7EwNzA1L_TbZQy9grWj1OkOH99Dyv6ATSfSI2PIW0BFe0-BqgGWJsoHpF7mR_GjGJZGegbX9p_R-4caErIEw"
+        },
+        "signature": "sig=:B8BgUBvUSvj6xqVmr+pboibhMNQNcMn8D/4gJNRKMPAaUAVMGB/1p1R3ei3us+YLSU9WHaZSsp6/Zi8bmuwAnrUHT2XSQoTOA4qiZ4unr/qjonEheSSvXWFeuSKwriLDsiqc2xLeqdH0wLtGugNcB8vkuBuS0TCt8JfxOQNEVFrJWKvocWFD1G6KOH2l0Kn0J6WLZXrUmmOGNx5JcsPXJmkJwpUSrRQX9NxKyXo4Q94caDb8xZVuo21U3Q2U2FrM7KWJydRf7in3leHtbm8gSst9yC4MligL+o2Rqh9YqZjrQxIegckZfdpQ+Zb6lCSKENSQTLri2o3ZxI3fCOwkKQ==:",
+        "sigInput": "sig=();created=1767021027;alg=\"rsa-pss-sha512\""
+    },
+    {
+        "name": "RS256: POST with JSON",
+        "method": "POST",
+        "url": "https://example.com/api/users",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": "{\"name\":\"Charlie\"}",
+        "algorithm": "RS256",
+        "publicKey": {
+            "e": "AQAB",
+            "kty": "RSA",
+            "n": "m2EQdGgD9g11CLBFt6ZtpYA2Z8pIC6aCncydANhEMPBa63jRM3m3aI3qJcZl6hF0niv-NhoT6FQFaouyLHu4NbAem3s4VrvRMP6rpGL6FUVyICVuJ_Sq8G3X6VFmj651oIlcvXmb__gJ4-6xD8BslLY4FivrmXsm10r9cNSOX_txaf4IZmHt9d-Z09BXzBwToPdVYhxoYyk_XSpcqmoihbJt0JYayNq1-hD9kJ9i_jNFY2hGukFNN-V7pTRDEuGajsk2XBATKJedkxIVzJ9MDRNQiNSaQNTDk3P64RxtENoj5RhZ7grZIe17Pb6FQiMGwzTMcMj9I4QRxz9ZVJ2akw"
+        },
+        "signature": "sig=:GKPNOT/teZlICEF9wLzqufo0X4wKrvtkfIjRE8jtCxxL5f5dQCldIP1Ugow0LiM25T9DVpajfPkrZQHf+Fa8hMfrgfEBBLp9xWf+gvHyPk52iCssbKVl/98CyO9Zk8oGHjJ1xYHPWDpe/MdIULh0RwVrFu0khTNa+bRgqAoq2CmbcYeAlmBfLSq0QqhDB/avQkM1OYKioYEZcnbA4Qi4fkKU9cm3gXOKkXnJ4k5cGi52CptP4f2PV+suo09jKYcAOMQL1muS6yt1NBdVxTXM6W2jsoN39Ra8DDK5zVvyawmqlaeX4sOSlVJX8xW+W+lKRC9NzuntEVW0fof50Qu6Zw==:",
+        "sigInput": "sig=();created=1767021027;alg=\"rsa-pss-sha512\""
+    },
+    {
+        "name": "RS256: GET with query",
+        "method": "GET",
+        "url": "https://example.com/search?q=test",
+        "headers": {},
+        "algorithm": "RS256",
+        "publicKey": {
+            "e": "AQAB",
+            "kty": "RSA",
+            "n": "3oElF9uyA_5xphAtwZaEQKZPelEFaGEzYApsGB4lWPdj7AUNZ1huWL1BbsMRPanQ3a1HJeXizghx-utelXX44K-JPc5lnjc3BIulO7FqmFVlc6Ho0KTzpcKnulRWjYcfX2OrjkBCbA_FJEmbpRVM58y2sFI1cS6Xv4U_3vc15Uup607y7sNa3NxEPixbcyPZJLpDYfY39AFd-njJpUeTCUgHInWKX-Z_j9Kb2gE3ejoaL28Xm_YXsT1JLznUGafZ00i9BwxrElvMw93G6KbzytV7ckQEtIxadTmLjwmye5PUVVXkEnzNjBfmVwjcAlGxMoXS6RmyrnqvNaa8BCdk0Q"
+        },
+        "signature": "sig=:EE4jFfvDF4yUWnY/nShWnzx/YjYZi4mAGhlAr/C+xRIoBLuRzeyLZk8giuJ+upjb3FWqKivTdHgChue9PxGUwk0Kp7e+t+bMNgS1AP56ZXM10Njsh5Dg/17tblmwIZ6VRv94qYZG6XlFGAQHznSr6TvscY3KvEGVMlr6cfAj3hT4XsQ7yGnQ76b8z0c+B6goCQbu4Vj6EYfMaBZDM2LypC1TkdaxyXHhFUErxz2paMqojVI0CBTfGAJtsSJ4AN0eWcDE3nmwWuE84cwGbpCtUnejmS+zFkJQ8c+0v0GWV/a+CuNVc1004iHKMmWM+xYE2d4pjHJhekqSYjJ5umLe3A==:",
+        "sigInput": "sig=();created=1767021027;alg=\"rsa-pss-sha512\""
+    }
+]

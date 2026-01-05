@@ -161,26 +161,48 @@ export async function verify(
     const {
         maxClockSkew = 60,
         jwksCacheTtl = 3600000, // 1 hour
+        strictAAuth = true, // Enforce AAuth profile by default
     } = options
 
     try {
         // Normalize headers
         const headers = normalizeHeaders(request.headers)
 
-        // Parse Signature-Input header
+        // Parse Signature-Key header FIRST to auto-discover the label
+        // Per AAuth: Signature-Key is a Dictionary with exactly one member
+        const signatureKeyHeader = headers.get('signature-key')
+        if (!signatureKeyHeader) {
+            throw new Error('Missing Signature-Key header')
+        }
+
+        const signatureKeys = parseSignatureKey(signatureKeyHeader)
+        // parseSignatureKey already validates single member and extracts label
+        const signatureKey = signatureKeys[0]
+        const label = signatureKey.label
+
+        // Parse Signature-Input header and find entry matching the discovered label
         const signatureInputHeader = headers.get('signature-input')
         if (!signatureInputHeader) {
             throw new Error('Missing Signature-Input header')
         }
 
         const signatureInputs = parseSignatureInput(signatureInputHeader)
-        if (signatureInputs.length === 0) {
-            throw new Error('No signatures found in Signature-Input header')
+        const signatureInput = signatureInputs.find((si) => si.label === label)
+
+        if (!signatureInput) {
+            throw new Error(
+                `No Signature-Input found for label "${label}" from Signature-Key`,
+            )
         }
 
-        // Use the first signature (typically there's only one)
-        const signatureInput = signatureInputs[0]
-        const { label, components, params } = signatureInput
+        const { components, params } = signatureInput
+
+        // Validate that signature-key is in covered components (AAuth profile requirement)
+        if (strictAAuth && !components.includes('signature-key')) {
+            throw new Error(
+                'AAuth profile violation: signature-key must be in covered components',
+            )
+        }
 
         // Validate timestamp
         const now = Math.floor(Date.now() / 1000)
@@ -190,19 +212,6 @@ export async function verify(
             throw new Error(
                 `Signature timestamp out of acceptable range (skew: ${skew}s)`,
             )
-        }
-
-        // Parse Signature-Key header
-        const signatureKeyHeader = headers.get('signature-key')
-        if (!signatureKeyHeader) {
-            throw new Error('Missing Signature-Key header')
-        }
-
-        const signatureKeys = parseSignatureKey(signatureKeyHeader)
-        const signatureKey = signatureKeys.find((sk) => sk.label === label)
-
-        if (!signatureKey) {
-            throw new Error(`No signature key found for label: ${label}`)
         }
 
         // Get public key based on type
@@ -238,6 +247,17 @@ export async function verify(
             )
             jwksData = { id, kid, wellKnown }
         } else {
+            // Note: x509 scheme not yet implemented
+            // Future implementation would:
+            // 1. Parse X.509 certificate (PEM/DER format)
+            // 2. Extract SubjectPublicKeyInfo
+            // 3. Convert to JWK format
+            // Recommended library: @peculiar/x509
+            // Example:
+            // import { X509Certificate } from '@peculiar/x509'
+            // const cert = new X509Certificate(x509Value.cert)
+            // publicJwk = await cert.publicKey.export('jwk')
+
             throw new Error(
                 `Unsupported signature key type: ${(signatureKey as any).type}`,
             )
@@ -260,12 +280,22 @@ export async function verify(
         }
 
         // Build component values
-        const urlObj = new URL(request.url, 'http://localhost')
-        const targetUri = urlObj.href
+        // Construct full URL from authority, path, and query for @target-uri component
+        const queryString = request.query ? `?${request.query}` : ''
+        const targetUri = `https://${request.authority}${request.path}${queryString}`
 
         const componentValues = new Map<string, string>()
-        componentValues.set('@method', `"${request.method.toUpperCase()}"`)
-        componentValues.set('@target-uri', `"${targetUri}"`)
+
+        componentValues.set('@method', request.method.toUpperCase())
+        componentValues.set('@target-uri', targetUri)
+
+        // Use provided canonical authority (per AAuth Section 10.3.1)
+        componentValues.set('@authority', request.authority)
+
+        componentValues.set('@scheme', 'https')
+        componentValues.set('@request-target', `${request.path}${queryString}`)
+        componentValues.set('@path', request.path)
+        componentValues.set('@query', request.query || '')
 
         // Validate content-digest if body is present
         if (
@@ -304,11 +334,25 @@ export async function verify(
                 throw new Error(`Missing header for component: ${component}`)
             }
 
-            componentValues.set(component, `"${value}"`)
+            componentValues.set(component, value)
         }
 
         // Add @signature-params
-        const signatureParams = `("${label}");created=${params.created}`
+        const componentList = components.map((c) => `"${c}"`).join(' ')
+        const paramPairs = Object.entries(params)
+            .map(([key, value]) => {
+                if (typeof value === 'number') {
+                    return `${key}=${value}`
+                }
+                // String values from parsing may already have quotes
+                const stringValue = String(value)
+                if (stringValue.startsWith('"') && stringValue.endsWith('"')) {
+                    return `${key}=${stringValue}`
+                }
+                return `${key}="${stringValue}"`
+            })
+            .join(';')
+        const signatureParams = `(${componentList});${paramPairs}`
         componentValues.set('@signature-params', signatureParams)
         const componentsWithParams = [...components, '@signature-params']
 

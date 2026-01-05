@@ -53,9 +53,17 @@ import { verify } from '@hellocoop/httpsig'
 // In Express middleware
 app.use(async (req, res, next) => {
     try {
+        // Parse URL to extract path and query
+        const urlObj = new URL(
+            req.originalUrl,
+            `${req.protocol}://${req.hostname}`,
+        )
+
         const result = await verify({
             method: req.method,
-            url: req.url,
+            authority: req.hostname,
+            path: urlObj.pathname,
+            query: urlObj.search ? urlObj.search.substring(1) : undefined,
             headers: req.headers,
             body: req.body,
         })
@@ -98,6 +106,7 @@ interface HttpSigFetchOptions extends RequestInit {
 
     // Optional parameters
     label?: string // Signature label (default: 'sig')
+    components?: string[] // Override default components
 
     // Testing mode
     dryRun?: boolean // Return headers without fetching (still returns Promise)
@@ -158,6 +167,53 @@ console.log(headers.get('Signature-Input'))
 console.log(headers.get('Signature-Key'))
 ```
 
+**Overriding default components:**
+
+```typescript
+import {
+    fetch,
+    DEFAULT_COMPONENTS_GET,
+    DEFAULT_COMPONENTS_BODY,
+} from '@hellocoop/httpsig'
+
+// Default components for requests without body (GET, DELETE):
+// ['@method', '@authority', '@path', 'signature-key']
+
+// Default components for requests with body (POST, PUT, PATCH):
+// ['@method', '@authority', '@path', 'content-type', 'content-digest', 'signature-key']
+
+// Override defaults for RFC 9421 interoperability
+const response = await fetch('https://api.example.com/data', {
+    method: 'POST',
+    headers: {
+        date: new Date().toUTCString(),
+        'content-type': 'application/json',
+    },
+    body: JSON.stringify({ foo: 'bar' }),
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+    // Override with different components
+    components: [
+        'date',
+        '@method',
+        '@path',
+        '@authority',
+        'content-type',
+        'content-digest',
+        'signature-key',
+    ],
+})
+
+// To extend defaults, add new components
+const components = [
+    ...DEFAULT_COMPONENTS_BODY,
+    'date', // Add date header to signature
+    'authorization', // Add authorization header
+]
+
+// Note: Duplicates are automatically removed
+```
+
 ### `verify(request, options?)`
 
 Verifies HTTP Message Signatures on incoming requests.
@@ -172,11 +228,15 @@ Verifies HTTP Message Signatures on incoming requests.
 ```typescript
 interface VerifyRequest {
     method: string
-    url: string
+    authority: string // Canonical authority (e.g., 'api.example.com')
+    path: string // Request path (e.g., '/api/data')
+    query?: string // Optional query string without leading '?' (e.g., 'foo=bar')
     headers: Headers | Record<string, string | string[]>
-    body?: string | Buffer | object
+    body?: string | Buffer | Uint8Array
 }
 ```
+
+**Note**: The body must be raw bytes (string, Buffer, or Uint8Array), **NOT** a parsed object. If you pass a parsed JSON object, signature verification will fail because the content-digest is computed over the exact bytes.
 
 **VerifyOptions:**
 
@@ -187,6 +247,10 @@ interface VerifyOptions {
 
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
+
+    // AAuth profile enforcement
+    strictAAuth?: boolean // Enforce AAuth profile requirements (default: true)
+    // When true, requires signature-key in covered components
 }
 ```
 
@@ -411,15 +475,27 @@ See examples in the [`verify()` documentation](#verify-request-options) above.
 
 ## Signature Components
 
-All requests include the Signature-Key header in the covered components:
+### Default Components
 
-### GET Requests (no body)
+By default, requests are signed with these components:
+
+**Requests without a body (GET, DELETE):**
+
+- `@method` - HTTP method
+- `@target-uri` - Full URL
+- `signature-key` - The Signature-Key header
 
 ```
 Signature-Input: sig=("@method" "@target-uri" "signature-key");created=1730217600
 ```
 
-### POST/PUT/PATCH Requests (with body)
+**Requests with a body (POST, PUT, PATCH):**
+
+- `@method` - HTTP method
+- `@target-uri` - Full URL
+- `content-type` - Content-Type header
+- `content-digest` - Content-Digest header (auto-generated)
+- `signature-key` - The Signature-Key header
 
 ```
 Signature-Input: sig=("@method" "@target-uri" "content-type" "content-digest" "signature-key");created=1730217600
@@ -431,7 +507,67 @@ The `content-digest` is computed as:
 Content-Digest: sha-256=:BASE64(SHA256(body)):
 ```
 
+### Overriding Default Components
+
+You can override the default components using the `components` parameter. The library exports helpful constants:
+
+**Exported Constants:**
+
+```typescript
+import {
+    VALID_DERIVED_COMPONENTS, // All valid RFC 9421 derived components
+    DEFAULT_COMPONENTS_GET, // Default for GET requests
+    DEFAULT_COMPONENTS_BODY, // Default for requests with body
+} from '@hellocoop/httpsig'
+
+// VALID_DERIVED_COMPONENTS contains:
+// ['@method', '@target-uri', '@authority', '@scheme',
+//  '@request-target', '@path', '@query', '@query-param', '@status']
+
+// DEFAULT_COMPONENTS_GET contains:
+// ['@method', '@target-uri', 'signature-key']
+
+// DEFAULT_COMPONENTS_BODY contains:
+// ['@method', '@target-uri', 'content-type', 'content-digest', 'signature-key']
+```
+
+**Example - Override with RFC 9421 compatible components:**
+
+```typescript
+// Override defaults to use @path and @authority instead of @target-uri
+await fetch('https://api.example.com/data', {
+    method: 'POST',
+    headers: { date: new Date().toUTCString() },
+    body: JSON.stringify({ data: 'value' }),
+    signingKey: privateKeyJwk,
+    signatureKey: { type: 'hwk' },
+    components: [
+        'date', // Include date header
+        '@method',
+        '@path', // Instead of @target-uri
+        '@authority', // Instead of @target-uri
+        'content-type',
+        'content-digest',
+    ],
+})
+```
+
+**Component Validation:**
+
+- Derived components (starting with `@`) must be in `VALID_DERIVED_COMPONENTS`
+- Header components must exist in the request headers
+- Duplicate components are automatically removed
+- Invalid components throw an error with a clear message
+
 ## Signature-Key Types
+
+The Signature-Key header uses [RFC 8941 Structured Fields Dictionary format](https://www.rfc-editor.org/rfc/rfc8941.html) with exactly one dictionary member. The member key (label) is used to correlate the three signature headers: `Signature-Key`, `Signature-Input`, and `Signature`.
+
+**Format:** `label=scheme;param1="value1";param2="value2"`
+
+**Label Discovery:** During verification, the label is automatically discovered from the Signature-Key header (per AAuth spec). The same label must appear in both Signature-Input and Signature headers.
+
+**AAuth Profile Requirement:** When `strictAAuth: true` (default), the `signature-key` component must be included in the covered components list.
 
 ### hwk (Header Web Key)
 
@@ -444,10 +580,10 @@ const response = await fetch(url, {
 })
 ```
 
-Generated headers:
+Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=hwk; kty="OKP"; crv="Ed25519"; x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"
+Signature-Key: sig=hwk;kty="OKP";crv="Ed25519";x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"
 ```
 
 **Use cases:**
@@ -470,10 +606,10 @@ const response = await fetch(url, {
 })
 ```
 
-Generated headers:
+Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=jwt; jwt="eyJhbGciOiJFZERTQSIsInR5cCI6ImFnZW50K2p3dCJ9..."
+Signature-Key: sig=jwt;jwt="eyJhbGciOiJFZERTQSIsInR5cCI6ImFnZW50K2p3dCJ9..."
 ```
 
 The JWT must contain:
@@ -514,10 +650,10 @@ const response = await fetch(url, {
 })
 ```
 
-Generated headers:
+Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=jwks; id="https://agent.example"; kid="key-1"
+Signature-Key: sig=jwks;id="https://agent.example";kid="key-1"
 ```
 
 With well-known metadata:
@@ -534,10 +670,10 @@ const response = await fetch(url, {
 })
 ```
 
-Generated headers:
+Generated headers (RFC 8941 Dictionary format):
 
 ```http
-Signature-Key: sig=jwks; id="https://agent.example"; well-known="agent-server"; kid="key-1"
+Signature-Key: sig=jwks;id="https://agent.example";kid="key-1";well-known="agent-server"
 ```
 
 **Discovery process:**
@@ -555,9 +691,18 @@ Signature-Key: sig=jwks; id="https://agent.example"; well-known="agent-server"; 
 
 ## Supported Algorithms
 
-- **Ed25519** (EdDSA with Curve25519) - Recommended
-- **ES256** (ECDSA with P-256 and SHA-256)
-- **RS256** (RSA-PSS with SHA-256 and 2048-bit keys)
+We support the two most widely recommended algorithms from the [IANA HTTP Message Signatures registry](https://www.iana.org/assignments/http-message-signature/http-message-signature.xhtml):
+
+- **Ed25519** (`ed25519`) - EdDSA with Curve25519 - **Recommended**
+
+    - Fast, secure, deterministic
+    - Small signatures (64 bytes)
+    - Perfect interoperability
+
+- **ES256** (`ecdsa-p256-sha256`) - ECDSA with P-256 and SHA-256
+    - Industry standard (JWT, WebAuthn)
+    - Widely supported
+    - Perfect interoperability
 
 ## Security Considerations
 
@@ -630,8 +775,3 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](../../CONTRIBUTING.md) for details.
-
-## Related Packages
-
-- `@hellocoop/api` - Hellō client API
-- `@hellocoop/better-auth` - Better Auth integration

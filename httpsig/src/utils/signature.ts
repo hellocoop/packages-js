@@ -42,7 +42,11 @@ export function generateSignatureInputHeader(
 }
 
 /**
- * Generate Signature-Key header value
+ * Generate Signature-Key header value as RFC 8941 Dictionary
+ * Format: label=scheme;param1="value1";param2="value2"
+ *
+ * The scheme (hwk, jwt, jwks, x509) is the item value, and
+ * scheme-specific parameters are semicolon-separated.
  */
 export function generateSignatureKeyHeader(
     label: string,
@@ -63,22 +67,29 @@ export function generateSignatureKeyHeader(
         if (publicJwk.n) params.push(`n="${publicJwk.n}"`)
         if (publicJwk.e) params.push(`e="${publicJwk.e}"`)
 
-        return `${label}=hwk; ${params.join('; ')}`
+        return `${label}=hwk;${params.join(';')}`
     }
 
     if (signatureKey.type === 'jwt') {
-        return `${label}=jwt; jwt="${signatureKey.jwt}"`
+        return `${label}=jwt;jwt="${signatureKey.jwt}"`
     }
 
     if (signatureKey.type === 'jwks') {
         const params = [`id="${signatureKey.id}"`, `kid="${signatureKey.kid}"`]
 
         if (signatureKey.wellKnown) {
-            params.splice(1, 0, `well-known="${signatureKey.wellKnown}"`)
+            params.push(`well-known="${signatureKey.wellKnown}"`)
         }
 
-        return `${label}=jwks; ${params.join('; ')}`
+        return `${label}=jwks;${params.join(';')}`
     }
+
+    // Note: x509 scheme not yet implemented
+    // Future implementation would look like:
+    // if (signatureKey.type === 'x509') {
+    //     return `${label}=x509;x5u="${signatureKey.x5u}";x5t="${signatureKey.x5t}"`
+    // }
+    // Recommended: use @peculiar/x509 for certificate parsing
 
     throw new Error(
         `Unsupported signature key type: ${(signatureKey as any).type}`,
@@ -131,7 +142,8 @@ export function parseSignatureInput(header: string): ParsedSignatureInput[] {
 
     for (const part of parts) {
         // Format: label=(components);params
-        const match = part.match(/^([^=]+)=\(([^)]+)\);(.+)$/)
+        // Note: component list can be empty, so use * instead of +
+        const match = part.match(/^([^=]+)=\(([^)]*)\);(.+)$/)
         if (!match) {
             throw new Error(`Invalid Signature-Input format: ${part}`)
         }
@@ -172,77 +184,123 @@ export function parseSignatureInput(header: string): ParsedSignatureInput[] {
 }
 
 /**
- * Parse Signature-Key header
+ * Parse Signature-Key header as RFC 8941 Dictionary
+ * Format: label=scheme;param1="value1";param2="value2"
+ *
+ * The scheme (hwk, jwt, jwks, x509) is the item value (a token),
+ * and parameters are semicolon-separated key-value pairs.
+ *
+ * Per AAuth requirements:
+ * - Must be a valid RFC 8941 Dictionary
+ * - Must have exactly one dictionary member
+ * - The member key is the label
  */
 export function parseSignatureKey(header: string): ParsedSignatureKey[] {
-    const results: ParsedSignatureKey[] = []
+    const trimmed = header.trim()
 
-    // Split by comma for multiple signatures (though typically one)
-    const entries = header.split(/,(?=\s*\w+=)/)
-
-    for (const entry of entries) {
-        const trimmed = entry.trim()
-
-        // Format: label=type; params
-        const match = trimmed.match(/^([^=]+)=(\w+);(.+)$/)
-        if (!match) {
-            throw new Error(`Invalid Signature-Key format: ${trimmed}`)
-        }
-
-        const label = match[1].trim()
-        const type = match[2] as 'hwk' | 'jwt' | 'jwks'
-        const paramsStr = match[3]
-
-        if (type === 'hwk') {
-            // Parse hwk parameters
-            const params: any = {}
-            const paramPairs = paramsStr.split(';').map((p) => p.trim())
-
-            for (const pair of paramPairs) {
-                const [key, value] = pair.split('=').map((s) => s.trim())
-                params[key] = value.replace(/^"|"$/g, '')
-            }
-
-            results.push({ label, type: 'hwk', value: params })
-        } else if (type === 'jwt') {
-            // Parse JWT parameter
-            const jwtMatch = paramsStr.match(/jwt="([^"]+)"/)
-            if (!jwtMatch) {
-                throw new Error('Signature-Key jwt type missing jwt parameter')
-            }
-
-            results.push({
-                label,
-                type: 'jwt',
-                value: { jwt: jwtMatch[1] },
-            })
-        } else if (type === 'jwks') {
-            // Parse JWKS parameters
-            const idMatch = paramsStr.match(/id="([^"]+)"/)
-            const kidMatch = paramsStr.match(/kid="([^"]+)"/)
-            const wellKnownMatch = paramsStr.match(/well-known="([^"]+)"/)
-
-            if (!idMatch || !kidMatch) {
-                throw new Error(
-                    'Signature-Key jwks type missing required parameters',
-                )
-            }
-
-            results.push({
-                label,
-                type: 'jwks',
-                value: {
-                    id: idMatch[1],
-                    kid: kidMatch[1],
-                    wellKnown: wellKnownMatch?.[1],
-                },
-            })
-        } else {
-            throw new Error(`Unsupported Signature-Key type: ${type}`)
+    // Check for multiple members (commas outside of quoted strings indicate multiple dictionary members)
+    // Simple check: if there's a comma not inside quotes, reject
+    let inQuote = false
+    for (let i = 0; i < trimmed.length; i++) {
+        if (trimmed[i] === '"' && (i === 0 || trimmed[i - 1] !== '\\')) {
+            inQuote = !inQuote
+        } else if (trimmed[i] === ',' && !inQuote) {
+            throw new Error(
+                'Invalid Signature-Key: must have exactly one dictionary member',
+            )
         }
     }
 
-    return results
+    // RFC 8941 Dictionary format: label=scheme;param1="value1";param2="value2"
+    // Match: label=token followed by optional parameters
+    // Note: [\w-]+ allows hyphens in labels (e.g., sig-b26)
+    const match = trimmed.match(/^([\w-]+)=(\w+)(.*)$/)
+
+    if (!match) {
+        throw new Error(
+            'Invalid Signature-Key: must be RFC 8941 Dictionary with format label=scheme;params',
+        )
+    }
+
+    const label = match[1]
+    const scheme = match[2] as 'hwk' | 'jwt' | 'jwks' | 'x509'
+    const paramsStr = match[3]
+
+    // Parse parameters (semicolon-separated)
+    const params: any = {}
+    if (paramsStr) {
+        // Note: [\w-]+ allows hyphens in parameter names (e.g., well-known)
+        const paramMatches = paramsStr.matchAll(
+            /;([\w-]+)=(?:"([^"]*)"|(\w+))/g,
+        )
+
+        for (const paramMatch of paramMatches) {
+            const key = paramMatch[1]
+            const value =
+                paramMatch[2] !== undefined ? paramMatch[2] : paramMatch[3] // quoted or unquoted value
+            params[key] = value
+        }
+    }
+
+    if (!['hwk', 'jwt', 'jwks', 'x509'].includes(scheme)) {
+        throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
+    }
+
+    if (scheme === 'hwk') {
+        // Validate hwk has required parameters
+        if (!params.kty) {
+            throw new Error('Signature-Key hwk scheme missing kty parameter')
+        }
+
+        return [{ label, type: 'hwk', value: params }]
+    }
+
+    if (scheme === 'jwt') {
+        // Validate jwt has required parameters
+        if (!params.jwt) {
+            throw new Error('Signature-Key jwt scheme missing jwt parameter')
+        }
+
+        return [
+            {
+                label,
+                type: 'jwt',
+                value: { jwt: params.jwt },
+            },
+        ]
+    }
+
+    if (scheme === 'jwks') {
+        // Validate jwks has required parameters
+        if (!params.id || !params.kid) {
+            throw new Error(
+                'Signature-Key jwks scheme missing required id/kid parameters',
+            )
+        }
+
+        return [
+            {
+                label,
+                type: 'jwks',
+                value: {
+                    id: params.id,
+                    kid: params.kid,
+                    wellKnown: params['well-known'],
+                },
+            },
+        ]
+    }
+
+    // Note: x509 scheme not yet implemented
+    // Future implementation would parse: x509;x5u="...";x5t="..."
+    // if (scheme === 'x509') {
+    //     if (!params.x5u || !params.x5t) {
+    //         throw new Error('Signature-Key x509 scheme missing x5u/x5t parameters')
+    //     }
+    //     return [{ label, type: 'x509', value: { x5u: params.x5u, x5t: params.x5t } }]
+    // }
+
+    throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
 }
 
 /**

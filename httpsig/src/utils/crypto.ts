@@ -22,14 +22,6 @@ export function getAlgorithmFromJwk(jwk: JsonWebKey): AlgorithmParams {
         throw new Error(`Unsupported EC curve: ${jwk.crv}`)
     }
 
-    if (jwk.kty === 'RSA') {
-        return {
-            name: 'RSA-PSS',
-            hash: 'SHA-256',
-            saltLength: 32,
-        }
-    }
-
     throw new Error(`Unsupported key type: ${jwk.kty}`)
 }
 
@@ -102,9 +94,6 @@ export function validateJwk(jwk: JsonWebKey): void {
         if (!jwk.crv) throw new Error('EC JWK missing required field: crv')
         if (!jwk.x) throw new Error('EC JWK missing required field: x')
         if (!jwk.y) throw new Error('EC JWK missing required field: y')
-    } else if (jwk.kty === 'RSA') {
-        if (!jwk.n) throw new Error('RSA JWK missing required field: n')
-        if (!jwk.e) throw new Error('RSA JWK missing required field: e')
     } else {
         throw new Error(`Unsupported key type: ${jwk.kty}`)
     }

@@ -119,7 +119,8 @@ test('jwks: GET request with direct JWKS URL', async () => {
         // Verify (this will fetch the JWKS)
         const verifyResult = await verify({
             method: 'GET',
-            url: 'https://api.example.com/data',
+            path: '/data',
+            authority: 'api.example.com',
             headers: result.headers,
         })
 
@@ -165,7 +166,8 @@ test('jwks: GET request with well-known metadata', async () => {
         // Verify (should fetch metadata first, then JWKS)
         const verifyResult = await verify({
             method: 'GET',
-            url: 'https://api.example.com/data',
+            path: '/data',
+            authority: 'api.example.com',
             headers: result.headers,
         })
 
@@ -233,7 +235,8 @@ test('jwks: POST request with body', async () => {
         // Verify
         const verifyResult = await verify({
             method: 'POST',
-            url: 'https://api.example.com/resource',
+            path: '/resource',
+            authority: 'api.example.com',
             headers: result.headers,
             body,
         })
@@ -274,7 +277,8 @@ test('jwks: Should fail if key not found in JWKS', async () => {
         // Verification should fail
         const verifyResult = await verify({
             method: 'GET',
-            url: 'https://api.example.com/data',
+            path: '/data',
+            authority: 'api.example.com',
             headers: result.headers,
         })
 
@@ -337,7 +341,8 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
         // First verify - should fetch JWKS
         const firstResult = await verify({
             method: 'GET',
-            url: 'https://api.example.com/data',
+            path: '/data',
+            authority: 'api.example.com',
             headers: result.headers,
         })
 
@@ -353,7 +358,8 @@ test('jwks: Caching should work (second verify should not re-fetch)', async () =
         // Second verify - should use cache
         const secondResult = await verify({
             method: 'GET',
-            url: 'https://api.example.com/data',
+            path: '/data',
+            authority: 'api.example.com',
             headers: result.headers,
         })
 

@@ -20,3 +20,9 @@ export type {
     VerifyOptions,
     VerificationResult,
 } from './types.js'
+
+export {
+    VALID_DERIVED_COMPONENTS,
+    DEFAULT_COMPONENTS_GET,
+    DEFAULT_COMPONENTS_BODY,
+} from './types.js'

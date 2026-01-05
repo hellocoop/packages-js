@@ -50,7 +50,8 @@ test('hwk: GET request with Ed25519', async () => {
     // Verify the signature
     const verifyResult = await verify({
         method: 'GET',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
     })
 
@@ -101,7 +102,8 @@ test('hwk: POST request with body and Ed25519', async () => {
     // Verify the signature
     const verifyResult = await verify({
         method: 'POST',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
         body,
     })
@@ -139,7 +141,8 @@ test('hwk: Signature should fail with modified body', async () => {
 
     const verifyResult = await verify({
         method: 'POST',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
         body: modifiedBody,
     })
@@ -177,7 +180,8 @@ test('hwk: Signature should fail with expired timestamp', async () => {
     // Try to verify with the modified timestamp
     const verifyResult = await verify({
         method: 'GET',
-        url: 'https://api.example.com/data',
+        path: '/data',
+        authority: 'api.example.com',
         headers: result.headers,
     })
 

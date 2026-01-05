@@ -21,7 +21,7 @@
         "rfc9421",
         "httpsig",
         "message-signatures",
-        "jwk",
+        "hwk",
         "jwt",
         "jwks",
         "authentication"
@@ -40,10 +40,11 @@
         "prebuild": "rimraf dist dist-test",
         "build": "tsc",
         "pretest": "tsc -p tsconfig.test.json",
-        "test": "node --test dist-test/tests/test-*.js",
+        "test": "node --test --test-concurrency=1 dist-test/tests/test-*.js",
         "test:watch": "tsc -p tsconfig.test.json --watch & node --test --watch dist-test/tests/test-*.js"
     },
     "devDependencies": {
+        "@misskey-dev/node-http-message-signatures": "^0.0.10",
         "@tsconfig/node18": "^18.2.2",
         "rimraf": "^5.0.1",
         "typescript": "^5.2.2"
