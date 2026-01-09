@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/httpsig",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "HTTP Message Signatures (RFC 9421) with Signature-Key header support",
     "repository": {
         "type": "git",
