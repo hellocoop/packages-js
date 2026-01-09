@@ -91,13 +91,11 @@ test('hwk: POST request with body and Ed25519', async () => {
     assert.ok(result.headers.get('signature'))
     assert.ok(result.headers.get('signature-input'))
     assert.ok(result.headers.get('signature-key'))
-    assert.ok(result.headers.get('content-digest'))
 
     console.log('\nGenerated headers for POST:')
     console.log('Signature:', result.headers.get('signature'))
     console.log('Signature-Input:', result.headers.get('signature-input'))
     console.log('Signature-Key:', result.headers.get('signature-key'))
-    console.log('Content-Digest:', result.headers.get('content-digest'))
 
     // Verify the signature
     const verifyResult = await verify({
@@ -124,7 +122,7 @@ test('hwk: Signature should fail with modified body', async () => {
 
     const originalBody = JSON.stringify({ foo: 'bar' })
 
-    // Sign a POST request
+    // Sign a POST request with explicit content-digest to detect body modifications
     const result = (await fetch('https://api.example.com/data', {
         method: 'POST',
         headers: {
@@ -133,6 +131,14 @@ test('hwk: Signature should fail with modified body', async () => {
         body: originalBody,
         signingKey: privateJwk,
         signatureKey: { type: 'hwk' },
+        components: [
+            '@method',
+            '@authority',
+            '@path',
+            'content-type',
+            'content-digest',
+            'signature-key',
+        ],
         dryRun: true,
     })) as { headers: Headers }
 

@@ -236,7 +236,7 @@ test('Body handling: null body should not add content headers', async () => {
     console.log('✓ null body does not include content headers')
 })
 
-test('Body handling: empty string should add content headers', async () => {
+test('Body handling: empty string should add content-type', async () => {
     const { privateJwk } = await generateEd25519KeyPair()
 
     const { headers } = (await fetch('https://api.example.com/data', {
@@ -252,12 +252,9 @@ test('Body handling: empty string should add content headers', async () => {
         'text/plain;charset=UTF-8',
         'Should add content-type for empty string (matching standard fetch)',
     )
-    assert.ok(
-        headers.get('content-digest'),
-        'Should add content-digest for empty string',
-    )
+    // Note: content-digest is no longer in default components
 
-    console.log('✓ Empty string body includes content headers (text/plain)')
+    console.log('✓ Empty string body includes content-type (text/plain)')
 })
 
 test('Signature verification: should fail with tampered Signature-Input', async () => {

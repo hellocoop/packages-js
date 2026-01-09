@@ -180,7 +180,7 @@ import {
 // ['@method', '@authority', '@path', 'signature-key']
 
 // Default components for requests with body (POST, PUT, PATCH):
-// ['@method', '@authority', '@path', 'content-type', 'content-digest', 'signature-key']
+// ['@method', '@authority', '@path', 'content-type', 'signature-key']
 
 // Override defaults for RFC 9421 interoperability
 const response = await fetch('https://api.example.com/data', {
@@ -199,7 +199,6 @@ const response = await fetch('https://api.example.com/data', {
         '@path',
         '@authority',
         'content-type',
-        'content-digest',
         'signature-key',
     ],
 })
@@ -236,7 +235,7 @@ interface VerifyRequest {
 }
 ```
 
-**Note**: The body must be raw bytes (string, Buffer, or Uint8Array), **NOT** a parsed object. If you pass a parsed JSON object, signature verification will fail because the content-digest is computed over the exact bytes.
+**Note**: The body must be raw bytes (string, Buffer, or Uint8Array), **NOT** a parsed object. If you include `content-digest` in your components, signature verification will fail with parsed JSON because the content-digest is computed over the exact bytes.
 
 **VerifyOptions:**
 
@@ -452,13 +451,13 @@ app.use(async (req, res) => {
 
 ### Why These Requirements Matter
 
-**Raw Body**: The `content-digest` is computed over the **exact bytes** of the body. If you parse JSON and re-serialize it:
+**Raw Body**: If you use the `content-digest` component, it is computed over the **exact bytes** of the body. If you parse JSON and re-serialize it:
 
 - Whitespace might differ: `{"foo":"bar"}` vs `{"foo": "bar"}`
 - Key order might change
 - The digest won't match → verification fails
 
-**Full URL**: The signature covers the complete `@target-uri`, including protocol and hostname. Using just the path will produce a different signature base → verification fails.
+**Authority and Path**: The signature covers `@authority` and `@path`. Providing incorrect values will produce a different signature base → verification fails.
 
 ### Framework-Specific Verify Functions
 
@@ -482,26 +481,29 @@ By default, requests are signed with these components:
 **Requests without a body (GET, DELETE):**
 
 - `@method` - HTTP method
-- `@target-uri` - Full URL
+- `@authority` - Host authority
+- `@path` - Request path
 - `signature-key` - The Signature-Key header
 
 ```
-Signature-Input: sig=("@method" "@target-uri" "signature-key");created=1730217600
+Signature-Input: sig=("@method" "@authority" "@path" "signature-key");created=1730217600
 ```
 
 **Requests with a body (POST, PUT, PATCH):**
 
 - `@method` - HTTP method
-- `@target-uri` - Full URL
+- `@authority` - Host authority
+- `@path` - Request path
 - `content-type` - Content-Type header
-- `content-digest` - Content-Digest header (auto-generated)
 - `signature-key` - The Signature-Key header
 
 ```
-Signature-Input: sig=("@method" "@target-uri" "content-type" "content-digest" "signature-key");created=1730217600
+Signature-Input: sig=("@method" "@authority" "@path" "content-type" "signature-key");created=1730217600
 ```
 
-The `content-digest` is computed as:
+**Optional: Content-Digest**
+
+If you want body integrity verification, you can add `content-digest` to your components list. When included, the `content-digest` header is computed as:
 
 ```
 Content-Digest: sha-256=:BASE64(SHA256(body)):
@@ -525,29 +527,33 @@ import {
 //  '@request-target', '@path', '@query', '@query-param', '@status']
 
 // DEFAULT_COMPONENTS_GET contains:
-// ['@method', '@target-uri', 'signature-key']
+// ['@method', '@authority', '@path', 'signature-key']
 
 // DEFAULT_COMPONENTS_BODY contains:
-// ['@method', '@target-uri', 'content-type', 'content-digest', 'signature-key']
+// ['@method', '@authority', '@path', 'content-type', 'signature-key']
 ```
 
-**Example - Override with RFC 9421 compatible components:**
+**Example - Adding content-digest for body integrity:**
 
 ```typescript
-// Override defaults to use @path and @authority instead of @target-uri
+// Add content-digest if you need body integrity verification
 await fetch('https://api.example.com/data', {
     method: 'POST',
-    headers: { date: new Date().toUTCString() },
+    headers: {
+        date: new Date().toUTCString(),
+        'content-type': 'application/json',
+    },
     body: JSON.stringify({ data: 'value' }),
     signingKey: privateKeyJwk,
     signatureKey: { type: 'hwk' },
     components: [
-        'date', // Include date header
         '@method',
-        '@path', // Instead of @target-uri
-        '@authority', // Instead of @target-uri
+        '@authority',
+        '@path',
+        'date', // Include date header
         'content-type',
-        'content-digest',
+        'content-digest', // Add for body integrity
+        'signature-key',
     ],
 })
 ```

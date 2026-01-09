@@ -197,8 +197,6 @@ test('jwks_uri: POST request with body', async () => {
             dryRun: true,
         })) as { headers: Headers }
 
-        assert.ok(result.headers.get('content-digest'))
-
         // Verify
         const verifyResult = await verify({
             method: 'POST',

@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/email-verification",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "description": "Functions for generating and verifying JWT tokens used in the Email Verification Protocol",
     "repository": {
         "type": "git",
@@ -61,7 +61,7 @@
         "node": ">=20"
     },
     "dependencies": {
-        "@hellocoop/httpsig": "^1.0.1",
+        "@hellocoop/httpsig": "^1.1.0",
         "jose": "^5.0.0"
     },
     "devDependencies": {

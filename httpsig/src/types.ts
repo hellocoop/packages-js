@@ -37,7 +37,6 @@ export const DEFAULT_COMPONENTS_BODY = [
     '@authority',
     '@path',
     'content-type',
-    'content-digest',
     'signature-key',
 ] as const
 

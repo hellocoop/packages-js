@@ -138,12 +138,10 @@ test('jwt: POST request with body and JWT', async () => {
     assert.ok(result.headers.get('signature'))
     assert.ok(result.headers.get('signature-input'))
     assert.ok(result.headers.get('signature-key'))
-    assert.ok(result.headers.get('content-digest'))
 
     console.log('\nGenerated headers for POST:')
     console.log('Signature:', result.headers.get('signature'))
     console.log('Signature-Input:', result.headers.get('signature-input'))
-    console.log('Content-Digest:', result.headers.get('content-digest'))
 
     // Verify
     const verifyResult = await verify({
