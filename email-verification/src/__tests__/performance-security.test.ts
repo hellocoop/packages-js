@@ -1,15 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import {
-    generateRequestToken,
     generateIssuanceToken,
-    verifyRequestToken,
     verifyIssuanceToken,
+    generatePresentationToken,
+    verifyPresentationToken,
 } from '../index.js'
-import type {
-    KeyResolver,
-    RequestTokenPayload,
-    IssuanceTokenPayload,
-} from '../index.js'
+import type { KeyResolver, IssuanceTokenPayload } from '../index.js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -32,6 +28,7 @@ const rsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'RSA')
 const eddsaPublicKey = publicJwks.keys.find((key: any) => key.kty === 'OKP')
 
 describe('Performance and Security Validation', () => {
+    const audience = 'https://rp.example'
     const nonce = '259c5eae-486d-4b0f-b666-2a5b5ce1c925'
 
     const rsaBrowserKey = {
@@ -54,18 +51,27 @@ describe('Performance and Security Validation', () => {
     }
 
     describe('Performance Benchmarks', () => {
-        it('should generate RequestTokens within reasonable time', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+        it('should generate IssuanceTokens within reasonable time', async () => {
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
             const iterations = 100
             const start = performance.now()
 
             for (let i = 0; i < iterations; i++) {
-                await generateRequestToken(payload, rsaBrowserKey)
+                await generateIssuanceToken(payload, rsaPrivateKey)
             }
 
             const end = performance.now()
@@ -73,23 +79,32 @@ describe('Performance and Security Validation', () => {
 
             expect(avgTime).toBeLessThan(50) // Should be less than 50ms per token
             console.log(
-                `RequestToken generation: ${avgTime.toFixed(2)}ms average`,
+                `IssuanceToken generation: ${avgTime.toFixed(2)}ms average`,
             )
         })
 
-        it('should verify RequestTokens within reasonable time', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+        it('should verify IssuanceTokens within reasonable time', async () => {
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
-            const token = await generateRequestToken(payload, rsaBrowserKey)
+            const token = await generateIssuanceToken(payload, rsaPrivateKey)
             const iterations = 100
             const start = performance.now()
 
             for (let i = 0; i < iterations; i++) {
-                await verifyRequestToken(token)
+                await verifyIssuanceToken(token, keyResolver)
             }
 
             const end = performance.now()
@@ -97,26 +112,35 @@ describe('Performance and Security Validation', () => {
 
             expect(avgTime).toBeLessThan(30) // Should be less than 30ms per verification
             console.log(
-                `RequestToken verification: ${avgTime.toFixed(2)}ms average`,
+                `IssuanceToken verification: ${avgTime.toFixed(2)}ms average`,
             )
         })
 
         it('should handle EdDSA operations efficiently', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: eddsaBrowserKey.kty,
+                        crv: eddsaBrowserKey.crv,
+                        x: eddsaBrowserKey.x,
+                        alg: eddsaBrowserKey.alg,
+                        kid: eddsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
             const iterations = 50
             const start = performance.now()
 
             for (let i = 0; i < iterations; i++) {
-                const token = await generateRequestToken(
+                const token = await generateIssuanceToken(
                     payload,
-                    eddsaBrowserKey,
+                    eddsaPrivateKey,
                 )
-                await verifyRequestToken(token)
+                await verifyIssuanceToken(token, keyResolver)
             }
 
             const end = performance.now()
@@ -124,7 +148,7 @@ describe('Performance and Security Validation', () => {
 
             expect(avgTime).toBeLessThan(100) // EdDSA should be reasonably fast
             console.log(
-                `EdDSA RequestToken round-trip: ${avgTime.toFixed(2)}ms average`,
+                `EdDSA IssuanceToken round-trip: ${avgTime.toFixed(2)}ms average`,
             )
         })
     })
@@ -164,19 +188,28 @@ describe('Performance and Security Validation', () => {
 
         it('should validate algorithm support and reject weak algorithms', async () => {
             const weakKey = {
-                ...rsaBrowserKey,
+                ...rsaPrivateKey,
                 alg: 'HS256', // Symmetric algorithm - should be rejected by JWK validation
             }
 
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
             // Should fail due to unsupported key type for HS256
             await expect(
-                generateRequestToken(payload, weakKey),
+                generateIssuanceToken(payload, weakKey),
             ).rejects.toThrow()
         })
 
@@ -186,18 +219,27 @@ describe('Performance and Security Validation', () => {
                 kty: 'RSA',
                 alg: 'RS256',
                 kid: 'test-rsa',
-                n: rsaBrowserKey.n,
+                n: rsaPrivateKey.n,
                 // Missing 'e' parameter
             }
 
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
             await expect(
-                generateRequestToken(payload, incompleteRSAKey),
+                generateIssuanceToken(payload, incompleteRSAKey),
             ).rejects.toThrow()
 
             // Test EdDSA key validation
@@ -210,42 +252,8 @@ describe('Performance and Security Validation', () => {
             }
 
             await expect(
-                generateRequestToken(payload, incompleteEdDSAKey),
+                generateIssuanceToken(payload, incompleteEdDSAKey),
             ).rejects.toThrow()
-        })
-
-        it('should ensure secure random nonce handling', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            // Generate multiple tokens and verify nonces are preserved correctly
-            const tokens = await Promise.all([
-                generateRequestToken(
-                    { ...payload, nonce: 'nonce-1' },
-                    rsaBrowserKey,
-                ),
-                generateRequestToken(
-                    { ...payload, nonce: 'nonce-2' },
-                    rsaBrowserKey,
-                ),
-                generateRequestToken(
-                    { ...payload, nonce: 'nonce-3' },
-                    rsaBrowserKey,
-                ),
-            ])
-
-            const verified = await Promise.all([
-                verifyRequestToken(tokens[0]),
-                verifyRequestToken(tokens[1]),
-                verifyRequestToken(tokens[2]),
-            ])
-
-            expect(verified[0].nonce).toBe('nonce-1')
-            expect(verified[1].nonce).toBe('nonce-2')
-            expect(verified[2].nonce).toBe('nonce-3')
         })
 
         it('should validate email format security', async () => {
@@ -257,28 +265,46 @@ describe('Performance and Security Validation', () => {
             ]
 
             for (const email of maliciousEmails) {
-                const payload: RequestTokenPayload = {
-                    aud: 'issuer.example',
-                    nonce: nonce,
+                const payload: IssuanceTokenPayload = {
+                    iss: 'issuer.example',
+                    cnf: {
+                        jwk: {
+                            kty: rsaBrowserKey.kty,
+                            n: rsaBrowserKey.n,
+                            e: rsaBrowserKey.e,
+                            alg: rsaBrowserKey.alg,
+                            kid: rsaBrowserKey.kid,
+                        },
+                    },
                     email: email,
+                    email_verified: true,
                 }
 
                 await expect(
-                    generateRequestToken(payload, rsaBrowserKey),
+                    generateIssuanceToken(payload, rsaPrivateKey),
                 ).rejects.toThrow()
             }
         })
 
         it('should prevent timing attacks on signature verification', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
-            const validToken = await generateRequestToken(
+            const validToken = await generateIssuanceToken(
                 payload,
-                rsaBrowserKey,
+                rsaPrivateKey,
             )
 
             // Create tokens with different invalid signatures
@@ -295,7 +321,7 @@ describe('Performance and Security Validation', () => {
             for (const invalidToken of invalidTokens) {
                 const start = performance.now()
                 try {
-                    await verifyRequestToken(invalidToken)
+                    await verifyIssuanceToken(invalidToken, keyResolver)
                 } catch {
                     // Expected to fail
                 }
@@ -320,10 +346,19 @@ describe('Performance and Security Validation', () => {
 
     describe('Memory Management', () => {
         it('should not accumulate memory during repeated operations', async () => {
-            const payload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            const payload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
             }
 
             // Force garbage collection if available
@@ -335,8 +370,11 @@ describe('Performance and Security Validation', () => {
 
             // Perform many operations
             for (let i = 0; i < 1000; i++) {
-                const token = await generateRequestToken(payload, rsaBrowserKey)
-                await verifyRequestToken(token)
+                const token = await generateIssuanceToken(
+                    payload,
+                    rsaPrivateKey,
+                )
+                await verifyIssuanceToken(token, keyResolver)
             }
 
             // Force garbage collection if available
@@ -356,23 +394,82 @@ describe('Performance and Security Validation', () => {
         })
 
         it('should handle large token payloads efficiently', async () => {
-            const largePayload: RequestTokenPayload = {
-                aud: 'issuer.example.com.with.very.long.domain.name.that.might.exist',
-                nonce: 'very-long-nonce-' + 'x'.repeat(1000),
+            const largePayload: IssuanceTokenPayload = {
+                iss: 'issuer.example.com.with.very.long.domain.name.that.might.exist',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user.with.very.long.email.address@example.com',
+                email_verified: true,
             }
 
             const start = performance.now()
-            const token = await generateRequestToken(
+            const token = await generateIssuanceToken(
                 largePayload,
-                rsaBrowserKey,
+                rsaPrivateKey,
             )
-            const verified = await verifyRequestToken(token)
+            const verified = await verifyIssuanceToken(token, keyResolver)
             const end = performance.now()
 
             expect(end - start).toBeLessThan(100) // Should handle large payloads efficiently
             expect(verified.email).toBe(largePayload.email)
-            expect(verified.nonce).toBe(largePayload.nonce)
+            expect(verified.iss).toBe(largePayload.iss)
+        })
+    })
+
+    describe('PresentationToken Performance', () => {
+        it('should generate and verify PresentationTokens efficiently', async () => {
+            const issuancePayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const issuanceToken = await generateIssuanceToken(
+                issuancePayload,
+                rsaPrivateKey,
+            )
+
+            const iterations = 50
+            const start = performance.now()
+
+            for (let i = 0; i < iterations; i++) {
+                const presentationToken = await generatePresentationToken(
+                    issuanceToken,
+                    audience,
+                    nonce,
+                    rsaBrowserKey,
+                )
+                await verifyPresentationToken(
+                    presentationToken,
+                    audience,
+                    nonce,
+                    keyResolver,
+                )
+            }
+
+            const end = performance.now()
+            const avgTime = (end - start) / iterations
+
+            expect(avgTime).toBeLessThan(100) // Should be reasonably fast
+            console.log(
+                `PresentationToken round-trip: ${avgTime.toFixed(2)}ms average`,
+            )
         })
     })
 })

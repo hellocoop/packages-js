@@ -17,13 +17,13 @@ import {
 import { InvalidSignatureError } from '../errors.js'
 
 /**
- * Generates an IssuanceToken (SD-JWT) for verified email addresses
- * Used by issuers in step 4.2 of the email-verification protocol
+ * Generates an IssuanceToken (EVT) for verified email addresses
+ * Used by issuers in the email-verification protocol
  *
- * @param payload - IssuanceToken payload containing iss, cnf, email, email_verified, and optional iat
+ * @param payload - IssuanceToken payload containing iss, cnf, email, email_verified, and optional iat, is_private_email
  * @param jwk - JWK containing private key, alg, and kid
  * @param options - Optional token generation options
- * @returns Promise resolving to signed SD-JWT string
+ * @returns Promise resolving to signed EVT string
  */
 export async function generateIssuanceToken(
     payload: IssuanceTokenPayload,
@@ -59,11 +59,11 @@ export async function generateIssuanceToken(
         },
     }
 
-    // Create and sign the SD-JWT
+    // Create and sign the EVT
     const jwt = await new SignJWT(cleanedPayload)
         .setProtectedHeader({
             alg: algorithm,
-            typ: 'evp+sd-jwt',
+            typ: 'evt+jwt',
             kid: jwk.kid,
         })
         .sign(privateKey)
@@ -72,11 +72,11 @@ export async function generateIssuanceToken(
 }
 
 /**
- * Verifies an IssuanceToken (SD-JWT) from issuers
- * Used by browsers in step 5.1 of the email-verification protocol
+ * Verifies an IssuanceToken (EVT) from issuers
+ * Used by browsers in the email-verification protocol
  *
- * @param token - SD-JWT string to verify
- * @param keyResolver - Optional callback to resolve issuer's public key using kid. If not provided, uses automatic DNS discovery
+ * @param token - EVT string to verify
+ * @param keyResolver - Callback to resolve issuer's public key using kid
  * @returns Promise resolving to verified payload
  */
 export async function verifyIssuanceToken(
@@ -87,7 +87,7 @@ export async function verifyIssuanceToken(
     const { header, payload } = parseJWT(token)
 
     // Validate JWT type
-    validateJWTType(header, 'evp+sd-jwt')
+    validateJWTType(header, 'evt+jwt')
 
     // Validate required header fields
     if (!header.kid) {

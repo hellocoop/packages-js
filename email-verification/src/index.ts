@@ -9,12 +9,15 @@
  * @license MIT
  */
 
-// Export all token functions
+// Export issuance request verification (HTTP Message Signature)
 export {
-    generateRequestToken,
-    verifyRequestToken,
-} from './tokens/request-token.js'
+    verifyIssuanceRequest,
+    createErrorResponse,
+} from './issuance/verify-request.js'
 
+export type { VerifyIssuanceRequestOptions } from './issuance/verify-request.js'
+
+// Export token functions
 export {
     generateIssuanceToken,
     verifyIssuanceToken,
@@ -28,11 +31,14 @@ export {
 // Export all types
 export type {
     KeyResolver,
-    RequestTokenPayload,
+    IssuanceRequestBody,
+    VerifiedIssuanceRequest,
+    ErrorResponse,
+    IssuanceErrorCode,
     IssuanceTokenPayload,
+    IssuanceResponse,
     PresentationTokenPayload,
     TokenGenerationOptions,
-    RequestTokenHeader,
     IssuanceTokenHeader,
     KeyBindingHeader,
 } from './types.js'

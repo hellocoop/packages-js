@@ -143,14 +143,14 @@ describe('IssuanceToken Independent Verification', () => {
         ).toBe(true)
     })
 
-    it('should validate JWT type is evp+sd-jwt', async () => {
+    it('should validate JWT type is evt+jwt', async () => {
         const token = await generateIssuanceToken(testPayload, rsaPrivateKey)
 
         // Manually parse to check the header
         const parts = token.split('.')
         const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString())
 
-        expect(header.typ).toBe('evp+sd-jwt')
+        expect(header.typ).toBe('evt+jwt')
         expect(header.kid).toBe(rsaPrivateKey.kid)
         expect(header.alg).toBe(rsaPrivateKey.alg)
     })

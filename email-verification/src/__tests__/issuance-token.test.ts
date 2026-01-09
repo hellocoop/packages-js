@@ -173,7 +173,7 @@ describe('IssuanceToken Functions', () => {
                 Buffer.from(parts[0], 'base64url').toString(),
             )
 
-            expect(header.typ).toBe('evp+sd-jwt')
+            expect(header.typ).toBe('evt+jwt')
             expect(header.kid).toBe(rsaPrivateKey.kid)
             expect(header.alg).toBe(rsaPrivateKey.alg)
         })
@@ -216,7 +216,7 @@ describe('IssuanceToken Functions', () => {
             }
             const header = {
                 alg: 'RS256',
-                typ: 'evp+sd-jwt',
+                typ: 'evt+jwt',
                 kid: rsaPrivateKey.kid,
             }
 
@@ -280,7 +280,7 @@ describe('IssuanceToken Functions', () => {
         })
 
         it('should throw error for missing kid in header', async () => {
-            const header = { alg: 'RS256', typ: 'evp+sd-jwt' }
+            const header = { alg: 'RS256', typ: 'evt+jwt' }
             const headerB64 = Buffer.from(JSON.stringify(header)).toString(
                 'base64url',
             )
@@ -300,7 +300,7 @@ describe('IssuanceToken Functions', () => {
 
             const header = {
                 alg: 'RS256',
-                typ: 'evp+sd-jwt',
+                typ: 'evt+jwt',
                 kid: rsaPrivateKey.kid,
             }
             const headerB64 = Buffer.from(JSON.stringify(header)).toString(
@@ -321,7 +321,7 @@ describe('IssuanceToken Functions', () => {
 
             const header = {
                 alg: 'RS256',
-                typ: 'evp+sd-jwt',
+                typ: 'evt+jwt',
                 kid: rsaPrivateKey.kid,
             }
             const headerB64 = Buffer.from(JSON.stringify(header)).toString(

@@ -380,8 +380,8 @@ export async function verifyIssuanceTokenIndependent(
         const { header, payload } = parseJWTIndependent(token)
 
         // Validate header
-        if (header.typ !== 'evp+sd-jwt') {
-            errors.push(`Expected typ 'evp+sd-jwt', got '${header.typ}'`)
+        if (header.typ !== 'evt+jwt') {
+            errors.push(`Expected typ 'evt+jwt', got '${header.typ}'`)
         }
 
         if (!header.kid) {

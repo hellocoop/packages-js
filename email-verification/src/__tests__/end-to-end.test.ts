@@ -1,17 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import {
-    generateRequestToken,
-    verifyRequestToken,
     generateIssuanceToken,
     verifyIssuanceToken,
     generatePresentationToken,
     verifyPresentationToken,
 } from '../index.js'
-import type {
-    KeyResolver,
-    RequestTokenPayload,
-    IssuanceTokenPayload,
-} from '../index.js'
+import type { KeyResolver, IssuanceTokenPayload } from '../index.js'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -59,26 +53,9 @@ describe('End-to-End Token Flow', () => {
     }
 
     describe('Complete Flow: RSA Issuer with RSA Browser', () => {
-        it('should complete full token flow: RequestToken → IssuanceToken → PresentationToken', async () => {
-            // Step 1: Browser generates RequestToken
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                rsaBrowserKey,
-            )
-            expect(requestToken).toBeTypeOf('string')
-
-            // Step 2: Issuer verifies RequestToken
-            const verifiedRequest = await verifyRequestToken(requestToken)
-            expect(verifiedRequest.email).toBe('user@example.com')
-            expect(verifiedRequest.nonce).toBe(nonce)
-
-            // Step 3: Issuer generates IssuanceToken using browser's public key from RequestToken
+        it('should complete full token flow: IssuanceToken → PresentationToken', async () => {
+            // Step 1: Issuer generates IssuanceToken
+            // (In real flow, this happens after verifying HTTP Message Signature)
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
@@ -90,7 +67,7 @@ describe('End-to-End Token Flow', () => {
                         kid: rsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 
@@ -100,7 +77,7 @@ describe('End-to-End Token Flow', () => {
             )
             expect(issuanceToken).toBeTypeOf('string')
 
-            // Step 4: Browser verifies IssuanceToken
+            // Step 2: Browser verifies IssuanceToken
             const verifiedIssued = await verifyIssuanceToken(
                 issuanceToken,
                 keyResolver,
@@ -109,7 +86,7 @@ describe('End-to-End Token Flow', () => {
             expect(verifiedIssued.email_verified).toBe(true)
             expect(verifiedIssued.iss).toBe('issuer.example')
 
-            // Step 5: Browser generates PresentationToken
+            // Step 3: Browser generates PresentationToken
             const presentationToken = await generatePresentationToken(
                 issuanceToken,
                 audience,
@@ -119,7 +96,7 @@ describe('End-to-End Token Flow', () => {
             expect(presentationToken).toBeTypeOf('string')
             expect(presentationToken).toContain('~')
 
-            // Step 6: Relying Party verifies PresentationToken
+            // Step 4: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
                 audience,
@@ -144,23 +121,7 @@ describe('End-to-End Token Flow', () => {
 
     describe('Complete Flow: RSA Issuer with EdDSA Browser', () => {
         it('should complete full token flow with cross-algorithm support', async () => {
-            // Step 1: Browser generates RequestToken with EdDSA
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                eddsaBrowserKey,
-            )
-
-            // Step 2: Issuer verifies RequestToken
-            const verifiedRequest = await verifyRequestToken(requestToken)
-            expect(verifiedRequest.email).toBe('user@example.com')
-
-            // Step 3: Issuer generates IssuanceToken with RSA, embedding EdDSA browser key
+            // Step 1: Issuer generates IssuanceToken with RSA, embedding EdDSA browser key
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
@@ -172,7 +133,7 @@ describe('End-to-End Token Flow', () => {
                         kid: eddsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 
@@ -181,14 +142,14 @@ describe('End-to-End Token Flow', () => {
                 rsaPrivateKey,
             ) // RSA issuer
 
-            // Step 4: Browser verifies IssuanceToken
+            // Step 2: Browser verifies IssuanceToken
             const verifiedIssued = await verifyIssuanceToken(
                 issuanceToken,
                 keyResolver,
             )
             expect(verifiedIssued.email).toBe('user@example.com')
 
-            // Step 5: Browser generates PresentationToken with EdDSA
+            // Step 3: Browser generates PresentationToken with EdDSA
             const presentationToken = await generatePresentationToken(
                 issuanceToken,
                 audience,
@@ -196,7 +157,7 @@ describe('End-to-End Token Flow', () => {
                 eddsaBrowserKey, // EdDSA browser key
             )
 
-            // Step 6: Relying Party verifies PresentationToken
+            // Step 4: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
                 audience,
@@ -215,23 +176,7 @@ describe('End-to-End Token Flow', () => {
 
     describe('Complete Flow: EdDSA Issuer with RSA Browser', () => {
         it('should complete full token flow with EdDSA issuer and RSA browser', async () => {
-            // Step 1: Browser generates RequestToken with RSA
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                rsaBrowserKey,
-            )
-
-            // Step 2: Issuer verifies RequestToken
-            const verifiedRequest = await verifyRequestToken(requestToken)
-            expect(verifiedRequest.email).toBe('user@example.com')
-
-            // Step 3: Issuer generates IssuanceToken with EdDSA, embedding RSA browser key
+            // Step 1: Issuer generates IssuanceToken with EdDSA, embedding RSA browser key
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
@@ -243,7 +188,7 @@ describe('End-to-End Token Flow', () => {
                         kid: rsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 
@@ -252,14 +197,14 @@ describe('End-to-End Token Flow', () => {
                 eddsaPrivateKey,
             ) // EdDSA issuer
 
-            // Step 4: Browser verifies IssuanceToken
+            // Step 2: Browser verifies IssuanceToken
             const verifiedIssued = await verifyIssuanceToken(
                 issuanceToken,
                 keyResolver,
             )
             expect(verifiedIssued.email).toBe('user@example.com')
 
-            // Step 5: Browser generates PresentationToken with RSA
+            // Step 3: Browser generates PresentationToken with RSA
             const presentationToken = await generatePresentationToken(
                 issuanceToken,
                 audience,
@@ -267,7 +212,7 @@ describe('End-to-End Token Flow', () => {
                 rsaBrowserKey, // RSA browser key
             )
 
-            // Step 6: Relying Party verifies PresentationToken
+            // Step 4: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
                 audience,
@@ -285,23 +230,7 @@ describe('End-to-End Token Flow', () => {
 
     describe('Complete Flow: EdDSA Issuer with EdDSA Browser', () => {
         it('should complete full token flow with both EdDSA', async () => {
-            // Step 1: Browser generates RequestToken with EdDSA
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                eddsaBrowserKey,
-            )
-
-            // Step 2: Issuer verifies RequestToken
-            const verifiedRequest = await verifyRequestToken(requestToken)
-            expect(verifiedRequest.email).toBe('user@example.com')
-
-            // Step 3: Issuer generates IssuanceToken with EdDSA, embedding EdDSA browser key
+            // Step 1: Issuer generates IssuanceToken with EdDSA, embedding EdDSA browser key
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
@@ -313,7 +242,7 @@ describe('End-to-End Token Flow', () => {
                         kid: eddsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 
@@ -322,14 +251,14 @@ describe('End-to-End Token Flow', () => {
                 eddsaPrivateKey,
             ) // EdDSA issuer
 
-            // Step 4: Browser verifies IssuanceToken
+            // Step 2: Browser verifies IssuanceToken
             const verifiedIssued = await verifyIssuanceToken(
                 issuanceToken,
                 keyResolver,
             )
             expect(verifiedIssued.email).toBe('user@example.com')
 
-            // Step 5: Browser generates PresentationToken with EdDSA
+            // Step 3: Browser generates PresentationToken with EdDSA
             const presentationToken = await generatePresentationToken(
                 issuanceToken,
                 audience,
@@ -337,7 +266,7 @@ describe('End-to-End Token Flow', () => {
                 eddsaBrowserKey, // EdDSA browser key
             )
 
-            // Step 6: Relying Party verifies PresentationToken
+            // Step 4: Relying Party verifies PresentationToken
             const verifiedPresentation = await verifyPresentationToken(
                 presentationToken,
                 audience,
@@ -354,57 +283,134 @@ describe('End-to-End Token Flow', () => {
         })
     })
 
-    describe('Error Propagation Through Flow', () => {
-        it('should propagate errors correctly through the token flow', async () => {
-            // Test with invalid email in RequestToken
-            const invalidRequestPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'invalid-email', // Invalid email format
+    describe('is_private_email support', () => {
+        it('should include is_private_email claim when set to true', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: eddsaBrowserKey.kty,
+                        crv: eddsaBrowserKey.crv,
+                        x: eddsaBrowserKey.x,
+                        alg: eddsaBrowserKey.alg,
+                        kid: eddsaBrowserKey.kid,
+                    },
+                },
+                email: 'disposable-abc123@issuer.example',
+                email_verified: true,
+                is_private_email: true,
             }
 
-            // Should fail at RequestToken generation
-            await expect(
-                generateRequestToken(invalidRequestPayload, rsaBrowserKey),
-            ).rejects.toThrow()
+            const issuanceToken = await generateIssuanceToken(
+                issuanceTokenPayload,
+                eddsaPrivateKey,
+            )
+
+            const verifiedIssued = await verifyIssuanceToken(
+                issuanceToken,
+                keyResolver,
+            )
+
+            expect(verifiedIssued.is_private_email).toBe(true)
+            expect(verifiedIssued.email).toBe(
+                'disposable-abc123@issuer.example',
+            )
         })
 
-        it('should handle time validation errors across token types', async () => {
+        it('should include is_private_email claim when set to false', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: eddsaBrowserKey.kty,
+                        crv: eddsaBrowserKey.crv,
+                        x: eddsaBrowserKey.x,
+                        alg: eddsaBrowserKey.alg,
+                        kid: eddsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+                is_private_email: false,
+            }
+
+            const issuanceToken = await generateIssuanceToken(
+                issuanceTokenPayload,
+                eddsaPrivateKey,
+            )
+
+            const verifiedIssued = await verifyIssuanceToken(
+                issuanceToken,
+                keyResolver,
+            )
+
+            expect(verifiedIssued.is_private_email).toBe(false)
+        })
+
+        it('should not include is_private_email claim when not set', async () => {
+            const issuanceTokenPayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: eddsaBrowserKey.kty,
+                        crv: eddsaBrowserKey.crv,
+                        x: eddsaBrowserKey.x,
+                        alg: eddsaBrowserKey.alg,
+                        kid: eddsaBrowserKey.kid,
+                    },
+                },
+                email: 'user@example.com',
+                email_verified: true,
+            }
+
+            const issuanceToken = await generateIssuanceToken(
+                issuanceTokenPayload,
+                eddsaPrivateKey,
+            )
+
+            const verifiedIssued = await verifyIssuanceToken(
+                issuanceToken,
+                keyResolver,
+            )
+
+            expect(verifiedIssued.is_private_email).toBeUndefined()
+        })
+    })
+
+    describe('Error Propagation Through Flow', () => {
+        it('should handle time validation errors', async () => {
             const expiredTime = Math.floor(Date.now() / 1000) - 120 // 2 minutes ago
 
-            // Test expired RequestToken
-            const expiredRequestPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
+            // Test expired IssuanceToken
+            const expiredIssuancePayload: IssuanceTokenPayload = {
+                iss: 'issuer.example',
+                cnf: {
+                    jwk: {
+                        kty: rsaBrowserKey.kty,
+                        n: rsaBrowserKey.n,
+                        e: rsaBrowserKey.e,
+                        alg: rsaBrowserKey.alg,
+                        kid: rsaBrowserKey.kid,
+                    },
+                },
                 email: 'user@example.com',
+                email_verified: true,
                 iat: expiredTime,
             }
 
-            const expiredRequestToken = await generateRequestToken(
-                expiredRequestPayload,
-                rsaBrowserKey,
+            const expiredIssuanceToken = await generateIssuanceToken(
+                expiredIssuancePayload,
+                rsaPrivateKey,
             )
 
-            // Should fail at RequestToken verification
+            // Should fail at IssuanceToken verification
             await expect(
-                verifyRequestToken(expiredRequestToken),
+                verifyIssuanceToken(expiredIssuanceToken, keyResolver),
             ).rejects.toThrow()
         })
 
-        it('should handle signature tampering across token types', async () => {
+        it('should handle signature tampering', async () => {
             // Generate valid tokens
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                rsaBrowserKey,
-            )
-            const verifiedRequest = await verifyRequestToken(requestToken)
-
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
                 cnf: {
@@ -416,7 +422,7 @@ describe('End-to-End Token Flow', () => {
                         kid: rsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 
@@ -450,25 +456,6 @@ describe('End-to-End Token Flow', () => {
 
     describe('Token Compatibility Verification', () => {
         it('should ensure tokens are compatible across generate/verify function pairs', async () => {
-            // Generate tokens with one set of functions
-            const requestTokenPayload: RequestTokenPayload = {
-                aud: 'issuer.example',
-                nonce: nonce,
-                email: 'user@example.com',
-            }
-
-            const requestToken = await generateRequestToken(
-                requestTokenPayload,
-                rsaBrowserKey,
-            )
-            const verifiedRequest = await verifyRequestToken(requestToken)
-
-            // Ensure all fields are preserved correctly
-            expect(verifiedRequest.aud).toBe(requestTokenPayload.aud)
-            expect(verifiedRequest.nonce).toBe(requestTokenPayload.nonce)
-            expect(verifiedRequest.email).toBe(requestTokenPayload.email)
-            expect(verifiedRequest.iat).toBeTypeOf('number')
-
             // Test IssuanceToken compatibility
             const issuanceTokenPayload: IssuanceTokenPayload = {
                 iss: 'issuer.example',
@@ -481,7 +468,7 @@ describe('End-to-End Token Flow', () => {
                         kid: rsaBrowserKey.kid,
                     },
                 },
-                email: verifiedRequest.email,
+                email: 'user@example.com',
                 email_verified: true,
             }
 

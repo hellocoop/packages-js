@@ -167,6 +167,8 @@ export interface EmailVerificationMetadata {
     issuance_endpoint: string
     jwks_uri: string
     signing_alg_values_supported?: string[]
+    webauthn_supported?: boolean
+    private_email_supported?: boolean
 }
 
 /**

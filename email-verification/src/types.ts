@@ -12,24 +12,56 @@ export type KeyResolver = (
 ) => Promise<JWK | KeyLike | Uint8Array>
 
 /**
- * RequestToken payload structure (step 3.4)
- * Used by browsers to request verified email tokens from issuers
+ * Issuance request body structure
+ * Used by browsers to request verified email tokens from issuers via HTTP Message Signature
  */
-export interface RequestTokenPayload {
-    /** Audience (issuer domain) */
-    aud: string
-    /** Issued at time (optional for testing expired tokens) */
-    iat?: number
-    /** Unique identifier for the token */
-    jti?: string
-    /** Nonce provided by the RP */
-    nonce: string
+export interface IssuanceRequestBody {
     /** Email address to be verified */
     email: string
+    /** Request a disposable (site-specific) email address */
+    disposable?: boolean
+    /** Previously issued disposable email to reuse */
+    directed_email?: string
 }
 
 /**
- * IssuanceToken (SD-JWT) payload structure (step 4.2)
+ * Verified issuance request result
+ * Returned after successfully verifying an HTTP Message Signature on an issuance request
+ */
+export interface VerifiedIssuanceRequest {
+    /** Email address from the request body */
+    email: string
+    /** Browser's public key extracted from the Signature-Key header */
+    publicKey: JWK
+    /** JWK thumbprint of the public key */
+    thumbprint: string
+    /** Whether a disposable email was requested */
+    disposable?: boolean
+    /** Previously issued disposable email to reuse */
+    directed_email?: string
+}
+
+/**
+ * Error response structure per specification
+ */
+export interface ErrorResponse {
+    /** Error code */
+    error: string
+    /** Human-readable error description */
+    error_description: string
+}
+
+/**
+ * Error codes for issuance endpoint
+ */
+export type IssuanceErrorCode =
+    | 'invalid_signature'
+    | 'authentication_required'
+    | 'disposable_not_supported'
+    | 'invalid_request'
+
+/**
+ * IssuanceToken (EVT) payload structure
  * Used by issuers to provide verified email tokens to browsers
  */
 export interface IssuanceTokenPayload {
@@ -46,6 +78,16 @@ export interface IssuanceTokenPayload {
     email: string
     /** Email verification status (must be true) */
     email_verified: boolean
+    /** Whether the email is a private/disposable email (optional) */
+    is_private_email?: boolean
+}
+
+/**
+ * Issuance endpoint response structure
+ */
+export interface IssuanceResponse {
+    /** The issued email verification token */
+    issuance_token: string
 }
 
 /**
@@ -79,24 +121,12 @@ export interface TokenGenerationOptions {
 }
 
 /**
- * JWT Header structure for RequestToken
- */
-export interface RequestTokenHeader {
-    /** Algorithm */
-    alg: string
-    /** Token type */
-    typ: string
-    /** Embedded public key */
-    jwk: JWK
-}
-
-/**
- * JWT Header structure for IssuanceToken (SD-JWT)
+ * JWT Header structure for IssuanceToken (EVT)
  */
 export interface IssuanceTokenHeader {
     /** Algorithm */
     alg: string
-    /** Token type (evp+sd-jwt) */
+    /** Token type (evt+jwt) */
     typ: string
     /** Key identifier */
     kid: string
