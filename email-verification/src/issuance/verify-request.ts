@@ -138,6 +138,13 @@ export async function verifyIssuanceRequest(
         )
     }
 
+    // private_email and directed_email are mutually exclusive
+    if (body.private_email && body.directed_email) {
+        throw new InvalidSignatureError(
+            'Invalid request body: private_email and directed_email are mutually exclusive',
+        )
+    }
+
     return {
         email: body.email,
         publicKey: result.publicKey as JWK,
