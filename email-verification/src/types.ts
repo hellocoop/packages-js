@@ -18,9 +18,9 @@ export type KeyResolver = (
 export interface IssuanceRequestBody {
     /** Email address to be verified */
     email: string
-    /** Request a disposable (site-specific) email address */
-    disposable?: boolean
-    /** Previously issued disposable email to reuse */
+    /** Request a new private email address instead of the user's actual email */
+    private_email?: boolean
+    /** Previously issued private email address to reuse */
     directed_email?: string
 }
 
@@ -35,9 +35,9 @@ export interface VerifiedIssuanceRequest {
     publicKey: JWK
     /** JWK thumbprint of the public key */
     thumbprint: string
-    /** Whether a disposable email was requested */
-    disposable?: boolean
-    /** Previously issued disposable email to reuse */
+    /** Whether a new private email was requested */
+    private_email?: boolean
+    /** Previously issued private email address to reuse */
     directed_email?: string
 }
 
@@ -57,7 +57,8 @@ export interface ErrorResponse {
 export type IssuanceErrorCode =
     | 'invalid_signature'
     | 'authentication_required'
-    | 'disposable_not_supported'
+    | 'private_email_not_supported'
+    | 'invalid_directed_email'
     | 'invalid_request'
 
 /**

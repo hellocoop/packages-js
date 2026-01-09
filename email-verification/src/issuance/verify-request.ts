@@ -120,9 +120,12 @@ export async function verifyIssuanceRequest(
     }
 
     // Validate optional fields
-    if (body.disposable !== undefined && typeof body.disposable !== 'boolean') {
+    if (
+        body.private_email !== undefined &&
+        typeof body.private_email !== 'boolean'
+    ) {
         throw new InvalidSignatureError(
-            'Invalid request body: disposable must be a boolean',
+            'Invalid request body: private_email must be a boolean',
         )
     }
 
@@ -139,7 +142,7 @@ export async function verifyIssuanceRequest(
         email: body.email,
         publicKey: result.publicKey as JWK,
         thumbprint: result.thumbprint,
-        disposable: body.disposable,
+        private_email: body.private_email,
         directed_email: body.directed_email,
     }
 }

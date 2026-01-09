@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/email-verification",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "description": "Functions for generating and verifying JWT tokens used in the Email Verification Protocol",
     "repository": {
         "type": "git",
@@ -70,5 +70,6 @@
         "rimraf": "^5.0.5",
         "typescript": "^5.0.0",
         "vitest": "^1.0.0"
-    }
+    },
+    "gitHead": "7be6404fa21d6bf2e73f8f4f4fd08a69812a715d"
 }
