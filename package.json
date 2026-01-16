@@ -34,8 +34,7 @@
         "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next",
         "format": "prettier --write .",
         "lint": "prettier --check . && eslint --flag unstable_config_lookup_from_file . --fix",
-        "check": "npm run format && npm run lint",
-        "prepare": "husky"
+        "check": "npm run format && npm run lint"
     },
     "author": {
         "name": "Hello Identity Co-op",
