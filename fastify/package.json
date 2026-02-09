@@ -60,5 +60,5 @@
         "dotenv": "^16.3.1",
         "fastify-plugin": "^5.0.1"
     },
-    "gitHead": "5210ce3b29978ef7ec47e91596ff330299d8098c"
+    "gitHead": "2708ae6a0cf0cb970bed968ab62955e639c9e897"
 }
