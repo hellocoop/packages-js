@@ -6,7 +6,7 @@ import {
     encryptObj,
 } from '@hellocoop/helper-server'
 import { Auth, VALID_IDENTITY_CLAIMS } from '@hellocoop/definitions'
-import config from '../lib/config'
+import config, { configurationError } from '../lib/config'
 
 export interface TokenExchangeError {
     error: string
@@ -28,6 +28,10 @@ export const performTokenExchange = async (params: {
     encrypted_state?: string
     loginSyncWrapper?: (loginSync: any, data: any) => Promise<any>
 }): Promise<AuthExchangeResult | TokenExchangeError> => {
+    if (config.error) {
+        return configurationError()
+    }
+
     const { code, loginSyncWrapper } = params
     let { code_verifier, nonce, redirect_uri, target_uri } = params
 
@@ -210,6 +214,11 @@ const handleTokenExchange = async (req: HelloRequest, res: HelloResponse) => {
         if ('error' in result) {
             res.status(400)
             return res.send(JSON.stringify(result))
+        }
+
+        if (config.error) {
+            res.status(500)
+            return res.send(JSON.stringify(configurationError()))
         }
 
         // For mobile apps, encrypt the auth object to create the access_token

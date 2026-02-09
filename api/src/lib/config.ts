@@ -201,6 +201,12 @@ export const getConfig = function (): Promise<IConfig> {
     return Promise.resolve(_configuration)
 }
 
+export const configurationError = () => ({
+    error: 'server_error',
+    error_description: _configuration.error?.join(', ')
+        || 'Unknown configuration error',
+})
+
 export const getLoginApiRoute = (): string => {
     return _configuration.loginApiRoute
 }

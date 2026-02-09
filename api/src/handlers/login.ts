@@ -6,12 +6,6 @@ import { saveOidc } from '../lib/oidc'
 import { createLoginURL } from './loginURL'
 
 const handleLogin = async (req: HelloRequest, res: HelloResponse) => {
-    if (!config.clientId) {
-        res.status(500)
-        res.send('Missing HELLO_CLIENT_ID configuration')
-        return
-    }
-
     const redirectURI = config.redirectURI || (req.query.redirect_uri as string)
     if (!redirectURI) {
         console.log('Hellō: Discovering API RedirectURI route ...')

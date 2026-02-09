@@ -6,7 +6,7 @@ import {
 } from '@hellocoop/helper-server'
 import { Scope, ProviderHint } from '@hellocoop/definitions'
 
-import config from '../lib/config'
+import config, { configurationError } from '../lib/config'
 
 export interface LoginURLResult {
     url: string
@@ -40,11 +40,8 @@ export const createLoginURL = async (params: {
         domain_hint,
     } = params
 
-    if (!config.clientId) {
-        return {
-            error: 'server_error',
-            error_description: 'Missing HELLO_CLIENT_ID configuration',
-        }
+    if (config.error) {
+        return configurationError()
     }
 
     const redirectURI = config.redirectURI || (redirect_uri as string)
@@ -73,7 +70,7 @@ export const createLoginURL = async (params: {
 
     const request: ICreateAuthRequest = {
         redirect_uri: redirectURI,
-        client_id: config.clientId,
+        client_id: config.clientId as string,
         wallet: config.helloWallet,
         scope,
         provider_hint,

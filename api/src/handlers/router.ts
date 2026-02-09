@@ -61,6 +61,14 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
                 return await handleAuth(req, res)
             }
         }
+        if (config.error) {
+            // not able to process requests
+            res.status(500)
+            res.send(
+                'Missing configuration:\n' + JSON.stringify(config.error, null, 4),
+            )
+            return
+        }
         if (query.op === 'login') {
             // start login flow, redirect to Hellō
             return await handleLogin(req, res)

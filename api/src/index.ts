@@ -1,6 +1,7 @@
 export {
     default as configuration,
     configure,
+    configurationError,
     isConfigured,
     resetConfiguration,
 } from './lib/config'
