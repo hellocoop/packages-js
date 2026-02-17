@@ -5,6 +5,7 @@ import {
     errorPage,
     ErrorPageParams,
     sameSiteCallback,
+    oidcCookieDiagnostic,
 } from '@hellocoop/helper-server'
 import { saveAuthCookie, clearAuthCookie } from '../lib/auth'
 import { performTokenExchange } from './exchange'
@@ -62,7 +63,15 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
 
     const oidcState = await getOidc(req, res)
 
-    if (!oidcState)
+    if (!oidcState) {
+        // When HOST/HELLO_HOST is not set, we rely on the redirect URI discovery
+        // bounce to determine the browser's actual URL. If the app is behind a
+        // proxy/CDN that changes the domain, the OIDC cookie may be set on the
+        // wrong domain. Send a diagnostic bounce to discover the browser's actual
+        // URL and show a helpful error with the fix.
+        if (!config.redirectURI) {
+            return res.send(oidcCookieDiagnostic())
+        }
         return sendErrorPage(
             {
                 error: 'invalid_request',
@@ -71,6 +80,7 @@ const handleCallback = async (req: HelloRequest, res: HelloResponse) => {
             '',
             res,
         )
+    }
 
     const { code_verifier, nonce, redirect_uri } = oidcState
 

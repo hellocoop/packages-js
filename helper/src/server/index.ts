@@ -9,6 +9,7 @@ export * from './redirectURIBounce'
 export * from './wildcardConsole'
 export * from './crypto'
 export * from './sameSite'
+export * from './oidcCookieDiagnostic'
 
 // crypto wrapper for PKCE
 import * as _crypto from 'crypto'

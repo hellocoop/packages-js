@@ -10,6 +10,7 @@ import handleInvite from './invite'
 import handleCommand from './command'
 // import { handleAuth, handleCookieTokenVerify } from './auth'
 import { handleAuth } from './auth'
+import handleDiagnostic from './diagnostic'
 import handleWildcardConsole from './wildcard'
 import initiateLogin from './initiateLogin'
 import { NotLoggedIn } from '@hellocoop/definitions'
@@ -54,6 +55,9 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
     if (method !== 'GET') return res.status(400).send('Method not allowed')
     if (query.op) {
         // not a protocol flow
+        if (query.op === 'diagnostic') {
+            return await handleDiagnostic(req, res)
+        }
         if (query.op === 'auth' || query.op === 'getAuth') {
             if (config.error) {
                 return res.json(NotLoggedIn)
