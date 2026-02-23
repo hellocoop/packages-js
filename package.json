@@ -27,14 +27,13 @@
     "scripts": {
         "clean": "npm run prebuild --workspaces",
         "build": "lerna run build --sort",
-        "publish": "npm run build && lerna publish",
-        "publish:dry": "lerna publish --no-push --no-git-tag-version",
-        "publish:canary": "npm run build && lerna publish --canary",
-        "---": "-following may be out of date--",
-        "patch-sample": "npm run build && cp -r quickstart ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r nextjs ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r react ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r core ../hello-nextjs-sample/node_modules/@hellocoop/ && cp -r types ../hello-nextjs-sample/node_modules/@hellocoop/ && rm -rf ../hello-nextjs-sample/.next",
+        "test": "lerna run test",
+        "release": "./scripts/release.sh",
+        "publish:canary": "npm run build && lerna publish --canary --yes --no-private",
         "format": "prettier --write .",
         "lint": "prettier --check . && eslint --flag unstable_config_lookup_from_file . --fix",
-        "check": "npm run format && npm run lint"
+        "check": "npm run format && npm run lint",
+        "prepare": "husky"
     },
     "author": {
         "name": "Hello Identity Co-op",
@@ -54,6 +53,7 @@
         "eslint-plugin-svelte": "^3.3.3",
         "eslint-plugin-vue": "^10.0.0",
         "esm": "^3.2.25",
+        "husky": "^9.1.7",
         "lerna": "^8.1.8",
         "mocha": "^10.6.0",
         "npm-run-all": "^4.1.5",

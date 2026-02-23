@@ -1,0 +1,1 @@
+prettier --check $(git diff --cached --name-only --diff-filter=ACMR)
