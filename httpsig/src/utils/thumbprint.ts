@@ -3,7 +3,7 @@
  * https://datatracker.ietf.org/doc/html/rfc7638
  */
 
-import { sha256, base64urlEncode } from './base64.js'
+import { sha256, sha512, base64urlEncode } from './base64.js'
 
 /**
  * Calculate JWK thumbprint (RFC 7638)
@@ -15,9 +15,13 @@ import { sha256, base64urlEncode } from './base64.js'
  * 4. Base64url encode
  *
  * @param jwk - The public key JWK
- * @returns Base64url-encoded SHA-256 hash of the canonical JWK
+ * @param hashAlgorithm - Hash algorithm to use: 'SHA-256' (default) or 'SHA-512'
+ * @returns Base64url-encoded hash of the canonical JWK
  */
-export async function calculateThumbprint(jwk: JsonWebKey): Promise<string> {
+export async function calculateThumbprint(
+    jwk: JsonWebKey,
+    hashAlgorithm: 'SHA-256' | 'SHA-512' = 'SHA-256',
+): Promise<string> {
     // Extract required members based on key type, in lexicographic order
     let canonical: string
 
@@ -55,6 +59,7 @@ export async function calculateThumbprint(jwk: JsonWebKey): Promise<string> {
     }
 
     // Hash and encode
-    const hash = await sha256(canonical)
+    const hashFn = hashAlgorithm === 'SHA-512' ? sha512 : sha256
+    const hash = await hashFn(canonical)
     return base64urlEncode(hash)
 }

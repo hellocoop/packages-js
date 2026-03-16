@@ -143,6 +143,128 @@ function decodeJWT(jwt: string): {
 }
 
 /**
+ * JKT-JWT typ value to hash algorithm and iss prefix mapping
+ */
+const JKT_JWT_TYPES: Record<
+    string,
+    { hashAlgorithm: 'SHA-256' | 'SHA-512'; issPrefix: string }
+> = {
+    'jkt-s256+jwt': {
+        hashAlgorithm: 'SHA-256',
+        issPrefix: 'urn:jkt:sha-256:',
+    },
+    'jkt-s512+jwt': {
+        hashAlgorithm: 'SHA-512',
+        issPrefix: 'urn:jkt:sha-512:',
+    },
+}
+
+/**
+ * Verify and decode a jkt-jwt: validate JWT signature, thumbprint, and expiration.
+ * Returns the ephemeral public key for HTTP signature verification.
+ */
+async function verifyJktJwt(
+    jwtString: string,
+    maxClockSkew: number,
+): Promise<{
+    header: any
+    payload: any
+    ephemeralKey: JsonWebKey
+    identityKey: JsonWebKey
+    identityThumbprint: string
+}> {
+    const parts = jwtString.split('.')
+    if (parts.length !== 3) {
+        throw new Error('Invalid JWT format')
+    }
+
+    // 1. Parse header and payload without verifying signature
+    const header = JSON.parse(
+        new TextDecoder().decode(base64urlDecode(parts[0])),
+    )
+    const payload = JSON.parse(
+        new TextDecoder().decode(base64urlDecode(parts[1])),
+    )
+
+    // 2. Check typ
+    const typConfig = JKT_JWT_TYPES[header.typ]
+    if (!typConfig) {
+        throw new Error(
+            `Unsupported jkt-jwt typ: ${header.typ}. Supported: ${Object.keys(JKT_JWT_TYPES).join(', ')}`,
+        )
+    }
+
+    // 3. Extract identity key from JWT header
+    const identityJwk = header.jwk as JsonWebKey
+    if (!identityJwk) {
+        throw new Error('jkt-jwt: JWT header missing jwk claim')
+    }
+
+    // 4. Compute thumbprint of identity key using the hash algorithm from typ
+    const thumbprint = await calculateThumbprint(
+        identityJwk,
+        typConfig.hashAlgorithm,
+    )
+
+    // 5. Construct expected iss and verify
+    const expectedIss = `${typConfig.issPrefix}${thumbprint}`
+    if (payload.iss !== expectedIss) {
+        throw new Error(
+            `jkt-jwt: iss mismatch. Expected ${expectedIss}, got ${payload.iss}`,
+        )
+    }
+
+    // 6. Verify JWT signature using the identity key
+    validateJwk(identityJwk)
+    const identityPublicKey = await importPublicKey(identityJwk)
+    const algorithm = getAlgorithmFromJwk(identityJwk)
+
+    // JWT signature is over header.payload (first two parts)
+    const signedData = new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
+    const signature = base64urlDecode(parts[2])
+
+    const jwtValid = await cryptoVerify(
+        signedData,
+        signature,
+        identityPublicKey,
+        algorithm,
+    )
+    if (!jwtValid) {
+        throw new Error('jkt-jwt: JWT signature verification failed')
+    }
+
+    // 7. Validate exp and iat
+    const now = Math.floor(Date.now() / 1000)
+
+    if (!payload.exp || typeof payload.exp !== 'number') {
+        throw new Error('jkt-jwt: JWT missing exp claim')
+    }
+    if (payload.exp + maxClockSkew < now) {
+        throw new Error('jkt-jwt: JWT expired')
+    }
+
+    if (!payload.iat || typeof payload.iat !== 'number') {
+        throw new Error('jkt-jwt: JWT missing iat claim')
+    }
+    if (payload.iat - maxClockSkew > now) {
+        throw new Error('jkt-jwt: JWT iat is in the future')
+    }
+
+    // 8. Extract ephemeral key from cnf.jwk
+    if (!payload.cnf || !payload.cnf.jwk) {
+        throw new Error('jkt-jwt: JWT missing cnf.jwk claim')
+    }
+
+    return {
+        header,
+        payload,
+        ephemeralKey: payload.cnf.jwk,
+        identityKey: identityJwk,
+        identityThumbprint: expectedIss,
+    }
+}
+
+/**
  * Verify HTTP Message Signature
  */
 export async function verify(
@@ -208,6 +330,15 @@ export async function verify(
         // Get public key based on type
         let publicJwk: JsonWebKey
         let jwtData: { header: any; payload: any; raw: string } | undefined
+        let jktJwtData:
+            | {
+                  header: any
+                  payload: any
+                  raw: string
+                  identityKey: JsonWebKey
+                  identityThumbprint: string
+              }
+            | undefined
         let jwksUriData:
             | { id: string; kid: string; wellKnown: string }
             | undefined
@@ -222,6 +353,23 @@ export async function verify(
                 header,
                 payload,
                 raw: jwtValue.jwt,
+            }
+        } else if (signatureKey.type === 'jkt_jwt') {
+            const jwtValue = signatureKey.value as { jwt: string }
+            const {
+                header,
+                payload,
+                ephemeralKey,
+                identityKey,
+                identityThumbprint,
+            } = await verifyJktJwt(jwtValue.jwt, maxClockSkew)
+            publicJwk = ephemeralKey
+            jktJwtData = {
+                header,
+                payload,
+                raw: jwtValue.jwt,
+                identityKey,
+                identityThumbprint,
             }
         } else if (signatureKey.type === 'jwks_uri') {
             const jwksUriValue = signatureKey.value as {
@@ -378,6 +526,10 @@ export async function verify(
 
         if (jwtData) {
             result.jwt = jwtData
+        }
+
+        if (jktJwtData) {
+            result.jkt_jwt = jktJwtData
         }
 
         if (jwksUriData) {

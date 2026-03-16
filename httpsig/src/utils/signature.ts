@@ -74,6 +74,10 @@ export function generateSignatureKeyHeader(
         return `${label}=jwt;jwt="${signatureKey.jwt}"`
     }
 
+    if (signatureKey.type === 'jkt_jwt') {
+        return `${label}=jkt-jwt;jwt="${signatureKey.jwt}"`
+    }
+
     if (signatureKey.type === 'jwks_uri') {
         const params = [
             `id="${signatureKey.id}"`,
@@ -213,8 +217,8 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
 
     // RFC 8941 Dictionary format: label=scheme;param1="value1";param2="value2"
     // Match: label=token followed by optional parameters
-    // Note: [\w-]+ allows hyphens in labels (e.g., sig-b26)
-    const match = trimmed.match(/^([\w-]+)=(\w+)(.*)$/)
+    // Note: [\w-]+ allows hyphens in labels and scheme names (e.g., sig-b26, jkt-jwt)
+    const match = trimmed.match(/^([\w-]+)=([\w-]+)(.*)$/)
 
     if (!match) {
         throw new Error(
@@ -223,7 +227,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
     }
 
     const label = match[1]
-    const scheme = match[2] as 'hwk' | 'jwt' | 'jwks_uri' | 'x509'
+    const scheme = match[2]
     const paramsStr = match[3]
 
     // Parse parameters (semicolon-separated)
@@ -242,7 +246,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
         }
     }
 
-    if (!['hwk', 'jwt', 'jwks_uri', 'x509'].includes(scheme)) {
+    if (!['hwk', 'jwt', 'jkt-jwt', 'jwks_uri', 'x509'].includes(scheme)) {
         throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
     }
 
@@ -265,6 +269,23 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
             {
                 label,
                 type: 'jwt',
+                value: { jwt: params.jwt },
+            },
+        ]
+    }
+
+    if (scheme === 'jkt-jwt') {
+        // Validate jkt-jwt has required parameters
+        if (!params.jwt) {
+            throw new Error(
+                'Signature-Key jkt-jwt scheme missing jwt parameter',
+            )
+        }
+
+        return [
+            {
+                label,
+                type: 'jkt_jwt',
                 value: { jwt: params.jwt },
             },
         ]
