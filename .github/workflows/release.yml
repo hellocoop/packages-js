@@ -39,5 +39,16 @@ jobs:
             - run: npm install -g npm@latest
             - run: npm ci
             - run: npm run build
-            - name: Publish packages with provenance (OIDC Trusted Publishing)
-              run: lerna publish from-package --yes --no-private
+            - name: Publish packages with provenance
+              run: |
+                  npx lerna ls --json --no-private | jq -r '.[] | "\(.name) \(.version) \(.location)"' | while read name version location; do
+                    published=$(npm view "$name" version 2>/dev/null || echo "0.0.0")
+                    if [ "$version" != "$published" ]; then
+                      echo "Publishing $name@$version (npm has $published)..."
+                      cd "$location"
+                      npm publish --provenance --access public
+                      cd "$GITHUB_WORKSPACE"
+                    else
+                      echo "Skipping $name@$version (already published)"
+                    fi
+                  done
