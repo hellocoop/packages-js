@@ -18,9 +18,10 @@ jobs:
                   node-version: 22
                   cache: 'npm'
             - run: npm ci
-            - run: npx playwright install --with-deps chromium
             - run: npm run build
-            - run: lerna run test
+            - run: npm test --workspace=httpsig
+            - run: npm test --workspace=better-auth
+            - run: npm test --workspace=email-verification
 
     publish:
         needs: test
