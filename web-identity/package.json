@@ -4,7 +4,7 @@
     "description": "Functions for generating and verifying JWT tokens used in the Verified Email Autocomplete protocol",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://github.com/dickhardt/verified-email-autocomplete",
     "main": "./dist/cjs/index.js",
@@ -40,7 +40,7 @@
     },
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
         "test": "vitest --run",

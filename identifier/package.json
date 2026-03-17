@@ -4,7 +4,7 @@
     "description": "A module for generating and verifying Hellō identifiers with a checksum.",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "files": [
         "dist/"

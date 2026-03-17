@@ -4,7 +4,7 @@
     "description": "Fastify SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://www.hello.dev/docs/sdks/fastify",
     "main": "./dist/index.js",
@@ -31,7 +31,7 @@
     },
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
         "watch": "tsc --watch --declaration",

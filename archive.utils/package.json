@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hellocoop/packages.git"
+    "url": "git+https://github.com/hellocoop/packages-js.git"
   },
   "keywords": [
     "hello",
@@ -33,7 +33,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hellocoop/packages/issues"
+    "url": "https://github.com/hellocoop/packages-js/issues"
   },
   "homepage": "https://github.com/hellocoop/packages#readme",
   "devDependencies": {

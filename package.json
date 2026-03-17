@@ -22,7 +22,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "scripts": {
         "clean": "npm run prebuild --workspaces",
@@ -41,7 +41,7 @@
         "url": "https://hello.coop"
     },
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "homepage": "https://github.com/hellocoop/packages#readme",
     "license": "MIT",

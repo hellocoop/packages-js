@@ -4,7 +4,7 @@
     "description": "Svelte SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://www.hello.dev/docs/sdks/vue",
     "keywords": [
@@ -33,7 +33,7 @@
     "types": "./dist/index.d.ts",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "files": [
         "dist"

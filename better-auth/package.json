@@ -4,7 +4,7 @@
     "description": "Better Auth plugin for Hellō - https://hello.dev",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://www.hello.dev/",
     "main": "./dist/index.js",
@@ -34,7 +34,7 @@
     },
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
         "test": "vitest --run",

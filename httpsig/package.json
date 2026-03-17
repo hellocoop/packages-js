@@ -4,9 +4,9 @@
     "description": "HTTP Message Signatures (RFC 9421) with Signature-Key header support",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
-    "homepage": "https://github.com/hellocoop/packages/tree/main/httpsig",
+    "homepage": "https://github.com/hellocoop/packages-js/tree/main/httpsig",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
@@ -33,7 +33,7 @@
     },
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
         "watch": "tsc --watch",

@@ -4,7 +4,7 @@
     "description": "Functions for generating and verifying JWT tokens used in the Email Verification Protocol",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hellocoop/packages.git"
+        "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://github.com/dickhardt/email-verification-protocol",
     "main": "./dist/cjs/index.js",
@@ -43,7 +43,7 @@
         "access": "public"
     },
     "bugs": {
-        "url": "https://github.com/hellocoop/packages/issues"
+        "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
         "test": "vitest --run",
