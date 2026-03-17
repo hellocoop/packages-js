@@ -39,4 +39,4 @@ jobs:
             - run: npm ci
             - run: npm run build
             - name: Publish packages with provenance (OIDC Trusted Publishing)
-              run: lerna publish from-package --yes --no-private --ignore @hellocoop/web-identity
+              run: lerna publish from-package --yes --no-private
