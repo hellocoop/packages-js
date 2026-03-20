@@ -19,6 +19,12 @@ export type { VerifyIssuanceRequestOptions } from './issuance/verify-request.js'
 
 // Export token functions
 export {
+    generateRequestToken,
+} from './tokens/request-token.js'
+
+export type { RequestTokenPayload } from './tokens/request-token.js'
+
+export {
     generateIssuanceToken,
     verifyIssuanceToken,
 } from './tokens/issuance-token.js'
