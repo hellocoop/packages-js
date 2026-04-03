@@ -65,7 +65,8 @@ const router = async (req: HelloRequest, res: HelloResponse) => {
             // not able to process requests
             res.status(500)
             res.send(
-                'Missing configuration:\n' + JSON.stringify(config.error, null, 4),
+                'Missing configuration:\n' +
+                    JSON.stringify(config.error, null, 4),
             )
             return
         }

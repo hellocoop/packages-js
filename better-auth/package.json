@@ -51,11 +51,11 @@
         "@tsconfig/node18": "^18.2.2",
         "@types/node": "*",
         "@types/react": "^18.0.0",
-        "better-auth": "^1.0.0",
+        "better-auth": "^1.5.6",
         "react": "^18.0.0",
         "rimraf": "^5.0.1",
         "typescript": "^5.2.2",
-        "vitest": "^2.0.0"
+        "vitest": "^4.0.0"
     },
     "engines": {
         "node": ">=18"

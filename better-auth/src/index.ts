@@ -2,6 +2,7 @@ import { betterFetch } from '@better-fetch/fetch'
 import { APIError } from 'better-call'
 import { decodeJwt } from 'jose'
 import * as z from 'zod'
+import { defineErrorCodes } from '@better-auth/core/utils/error-codes'
 import { createAuthEndpoint } from 'better-auth/api'
 import { setSessionCookie } from 'better-auth/cookies'
 // import { BASE_ERROR_CODES } from "../../error/codes";
@@ -234,9 +235,9 @@ async function getUserInfo(
  * A generic OAuth plugin that can be used to add OAuth support to any provider
  */
 export const hellocoop = (options: GenericOAuthOptions) => {
-    const ERROR_CODES = {
+    const ERROR_CODES = defineErrorCodes({
         INVALID_OAUTH_CONFIGURATION: 'Invalid OAuth configuration',
-    } as const
+    })
     return {
         id: 'hellocoop',
         schema: {
@@ -572,7 +573,8 @@ export const hellocoop = (options: GenericOAuthOptions) => {
                     }
                     if (!finalAuthUrl || !finalTokenUrl) {
                         throw new APIError('BAD_REQUEST', {
-                            message: ERROR_CODES.INVALID_OAUTH_CONFIGURATION,
+                            message:
+                                ERROR_CODES.INVALID_OAUTH_CONFIGURATION.message,
                         })
                     }
                     if (authorizationUrlParams) {

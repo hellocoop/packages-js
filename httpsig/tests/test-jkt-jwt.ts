@@ -71,9 +71,15 @@ async function createJktJwt(options: {
 
     // Determine alg from identity key
     let alg: string
-    if (identityPublicJwk.kty === 'OKP' && identityPublicJwk.crv === 'Ed25519') {
+    if (
+        identityPublicJwk.kty === 'OKP' &&
+        identityPublicJwk.crv === 'Ed25519'
+    ) {
         alg = 'EdDSA'
-    } else if (identityPublicJwk.kty === 'EC' && identityPublicJwk.crv === 'P-256') {
+    } else if (
+        identityPublicJwk.kty === 'EC' &&
+        identityPublicJwk.crv === 'P-256'
+    ) {
         alg = 'ES256'
     } else {
         throw new Error('Unsupported identity key type')
@@ -115,7 +121,9 @@ async function createJktJwt(options: {
     const identityKey = await crypto.subtle.importKey(
         'jwk',
         identityPrivateJwk,
-        alg === 'EdDSA' ? { name: 'Ed25519' } : { name: 'ECDSA', namedCurve: 'P-256' },
+        alg === 'EdDSA'
+            ? { name: 'Ed25519' }
+            : { name: 'ECDSA', namedCurve: 'P-256' },
         false,
         ['sign'],
     )
@@ -156,7 +164,10 @@ test('jkt-jwt: GET request with Ed25519 identity and Ed25519 ephemeral key', asy
 
     // Signature-Key should use jkt-jwt scheme
     const sigKeyHeader = result.headers.get('signature-key')!
-    assert.ok(sigKeyHeader.startsWith('sig=jkt-jwt;'), `Expected jkt-jwt scheme, got: ${sigKeyHeader}`)
+    assert.ok(
+        sigKeyHeader.startsWith('sig=jkt-jwt;'),
+        `Expected jkt-jwt scheme, got: ${sigKeyHeader}`,
+    )
 
     const verifyResult = await verify({
         method: 'GET',
@@ -165,7 +176,11 @@ test('jkt-jwt: GET request with Ed25519 identity and Ed25519 ephemeral key', asy
         headers: result.headers,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
     assert.strictEqual(verifyResult.keyType, 'jkt_jwt')
     assert.ok(verifyResult.jkt_jwt, 'Should have jkt_jwt data')
     assert.strictEqual(verifyResult.jkt_jwt?.raw, jwt)
@@ -209,7 +224,11 @@ test('jkt-jwt: POST request with body', async () => {
         body,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
     assert.strictEqual(verifyResult.keyType, 'jkt_jwt')
 })
 
@@ -237,7 +256,11 @@ test('jkt-jwt: P-256 identity key delegating to Ed25519 ephemeral key', async ()
         headers: result.headers,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
     assert.strictEqual(verifyResult.keyType, 'jkt_jwt')
     assert.strictEqual(verifyResult.jkt_jwt?.identityKey.kty, 'EC')
     assert.strictEqual(verifyResult.jkt_jwt?.identityKey.crv, 'P-256')
@@ -268,7 +291,11 @@ test('jkt-jwt: Ed25519 identity key delegating to P-256 ephemeral key', async ()
         headers: result.headers,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
     assert.strictEqual(verifyResult.jkt_jwt?.identityKey.kty, 'OKP')
     assert.strictEqual(verifyResult.publicKey.kty, 'EC')
     assert.strictEqual(verifyResult.publicKey.crv, 'P-256')
@@ -301,7 +328,10 @@ test('jkt-jwt: Should fail with expired JWT', async () => {
     })
 
     assert.strictEqual(verifyResult.verified, false)
-    assert.ok(verifyResult.error?.includes('expired'), `Expected expired error, got: ${verifyResult.error}`)
+    assert.ok(
+        verifyResult.error?.includes('expired'),
+        `Expected expired error, got: ${verifyResult.error}`,
+    )
 })
 
 test('jkt-jwt: Should fail with future iat', async () => {
@@ -331,7 +361,10 @@ test('jkt-jwt: Should fail with future iat', async () => {
     })
 
     assert.strictEqual(verifyResult.verified, false)
-    assert.ok(verifyResult.error?.includes('future'), `Expected future error, got: ${verifyResult.error}`)
+    assert.ok(
+        verifyResult.error?.includes('future'),
+        `Expected future error, got: ${verifyResult.error}`,
+    )
 })
 
 test('jkt-jwt: Should fail with tampered iss (wrong thumbprint)', async () => {
@@ -342,7 +375,8 @@ test('jkt-jwt: Should fail with tampered iss (wrong thumbprint)', async () => {
         identityPrivateJwk: identity.privateJwk,
         identityPublicJwk: identity.publicJwk,
         ephemeralPublicJwk: ephemeral.publicJwk,
-        overrideIss: 'urn:jkt:sha-256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        overrideIss:
+            'urn:jkt:sha-256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
     })
 
     const result = (await fetch('https://api.example.com/data', {
@@ -360,7 +394,10 @@ test('jkt-jwt: Should fail with tampered iss (wrong thumbprint)', async () => {
     })
 
     assert.strictEqual(verifyResult.verified, false)
-    assert.ok(verifyResult.error?.includes('iss mismatch'), `Expected iss mismatch, got: ${verifyResult.error}`)
+    assert.ok(
+        verifyResult.error?.includes('iss mismatch'),
+        `Expected iss mismatch, got: ${verifyResult.error}`,
+    )
 })
 
 test('jkt-jwt: Should fail with tampered JWT signature', async () => {
@@ -425,7 +462,10 @@ test('jkt-jwt: Should fail with missing cnf.jwk in JWT', async () => {
     })
 
     assert.strictEqual(verifyResult.verified, false)
-    assert.ok(verifyResult.error?.includes('cnf.jwk'), `Expected cnf.jwk error, got: ${verifyResult.error}`)
+    assert.ok(
+        verifyResult.error?.includes('cnf.jwk'),
+        `Expected cnf.jwk error, got: ${verifyResult.error}`,
+    )
 })
 
 test('jkt-jwt: Should fail with unsupported typ', async () => {
@@ -522,7 +562,11 @@ test('jkt-jwt: Custom label should work', async () => {
         headers: result.headers,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
     assert.strictEqual(verifyResult.label, 'device')
     assert.strictEqual(verifyResult.keyType, 'jkt_jwt')
 })
@@ -551,16 +595,26 @@ test('jkt-jwt: Thumbprint in result should be for the ephemeral key', async () =
         headers: result.headers,
     })
 
-    assert.strictEqual(verifyResult.verified, true, `Verification failed: ${verifyResult.error}`)
+    assert.strictEqual(
+        verifyResult.verified,
+        true,
+        `Verification failed: ${verifyResult.error}`,
+    )
 
     // The top-level thumbprint should be for the ephemeral key (the key that signed the HTTP message)
-    const expectedEphemeralThumbprint = await calculateThumbprint(ephemeral.publicJwk)
+    const expectedEphemeralThumbprint = await calculateThumbprint(
+        ephemeral.publicJwk,
+    )
     assert.strictEqual(verifyResult.thumbprint, expectedEphemeralThumbprint)
 
     // The identity thumbprint should be different (for the enclave key)
-    const expectedIdentityThumbprint = await calculateThumbprint(identity.publicJwk)
+    const expectedIdentityThumbprint = await calculateThumbprint(
+        identity.publicJwk,
+    )
     assert.ok(
-        verifyResult.jkt_jwt?.identityThumbprint.endsWith(expectedIdentityThumbprint),
+        verifyResult.jkt_jwt?.identityThumbprint.endsWith(
+            expectedIdentityThumbprint,
+        ),
         'Identity thumbprint URI should contain the identity key thumbprint',
     )
 })
