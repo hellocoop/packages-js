@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/better-auth",
-    "version": "1.0.13",
+    "version": "1.0.14",
     "description": "Better Auth plugin for Hellō - https://hello.dev",
     "repository": {
         "type": "git",
@@ -61,7 +61,7 @@
         "node": ">=18"
     },
     "dependencies": {
-        "@hellocoop/definitions": "^1.0.12"
+        "@hellocoop/definitions": "^1.0.13"
     },
     "gitHead": "8fd9702d71dffa88f965cbdee29349395496b49b"
 }

@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/svelte",
-    "version": "2.2.3",
+    "version": "2.2.4",
     "description": "Svelte SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
@@ -60,7 +60,7 @@
     "type": "module",
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8",
     "dependencies": {
-        "@hellocoop/definitions": "^1.0.12",
+        "@hellocoop/definitions": "^1.0.13",
         "sswr": "^2.1.0"
     }
 }

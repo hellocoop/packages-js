@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/vue",
-    "version": "2.1.9",
+    "version": "2.1.10",
     "description": "Svelte SDK for Hellō https://hello.dev",
     "repository": {
         "type": "git",
