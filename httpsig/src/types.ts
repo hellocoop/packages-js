@@ -44,7 +44,7 @@ export type SignatureKeyType =
     | { type: 'hwk' }
     | { type: 'jwt'; jwt: string }
     | { type: 'jkt_jwt'; jwt: string }
-    | { type: 'jwks_uri'; id: string; kid: string; wellKnown: string }
+    | { type: 'jwks_uri'; id: string; kid: string; dwk: string }
 // Note: x509 scheme support can be added in the future
 // | { type: 'x509'; cert: string }
 // Recommended implementation: use @peculiar/x509 for certificate parsing
@@ -116,11 +116,14 @@ export interface VerificationResult {
     jwks_uri?: {
         id: string
         kid: string
-        wellKnown: string
+        dwk: string
     }
 
     // Error information
     error?: string
+
+    // Structured error for Signature-Error response header
+    signatureError?: SignatureError
 }
 
 export interface ParsedSignatureInput {
@@ -154,7 +157,45 @@ export interface JwtValue {
 export interface JwksUriValue {
     id: string
     kid: string
-    wellKnown: string
+    dwk: string
+}
+
+/**
+ * Signature-Error error codes (draft-hardt-httpbis-signature-key Section 6.2)
+ */
+export type SignatureErrorCode =
+    | 'unsupported_algorithm'
+    | 'invalid_signature'
+    | 'invalid_input'
+    | 'invalid_request'
+    | 'invalid_key'
+    | 'unknown_key'
+    | 'invalid_jwt'
+    | 'expired_jwt'
+
+/**
+ * Parsed Signature-Error header
+ */
+export interface SignatureError {
+    error: SignatureErrorCode
+    supported_algorithms?: string[]
+    required_input?: string[]
+}
+
+/**
+ * Accept-Signature sigkey parameter values
+ */
+export type SigKeyValue = 'jkt' | 'uri' | 'x509'
+
+/**
+ * Parsed Accept-Signature header parameters
+ */
+export interface AcceptSignatureParams {
+    label: string
+    components: string[]
+    sigkey?: SigKeyValue
+    alg?: string
+    tag?: string
 }
 
 /**

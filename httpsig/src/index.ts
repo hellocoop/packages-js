@@ -13,12 +13,23 @@ export {
     nextJsPagesVerify,
 } from './helpers.js'
 
+export {
+    generateSignatureErrorHeader,
+    parseSignatureError,
+    generateAcceptSignatureHeader,
+    parseAcceptSignature,
+} from './utils/signature.js'
+
 export type {
     HttpSigFetchOptions,
     SignatureKeyType,
     VerifyRequest,
     VerifyOptions,
     VerificationResult,
+    SignatureError,
+    SignatureErrorCode,
+    AcceptSignatureParams,
+    SigKeyValue,
 } from './types.js'
 
 export {

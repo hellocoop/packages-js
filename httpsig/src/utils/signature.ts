@@ -7,6 +7,10 @@ import {
     ParsedSignatureInput,
     ParsedSignatureKey,
     SignatureKeyType,
+    SignatureError,
+    SignatureErrorCode,
+    AcceptSignatureParams,
+    SigKeyValue,
 } from '../types.js'
 
 /**
@@ -81,7 +85,7 @@ export function generateSignatureKeyHeader(
     if (signatureKey.type === 'jwks_uri') {
         const params = [
             `id="${signatureKey.id}"`,
-            `well-known="${signatureKey.wellKnown}"`,
+            `dwk="${signatureKey.dwk}"`,
             `kid="${signatureKey.kid}"`,
         ]
 
@@ -233,7 +237,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
     // Parse parameters (semicolon-separated)
     const params: any = {}
     if (paramsStr) {
-        // Note: [\w-]+ allows hyphens in parameter names (e.g., well-known)
+        // Note: [\w-]+ allows hyphens in parameter names (e.g., jkt-jwt)
         const paramMatches = paramsStr.matchAll(
             /;([\w-]+)=(?:"([^"]*)"|(\w+))/g,
         )
@@ -293,9 +297,9 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
 
     if (scheme === 'jwks_uri') {
         // Validate jwks_uri has required parameters
-        if (!params.id || !params['well-known'] || !params.kid) {
+        if (!params.id || !params.dwk || !params.kid) {
             throw new Error(
-                'Signature-Key jwks_uri scheme missing required id/well-known/kid parameters',
+                'Signature-Key jwks_uri scheme missing required id/dwk/kid parameters',
             )
         }
 
@@ -306,7 +310,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
                 value: {
                     id: params.id,
                     kid: params.kid,
-                    wellKnown: params['well-known'],
+                    dwk: params.dwk,
                 },
             },
         ]
@@ -322,6 +326,156 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
     // }
 
     throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
+}
+
+/**
+ * Generate Signature-Error header value as RFC 8941 Dictionary
+ * Format: error=<code>[, supported_algorithms=("alg1" "alg2")][, required_input=("comp1" "comp2")]
+ */
+export function generateSignatureErrorHeader(
+    signatureError: SignatureError,
+): string {
+    const parts: string[] = [`error=${signatureError.error}`]
+
+    if (signatureError.supported_algorithms) {
+        const algList = signatureError.supported_algorithms
+            .map((a) => `"${a}"`)
+            .join(' ')
+        parts.push(`supported_algorithms=(${algList})`)
+    }
+
+    if (signatureError.required_input) {
+        const inputList = signatureError.required_input
+            .map((c) => `"${c}"`)
+            .join(' ')
+        parts.push(`required_input=(${inputList})`)
+    }
+
+    return parts.join(', ')
+}
+
+/**
+ * Parse Signature-Error header (RFC 8941 Dictionary)
+ */
+export function parseSignatureError(header: string): SignatureError {
+    const trimmed = header.trim()
+
+    // Parse error token
+    const errorMatch = trimmed.match(/error=([\w]+)/)
+    if (!errorMatch) {
+        throw new Error('Invalid Signature-Error: missing error member')
+    }
+
+    const error = errorMatch[1] as SignatureErrorCode
+    const validCodes: SignatureErrorCode[] = [
+        'unsupported_algorithm',
+        'invalid_signature',
+        'invalid_input',
+        'invalid_request',
+        'invalid_key',
+        'unknown_key',
+        'invalid_jwt',
+        'expired_jwt',
+    ]
+    if (!validCodes.includes(error)) {
+        throw new Error(`Invalid Signature-Error code: ${error}`)
+    }
+
+    const result: SignatureError = { error }
+
+    // Parse supported_algorithms inner list
+    const algMatch = trimmed.match(/supported_algorithms=\(([^)]*)\)/)
+    if (algMatch) {
+        result.supported_algorithms = algMatch[1]
+            .split(/\s+/)
+            .map((a) => a.replace(/"/g, ''))
+            .filter((a) => a)
+    }
+
+    // Parse required_input inner list
+    const inputMatch = trimmed.match(/required_input=\(([^)]*)\)/)
+    if (inputMatch) {
+        result.required_input = inputMatch[1]
+            .split(/\s+/)
+            .map((c) => c.replace(/"/g, ''))
+            .filter((c) => c)
+    }
+
+    return result
+}
+
+/**
+ * Generate Accept-Signature header value
+ * Format: label=("comp1" "comp2");sigkey=jkt[;alg="algo"][;tag="tag"]
+ */
+export function generateAcceptSignatureHeader(
+    params: AcceptSignatureParams,
+): string {
+    const { label = 'sig', components, sigkey, alg, tag } = params
+    const componentList = components.map((c) => `"${c}"`).join(' ')
+    let header = `${label}=(${componentList})`
+
+    if (sigkey) {
+        header += `;sigkey=${sigkey}`
+    }
+    if (alg) {
+        header += `;alg="${alg}"`
+    }
+    if (tag) {
+        header += `;tag="${tag}"`
+    }
+
+    return header
+}
+
+/**
+ * Parse Accept-Signature header
+ * Format: label=("comp1" "comp2");sigkey=jkt[;alg="algo"][;tag="tag"]
+ */
+export function parseAcceptSignature(header: string): AcceptSignatureParams {
+    const trimmed = header.trim()
+
+    // Match: label=(components);params
+    const match = trimmed.match(/^([\w-]+)=\(([^)]*)\)(.*)$/)
+    if (!match) {
+        throw new Error('Invalid Accept-Signature format')
+    }
+
+    const label = match[1]
+    const componentsStr = match[2]
+    const paramsStr = match[3]
+
+    const components = componentsStr
+        .split(/\s+/)
+        .map((c) => c.replace(/"/g, ''))
+        .filter((c) => c)
+
+    const result: AcceptSignatureParams = { label, components }
+
+    if (paramsStr) {
+        // Parse sigkey token parameter
+        const sigkeyMatch = paramsStr.match(/;sigkey=([\w]+)/)
+        if (sigkeyMatch) {
+            const value = sigkeyMatch[1] as SigKeyValue
+            if (['jkt', 'uri', 'x509'].includes(value)) {
+                result.sigkey = value
+            }
+        }
+
+        // Parse alg string parameter
+        const algMatch = paramsStr.match(/;alg="([^"]*)"/)
+        if (algMatch) {
+            result.alg = algMatch[1]
+        }
+
+        // Parse tag string parameter
+        const tagMatch = paramsStr.match(/;tag="([^"]*)"/)
+        if (tagMatch) {
+            result.tag = tagMatch[1]
+        }
+    }
+
+    return result
 }
 
 /**

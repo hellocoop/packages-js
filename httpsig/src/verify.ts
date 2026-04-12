@@ -2,7 +2,12 @@
  * HTTP Message Signature verification implementation
  */
 
-import { VerifyRequest, VerifyOptions, VerificationResult } from './types.js'
+import {
+    VerifyRequest,
+    VerifyOptions,
+    VerificationResult,
+    SignatureError,
+} from './types.js'
 import {
     importPublicKey,
     verify as cryptoVerify,
@@ -20,6 +25,71 @@ import { calculateThumbprint } from './utils/thumbprint.js'
 
 // JWKS cache
 const jwksCache = new Map<string, { jwks: any; expiresAt: number }>()
+
+/**
+ * Map an error message from verification to a structured SignatureError
+ */
+function mapToSignatureError(errorMessage: string): SignatureError {
+    if (
+        errorMessage.includes('Missing Signature-Key') ||
+        errorMessage.includes('Missing Signature-Input') ||
+        errorMessage.includes('Missing Signature') ||
+        errorMessage.includes('No signature found') ||
+        errorMessage.includes('No Signature-Input found') ||
+        errorMessage.includes('does not verify') ||
+        errorMessage.includes('Signature timestamp out of')
+    ) {
+        return { error: 'invalid_signature' }
+    }
+    if (errorMessage.includes('AAuth profile violation')) {
+        return {
+            error: 'invalid_input',
+            required_input: ['@method', '@authority', '@path', 'signature-key'],
+        }
+    }
+    if (errorMessage.includes('content-digest')) {
+        return { error: 'invalid_input' }
+    }
+    if (errorMessage.includes('Missing header for component')) {
+        return { error: 'invalid_input' }
+    }
+    if (
+        errorMessage.includes('Unsupported signature key type') ||
+        errorMessage.includes('Unsupported Signature-Key scheme')
+    ) {
+        return { error: 'invalid_key' }
+    }
+    if (
+        errorMessage.includes('Signature-Key') &&
+        errorMessage.includes('missing')
+    ) {
+        return { error: 'invalid_key' }
+    }
+    if (
+        errorMessage.includes('Invalid JWK') ||
+        errorMessage.includes('validate') ||
+        errorMessage.includes('kty parameter')
+    ) {
+        return { error: 'invalid_key' }
+    }
+    if (
+        errorMessage.includes('not found in JWKS') ||
+        errorMessage.includes('unknown_key')
+    ) {
+        return { error: 'unknown_key' }
+    }
+    if (errorMessage.includes('jkt-jwt: JWT expired')) {
+        return { error: 'expired_jwt' }
+    }
+    if (
+        errorMessage.includes('jkt-jwt:') ||
+        errorMessage.includes('Invalid JWT') ||
+        errorMessage.includes('JWT missing')
+    ) {
+        return { error: 'invalid_jwt' }
+    }
+    return { error: 'invalid_signature' }
+}
 
 /**
  * Normalize headers to a Map
@@ -78,11 +148,11 @@ async function fetchJWKS(url: string, cacheTtl: number): Promise<any> {
 async function getPublicKeyFromJWKS(
     id: string,
     kid: string,
-    wellKnown: string,
+    dwk: string,
     cacheTtl: number,
 ): Promise<JsonWebKey> {
     // Fetch metadata document first
-    const metadataUrl = `${id}/.well-known/${wellKnown}`
+    const metadataUrl = `${id}/.well-known/${dwk}`
     const metadata = await fetchJWKS(metadataUrl, cacheTtl)
 
     if (!metadata.jwks_uri) {
@@ -339,9 +409,7 @@ export async function verify(
                   identityThumbprint: string
               }
             | undefined
-        let jwksUriData:
-            | { id: string; kid: string; wellKnown: string }
-            | undefined
+        let jwksUriData: { id: string; kid: string; dwk: string } | undefined
 
         if (signatureKey.type === 'hwk') {
             publicJwk = signatureKey.value as JsonWebKey
@@ -375,16 +443,11 @@ export async function verify(
             const jwksUriValue = signatureKey.value as {
                 id: string
                 kid: string
-                wellKnown: string
+                dwk: string
             }
-            const { id, kid, wellKnown } = jwksUriValue
-            publicJwk = await getPublicKeyFromJWKS(
-                id,
-                kid,
-                wellKnown,
-                jwksCacheTtl,
-            )
-            jwksUriData = { id, kid, wellKnown }
+            const { id, kid, dwk } = jwksUriValue
+            publicJwk = await getPublicKeyFromJWKS(id, kid, dwk, jwksCacheTtl)
+            jwksUriData = { id, kid, dwk }
         } else {
             // Note: x509 scheme not yet implemented
             // Future implementation would:
@@ -538,6 +601,8 @@ export async function verify(
 
         return result
     } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : String(error)
         return {
             verified: false,
             label: '',
@@ -545,7 +610,8 @@ export async function verify(
             publicKey: {},
             thumbprint: '',
             created: 0,
-            error: error instanceof Error ? error.message : String(error),
+            error: errorMessage,
+            signatureError: mapToSignatureError(errorMessage),
         }
     }
 }

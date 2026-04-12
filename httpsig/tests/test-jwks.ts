@@ -101,7 +101,7 @@ test('jwks_uri: GET request with metadata discovery', async () => {
             signatureKey: {
                 type: 'jwks_uri',
                 id: 'https://agent.example',
-                wellKnown: 'agent-server',
+                dwk: 'agent-server',
                 kid: 'key-1',
             },
             dryRun: true,
@@ -132,7 +132,7 @@ test('jwks_uri: GET request with metadata discovery', async () => {
         assert.ok(verifyResult.jwks_uri)
         assert.strictEqual(verifyResult.jwks_uri?.id, 'https://agent.example')
         assert.strictEqual(verifyResult.jwks_uri?.kid, 'key-1')
-        assert.strictEqual(verifyResult.jwks_uri?.wellKnown, 'agent-server')
+        assert.strictEqual(verifyResult.jwks_uri?.dwk, 'agent-server')
         assert.strictEqual(verifyResult.publicKey.kty, 'OKP')
     } finally {
         mock.restore()
@@ -191,7 +191,7 @@ test('jwks_uri: POST request with body', async () => {
             signatureKey: {
                 type: 'jwks_uri',
                 id: 'https://agent-post.example',
-                wellKnown: 'agent-server',
+                dwk: 'agent-server',
                 kid: 'key-post',
             },
             dryRun: true,
@@ -234,7 +234,7 @@ test('jwks_uri: Should fail if key not found in JWKS', async () => {
             signatureKey: {
                 type: 'jwks_uri',
                 id: 'https://agent.example',
-                wellKnown: 'agent-server',
+                dwk: 'agent-server',
                 kid: 'nonexistent-key', // This key doesn't exist in mock JWKS
             },
             dryRun: true,
@@ -312,7 +312,7 @@ test('jwks_uri: Caching should work (second verify should not re-fetch)', async 
             signatureKey: {
                 type: 'jwks_uri',
                 id: 'https://agent-cache.example',
-                wellKnown: 'agent-server',
+                dwk: 'agent-server',
                 kid: 'key-cache',
             },
             dryRun: true,
