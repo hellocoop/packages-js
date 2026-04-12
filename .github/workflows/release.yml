@@ -40,14 +40,23 @@ jobs:
             - run: npm run build
             - name: Publish packages with provenance
               run: |
+                  failed=""
                   npx lerna ls --json --no-private | jq -r '.[] | "\(.name) \(.version) \(.location)"' | while read name version location; do
                     published=$(npm view "$name" version 2>/dev/null || echo "0.0.0")
                     if [ "$version" != "$published" ]; then
                       echo "Publishing $name@$version (npm has $published)..."
                       cd "$location"
-                      npm publish --provenance --access public
+                      if npm publish --provenance --access public; then
+                        echo "✅ Published $name@$version"
+                      else
+                        echo "❌ Failed to publish $name@$version"
+                        failed="$failed $name@$version"
+                      fi
                       cd "$GITHUB_WORKSPACE"
                     else
                       echo "Skipping $name@$version (already published)"
                     fi
                   done
+                  if [ -n "$failed" ]; then
+                    echo "::warning::Failed to publish:$failed"
+                  fi
