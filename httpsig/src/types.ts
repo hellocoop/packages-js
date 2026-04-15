@@ -51,8 +51,11 @@ export type SignatureKeyType =
 // See: https://github.com/PeculiarVentures/x509
 
 export interface HttpSigFetchOptions extends RequestInit {
-    // Required: Private key as JWK
+    // Required: Key as JWK (private key with 'd' param, or public key without)
     signingKey: JsonWebKey
+
+    // Required when signingKey is a public JWK (no 'd' param): CryptoKey handle for signing
+    signingCryptoKey?: CryptoKey
 
     // Required: Signature-Key header configuration
     signatureKey: SignatureKeyType

@@ -80,6 +80,60 @@ export async function verify(
 }
 
 /**
+ * Options for key pair generation
+ */
+export interface GenerateKeyPairOptions {
+    algorithm?: 'Ed25519' | 'ES256' // default: 'Ed25519'
+    extractable?: boolean // default: true
+}
+
+/**
+ * Generated key pair
+ */
+export interface KeyPair {
+    privateKey: CryptoKey // CryptoKey handle for signing
+    publicKey: JsonWebKey // Public key as JWK (always exportable)
+}
+
+/**
+ * Generate a signing key pair
+ */
+export async function generateKeyPair(
+    options?: GenerateKeyPairOptions,
+): Promise<KeyPair> {
+    const algorithm = options?.algorithm ?? 'Ed25519'
+    const extractable = options?.extractable ?? true
+
+    let genAlgorithm:
+        | AlgorithmIdentifier
+        | RsaHashedKeyGenParams
+        | EcKeyGenParams
+    let keyUsages: KeyUsage[] = ['sign', 'verify']
+
+    if (algorithm === 'Ed25519') {
+        genAlgorithm = { name: 'Ed25519' }
+    } else if (algorithm === 'ES256') {
+        genAlgorithm = { name: 'ECDSA', namedCurve: 'P-256' }
+    } else {
+        throw new Error(`Unsupported algorithm: ${algorithm}`)
+    }
+
+    const keyPair = (await crypto.subtle.generateKey(
+        genAlgorithm,
+        extractable,
+        keyUsages,
+    )) as CryptoKeyPair
+
+    // Public key is always exportable
+    const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey)
+
+    return {
+        privateKey: keyPair.privateKey,
+        publicKey,
+    }
+}
+
+/**
  * Validate JWK structure
  */
 export function validateJwk(jwk: JsonWebKey): void {

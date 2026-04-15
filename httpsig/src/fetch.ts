@@ -99,6 +99,7 @@ export async function fetch(
 ): Promise<Response | { headers: Headers }> {
     const {
         signingKey,
+        signingCryptoKey,
         signatureKey,
         label = 'sig',
         components: customComponents,
@@ -109,12 +110,27 @@ export async function fetch(
         ...fetchOptions
     } = options
 
-    // Validate signing key
+    // Validate signing key JWK structure
     validateJwk(signingKey)
 
-    // Import private key
-    const privateKey = await importPrivateKey(signingKey)
-    const algorithm = getAlgorithmFromJwk(signingKey)
+    // Determine private key and algorithm
+    let privateKey: CryptoKey
+    let algorithm: ReturnType<typeof getAlgorithmFromJwk>
+
+    if (signingKey.d) {
+        // Full private JWK — import it
+        privateKey = await importPrivateKey(signingKey)
+        algorithm = getAlgorithmFromJwk(signingKey)
+    } else {
+        // Public-only JWK — must have a CryptoKey handle
+        if (!signingCryptoKey) {
+            throw new Error(
+                'signingCryptoKey is required when signingKey does not contain private key material',
+            )
+        }
+        privateKey = signingCryptoKey
+        algorithm = getAlgorithmFromJwk(signingKey)
+    }
 
     // Get public key for hwk type
     const publicJwk = getPublicJwk(signingKey)

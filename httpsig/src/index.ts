@@ -20,6 +20,9 @@ export {
     parseAcceptSignature,
 } from './utils/signature.js'
 
+export { generateKeyPair } from './utils/crypto.js'
+export type { GenerateKeyPairOptions, KeyPair } from './utils/crypto.js'
+
 export type {
     HttpSigFetchOptions,
     SignatureKeyType,
