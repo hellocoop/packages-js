@@ -23,6 +23,8 @@ export {
 export { generateKeyPair } from './utils/crypto.js'
 export type { GenerateKeyPairOptions, KeyPair } from './utils/crypto.js'
 
+export { calculateThumbprint } from './utils/thumbprint.js'
+
 export type {
     HttpSigFetchOptions,
     SignatureKeyType,
