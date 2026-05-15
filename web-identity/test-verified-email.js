@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'node:module'
+
+if (process.argv.includes('--version')) {
+    const pkg = createRequire(import.meta.url)('./package.json')
+    console.log(pkg.version)
+    process.exit(0)
+}
+
 /**
  * Test script for Verified Email Autocomplete protocol
  *
