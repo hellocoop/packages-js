@@ -4,6 +4,7 @@
 
 import {
     HttpSigFetchOptions,
+    HttpSigFetchResultWithSent,
     VALID_DERIVED_COMPONENTS,
     DEFAULT_COMPONENTS_GET,
     DEFAULT_COMPONENTS_BODY,
@@ -92,11 +93,28 @@ function validateComponents(components: string[], headers: Headers): void {
 
 /**
  * Signed fetch - wraps standard fetch with HTTP Message Signatures
+ *
+ * Overloads pick the precise return type based on the option flags:
+ *   - `dryRun: true`     → `{ headers }` (no network call)
+ *   - `returnSent: true` → `{ response, sent }` (network call + signed headers)
+ *   - neither            → `Response` (network call, signed headers stay internal)
  */
+export function fetch(
+    url: string | URL,
+    options: HttpSigFetchOptions & { dryRun: true },
+): Promise<{ headers: Headers }>
+export function fetch(
+    url: string | URL,
+    options: HttpSigFetchOptions & { returnSent: true },
+): Promise<HttpSigFetchResultWithSent>
+export function fetch(
+    url: string | URL,
+    options: HttpSigFetchOptions,
+): Promise<Response>
 export async function fetch(
     url: string | URL,
     options: HttpSigFetchOptions,
-): Promise<Response | { headers: Headers }> {
+): Promise<Response | { headers: Headers } | HttpSigFetchResultWithSent> {
     const {
         signingKey,
         signingCryptoKey,
@@ -104,6 +122,7 @@ export async function fetch(
         label = 'sig',
         components: customComponents,
         dryRun = false,
+        returnSent = false,
         method = 'GET',
         headers: inputHeaders = {},
         body,
@@ -274,10 +293,26 @@ export async function fetch(
     }
 
     // Make the actual fetch request
-    return globalThis.fetch(urlObj, {
+    const response = await globalThis.fetch(urlObj, {
         ...fetchOptions,
         method,
         headers,
         body,
     })
+
+    // If returnSent, expose the signed request alongside the response so
+    // callers can render the actual on-the-wire headers.
+    if (returnSent) {
+        return {
+            response,
+            sent: {
+                method,
+                url: urlObj.href,
+                headers,
+                body: body ?? null,
+            },
+        }
+    }
+
+    return response
 }

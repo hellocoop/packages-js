@@ -66,6 +66,31 @@ export interface HttpSigFetchOptions extends RequestInit {
 
     // Testing mode
     dryRun?: boolean // Return headers without fetching (still returns Promise)
+
+    // When true, fetch returns { response, sent } — letting callers inspect the
+    // signed Headers that actually went on the wire (Signature, Signature-Input,
+    // Signature-Key, Content-Type, Content-Digest, etc.) for logging/audit.
+    returnSent?: boolean
+}
+
+/**
+ * The signed request that was sent to the server. Returned when `returnSent: true`
+ * is passed to fetch(), so callers can render the actual on-the-wire headers
+ * instead of fabricating placeholders.
+ */
+export interface SentRequest {
+    method: string
+    url: string
+    headers: Headers
+    body?: BodyInit | null
+}
+
+/**
+ * Result shape when fetch() is called with `returnSent: true`.
+ */
+export interface HttpSigFetchResultWithSent {
+    response: Response
+    sent: SentRequest
 }
 
 export interface VerifyRequest {

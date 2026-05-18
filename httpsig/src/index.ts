@@ -27,6 +27,8 @@ export { calculateThumbprint } from './utils/thumbprint.js'
 
 export type {
     HttpSigFetchOptions,
+    HttpSigFetchResultWithSent,
+    SentRequest,
     SignatureKeyType,
     VerifyRequest,
     VerifyOptions,
