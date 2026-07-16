@@ -5,8 +5,8 @@ networks:
 
 services:
     mockin:
-        # image: mockin:latest
-        image: hellocoop/mockin:latest
+        # set MOCKIN_IMAGE=mockin:latest to test against a locally built image
+        image: ${MOCKIN_IMAGE:-hellocoop/mockin:latest}
         networks:
             - mock
         ports:

@@ -259,8 +259,15 @@ test.describe(`Testing ${APP_HOME}`, () => {
         expect(return_uri).toEqual(APP_HOME)
     })
     test('should get metadata', async ({ page }) => {
+        // no HOST is configured, so the command endpoint is derived
+        // from the request Host header; the aud claim must match
+        const COMMAND_ENDPOINT = APP_API
         const commandTokenRes = await page.request.get(
-            MOCKIN + 'command/mock?client_id=' + config.client_id,
+            MOCKIN +
+                'command/mock?client_id=' +
+                config.client_id +
+                '&aud=' +
+                encodeURIComponent(COMMAND_ENDPOINT),
         )
         const { command_token } = await commandTokenRes.json()
         expect(command_token).toBeDefined
@@ -271,17 +278,18 @@ test.describe(`Testing ${APP_HOME}`, () => {
         const metadata = JSON.parse(body as string)
         expect(metadata).toBeDefined
         expect(metadata.context).toBeDefined()
-        // expect(metadata.context.package_name).toBe();
-        expect(metadata.context.package_version).toBeDefined()
-        // expect(metadata.context.package_version).toBe('0.0.1');
         expect(metadata.context.iss).toBeDefined()
-        expect(metadata.commands_uri).toBeDefined()
+        expect(metadata.context.tenant).toBeDefined()
+        expect(metadata.command_endpoint).toEqual(COMMAND_ENDPOINT)
         expect(metadata.commands_supported).toBeDefined()
         expect(metadata.commands_supported).toEqual(['metadata'])
-        expect(metadata.commands_ttl).toBeDefined()
-        expect(metadata.commands_ttl).toEqual(0)
         expect(metadata.client_id).toBeDefined()
         expect(metadata.client_id).toEqual(config.client_id)
+        // draft-00/01 fields are gone
+        expect(metadata.commands_uri).toBeUndefined()
+        expect(metadata.commands_ttl).toBeUndefined()
+        expect(metadata.context.package_name).toBeUndefined()
+        expect(metadata.context.package_version).toBeUndefined()
     })
 
     test('loginURL - should return OAuth URL and state, and then exchange code for access_token and auth', async ({

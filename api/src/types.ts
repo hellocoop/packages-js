@@ -45,6 +45,9 @@ export interface Config {
     sameSiteStrict?: boolean
     loginSync?: GenericSync
     logoutSync?: GenericSync
+    commandHandler?: CommandHandler
+    commandsSupported?: Command[]
+    audSubRequired?: boolean
     routes?: {
         loggedIn?: string
         loggedOut?: string
@@ -80,28 +83,65 @@ export type HelloResponse = {
     getHeaders: () => Record<string, string>
 }
 
+// OpenID Provider Commands draft-02
+// https://github.com/openid/openid-provider-commands
 export type Command =
+    // Tenant Commands
     | 'metadata'
-    | 'unauthorize'
+    | 'audit_tenant'
+    | 'suspend_tenant'
+    | 'archive_tenant'
+    | 'delete_tenant'
+    | 'invalidate_tenant'
+    // Account Commands
     | 'activate'
+    | 'maintain'
     | 'suspend'
     | 'reactivate'
     | 'archive'
     | 'restore'
     | 'delete'
-    | 'audit_tenant'
-    | 'unauthorize_tenant'
-    | 'suspend_tenant'
-    | 'archive_tenant'
-    | 'delete_tenant'
+    | 'audit'
+    | 'invalidate'
+    | 'migrate'
+    // Asynchronous Account Commands
+    | 'activate_async'
+    | 'maintain_async'
+    | 'suspend_async'
+    | 'reactivate_async'
+    | 'archive_async'
+    | 'restore_async'
+    | 'delete_async'
+    | 'audit_async'
+    | 'invalidate_async'
+    | 'migrate_async'
 
 export type CommandClaims = {
     iss: string
-    sub: string
+    aud: string
+    client_id: string
+    iat: number
+    exp: number
+    jti: string
     command: Command
-    tenant?: string
+    tenant: string
+    // present in Account Commands, prohibited in Tenant Commands
+    sub?: string
+    aud_sub?: string
+    // profile claims that may accompany Account Commands
+    email?: string
+    email_verified?: boolean
+    name?: string
+    given_name?: string
+    family_name?: string
     groups?: string[]
-    // add in all other identity claims from Hellō
+    roles?: string[]
+    // the metadata command carries an OP metadata object
+    metadata?: Record<string, unknown>
+    [claim: string]: unknown
 }
 
-export type CommandHandler = (res: HelloResponse, claims: CommandClaims) => void
+export type CommandHandler = (
+    res: HelloResponse,
+    claims: CommandClaims,
+) => void | Promise<void>

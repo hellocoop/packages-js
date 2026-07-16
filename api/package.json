@@ -33,11 +33,14 @@
     "scripts": {
         "watch": "tsc --watch",
         "prebuild": "rimraf dist node_modules",
-        "build": "tsc"
+        "build": "tsc",
+        "pretest": "rimraf dist-test && tsc -p tsconfig.test.json",
+        "test": "node --test dist-test/tests/*.test.js"
     },
     "devDependencies": {
         "@tsconfig/node18": "^18.2.2",
         "@types/cookie": "^0.6.0",
+        "@types/node": "^18.19.0",
         "rimraf": "^5.0.1",
         "typescript": "^5.2.2"
     },
@@ -47,7 +50,8 @@
     "dependencies": {
         "@hellocoop/definitions": "^1.0.13",
         "@hellocoop/helper-server": "^2.2.5",
-        "cookie": "^1.0.1"
+        "cookie": "^1.0.1",
+        "jose": "^5.10.0"
     },
     "gitHead": "2708ae6a0cf0cb970bed968ab62955e639c9e897"
 }

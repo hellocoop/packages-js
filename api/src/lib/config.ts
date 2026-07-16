@@ -1,4 +1,4 @@
-import { Config, GenericSync, CommandHandler } from '../types'
+import { Config, GenericSync, Command, CommandHandler } from '../types'
 import { Scope, ProviderHint, VALID_SCOPES } from '@hellocoop/definitions'
 import { checkSecret } from '@hellocoop/helper-server'
 
@@ -20,6 +20,8 @@ export interface IConfig {
     loginSync?: GenericSync
     logoutSync?: GenericSync
     commandHandler?: CommandHandler
+    commandsSupported?: Command[]
+    audSubRequired?: boolean
     cookieToken?: boolean // include encrypted cookie in auth response
     cookieDomain?: string // domain for auth cookies (e.g., '.example.com')
     // built from HELLO_API_ROUTE
@@ -123,6 +125,9 @@ export const configure = function (config: Config) {
         : undefined),
         (_configuration.loginSync = config.loginSync)
     _configuration.logoutSync = config.logoutSync
+    _configuration.commandHandler = config.commandHandler
+    _configuration.commandsSupported = config.commandsSupported
+    _configuration.audSubRequired = config.audSubRequired
 
     if (process.env.HELLO_SCOPES)
         _configuration.scope = process.env.HELLO_SCOPES.split(' ') as Scope[]

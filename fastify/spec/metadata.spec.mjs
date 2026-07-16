@@ -8,9 +8,16 @@ const config = {
     client_id: '8c3a40a9-b235-4029-8d16-c70592ca94bb',
 }
 
+// HOST=fastify-client in docker-compose.yml -> the command endpoint
+// the aud claim of the command token must match
+const COMMAND_ENDPOINT = 'https://fastify-client/api/hellocoop'
+
 const fetchToken = async () => {
     const results = await fetch(
-        'http://mockin:3333/command/mock?client_id=' + config.client_id,
+        'http://mockin:3333/command/mock?client_id=' +
+            config.client_id +
+            '&aud=' +
+            encodeURIComponent(COMMAND_ENDPOINT),
     )
     if (!results.ok) throw new Error('Failed to fetch command token')
     const json = await results.json()
@@ -51,16 +58,18 @@ describe('metadata command', () => {
         // console.log('metadata', json)
 
         expect(json.context).to.exist
-        // expect(json.context.package_name).to.eql()
-        expect(json.context.package_version).to.exist
-        // expect(json.context.package_version).to.eql('0.0.1')
         expect(json.context.iss).to.exist
-        expect(json.commands_uri).to.exist
+        expect(json.context.tenant).to.exist
+        expect(json.command_endpoint).to.exist
+        expect(json.command_endpoint).to.eql(COMMAND_ENDPOINT)
         expect(json.commands_supported).to.exist
         expect(json.commands_supported).to.eql(['metadata'])
-        expect(json.commands_ttl).to.exist
-        expect(json.commands_ttl).to.eql(0)
         expect(json.client_id).to.exist
         expect(json.client_id).to.eql(config.client_id)
+        // draft-00/01 fields are gone
+        expect(json.commands_uri).to.not.exist
+        expect(json.commands_ttl).to.not.exist
+        expect(json.context.package_name).to.not.exist
+        expect(json.context.package_version).to.not.exist
     })
 })
