@@ -32,7 +32,7 @@
     },
     "scripts": {
         "watch": "tsc --watch",
-        "prebuild": "rimraf dist node_modules",
+        "prebuild": "rimraf dist",
         "build": "tsc",
         "pretest": "rimraf dist-test && tsc -p tsconfig.test.json",
         "test": "node --test dist-test/tests/*.test.js"
