@@ -9,10 +9,13 @@ services:
         image: ${MOCKIN_IMAGE:-hellocoop/mockin:latest}
         networks:
             - mock
-        ports:
-            - '3333:3333'
-            # debugger
-            - '9339:9229'
+        # no host port mapping: the spec runs inside the docker network, and
+        # publishing 3333 collides with the express tests' mockin when
+        # lerna runs package test suites in parallel
+        # ports:
+        #     - '3333:3333'
+        #     # debugger
+        #     - '9339:9229'
         environment:
             ISSUER: 'http://mockin:3333'
 
