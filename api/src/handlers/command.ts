@@ -213,7 +213,9 @@ const handleCommand = async (
     const { claims } = result
     const { command } = claims
 
-    if (!config.commandHandler && command === 'metadata') {
+    // metadata is always handled built-in, sourced from config,
+    // so a commandHandler only ever receives the other commands
+    if (command === 'metadata') {
         return makeMetadataHandler(commandEndpoint)(res, claims)
     }
 

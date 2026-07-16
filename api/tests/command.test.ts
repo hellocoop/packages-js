@@ -294,15 +294,19 @@ test('command not in commandsSupported returns unsupported_command without calli
     assert.strictEqual(called, false)
 })
 
-test('registered commandHandler overrides built-in metadata', async () => {
+test('metadata is handled built-in even when a commandHandler is registered', async () => {
+    let called = false
     const captured = await runCommand(await mintToken(), {
-        commandHandler: (res, claims) => {
-            res.json({ custom: true, command: claims.command })
+        commandHandler: () => {
+            called = true
         },
+        commandsSupported: ['metadata', 'suspend'],
     })
     assert.strictEqual(captured.statusCode, 200)
-    assert.deepStrictEqual(captured.body, {
-        custom: true,
-        command: 'metadata',
-    })
+    assert.strictEqual(called, false)
+    assert.deepStrictEqual(captured.body.commands_supported, [
+        'metadata',
+        'suspend',
+    ])
+    assert.strictEqual(captured.body.command_endpoint, COMMAND_ENDPOINT)
 })
