@@ -43,8 +43,10 @@ echo "Building..."
 npm run build
 
 # Run tests
+# --concurrency 1: several suites (express, fastify, better-auth) bind
+# host ports 3000/3333 and collide when run in parallel
 echo "Running tests..."
-lerna run test
+lerna run test --concurrency 1
 
 # Bump versions of changed packages (creates git commits and tags)
 echo "Bumping $BUMP versions for changed packages..."
