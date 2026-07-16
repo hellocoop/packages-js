@@ -239,9 +239,15 @@ test.describe(`Testing ${APP_HOME}`, () => {
             op: 'invite',
             app_name: appName,
         })
-        await page.goto(APP_API + '?' + data.toString())
-        const url = page.url()
-        const inviteReqUrl = new URL(url)
+        // mockin's GET /invite redirects on to return_uri, so capture the
+        // invite request URL during navigation rather than the final page URL
+        const [inviteRequest] = await Promise.all([
+            page.waitForRequest((req) =>
+                req.url().startsWith(MOCKIN + 'invite?'),
+            ),
+            page.goto(APP_API + '?' + data.toString()),
+        ])
+        const inviteReqUrl = new URL(inviteRequest.url())
         const inviteReqUrlParams = new URLSearchParams(inviteReqUrl.search)
         const inviter = inviteReqUrlParams.get('inviter')
         expect(inviter).toEqual(loggedIn.sub)
