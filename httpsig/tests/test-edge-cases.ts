@@ -84,7 +84,7 @@ test('Invalid signing key: should throw error for missing kty', async () => {
                 dryRun: true,
             })
         },
-        /JWK missing required field: kty/,
+        /JWK missing required member: kty/,
         'Should reject invalid JWK',
     )
 
@@ -92,7 +92,7 @@ test('Invalid signing key: should throw error for missing kty', async () => {
 })
 
 test('Invalid signing key: should throw error for unsupported key type', async () => {
-    const invalidKey = { kty: 'UNSUPPORTED' } as JsonWebKey
+    const invalidKey = { kty: 'UNSUPPORTED', alg: 'UNSUPPORTED' } as JsonWebKey
 
     await assert.rejects(
         async () => {
@@ -102,7 +102,7 @@ test('Invalid signing key: should throw error for unsupported key type', async (
                 dryRun: true,
             })
         },
-        /Unsupported key type/,
+        /Unsupported or not fully-specified algorithm/,
         'Should reject unsupported key type',
     )
 
@@ -113,6 +113,7 @@ test('Invalid signing key: should throw error for OKP key missing x', async () =
     const invalidKey = {
         kty: 'OKP',
         crv: 'Ed25519',
+        alg: 'Ed25519',
         // missing x
     } as JsonWebKey
 
@@ -124,7 +125,7 @@ test('Invalid signing key: should throw error for OKP key missing x', async () =
                 dryRun: true,
             })
         },
-        /OKP JWK missing required field: x/,
+        /OKP JWK missing required member: x/,
         'Should reject OKP key missing x',
     )
 
@@ -135,6 +136,7 @@ test('Invalid signing key: should throw error for EC key missing y', async () =>
     const invalidKey = {
         kty: 'EC',
         crv: 'P-256',
+        alg: 'ES256',
         x: 'test',
         // missing y
     } as JsonWebKey
@@ -147,14 +149,16 @@ test('Invalid signing key: should throw error for EC key missing y', async () =>
                 dryRun: true,
             })
         },
-        /EC JWK missing required field: y/,
+        /EC JWK missing required member: y/,
         'Should reject EC key missing y',
     )
 
     console.log('✓ EC key missing y is rejected')
 })
 
-test('Invalid signing key: should throw error for RSA keys (not supported)', async () => {
+test('Invalid signing key: RSA key that does not name padding and hash', async () => {
+    // kty "RSA" determines neither the padding scheme nor the hash, so alg is
+    // required and must name both, for example PS256 or RS256.
     const rsaKey = {
         kty: 'RSA',
         n: 'xGOr_H7A5L9VZhZ8w...',
@@ -169,11 +173,11 @@ test('Invalid signing key: should throw error for RSA keys (not supported)', asy
                 dryRun: true,
             })
         },
-        /Unsupported key type: RSA/,
-        'Should reject RSA keys as unsupported',
+        /missing required member: alg/,
+        'Should reject an RSA key with no alg',
     )
 
-    console.log('✓ RSA keys are rejected (not supported)')
+    console.log('✓ RSA key without a fully-specified alg is rejected')
 })
 
 test('Body handling: undefined body should not add content headers', async () => {

@@ -10,8 +10,8 @@ import {
     SignatureError,
     SignatureErrorCode,
     AcceptSignatureParams,
-    SigKeyValue,
 } from '../types.js'
+import { invalidKey, unsupportedScheme } from '../errors.js'
 
 /**
  * Generate signature base string from components
@@ -62,8 +62,20 @@ export function generateSignatureKeyHeader(
             throw new Error('Public JWK required for hwk signature key type')
         }
 
-        // Build hwk parameters from JWK
-        const params: string[] = [`kty="${publicJwk.kty}"`]
+        // alg is REQUIRED and carries the algorithm; the verifier does not
+        // derive it from kty and crv.
+        if (!publicJwk.alg) {
+            throw new Error(
+                'Public JWK missing required alg member for hwk signature key type',
+            )
+        }
+
+        // Build hwk parameters from JWK. kid is deliberately not emitted: the
+        // key is inline, so an identifier selects nothing.
+        const params: string[] = [
+            `alg="${publicJwk.alg}"`,
+            `kty="${publicJwk.kty}"`,
+        ]
 
         if (publicJwk.crv) params.push(`crv="${publicJwk.crv}"`)
         if (publicJwk.x) params.push(`x="${publicJwk.x}"`)
@@ -250,14 +262,26 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
         }
     }
 
-    if (!['hwk', 'jwt', 'jkt-jwt', 'jwks_uri', 'x509'].includes(scheme)) {
-        throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
+    if (!['hwk', 'jwt', 'jkt-jwt', 'jwks_uri'].includes(scheme)) {
+        throw unsupportedScheme(`Unsupported Signature-Key scheme: ${scheme}`)
     }
 
     if (scheme === 'hwk') {
         // Validate hwk has required parameters
         if (!params.kty) {
-            throw new Error('Signature-Key hwk scheme missing kty parameter')
+            throw invalidKey('Signature-Key hwk scheme missing kty parameter')
+        }
+
+        if (!params.alg) {
+            throw invalidKey('Signature-Key hwk scheme missing alg parameter')
+        }
+
+        // The key is inline, so a kid selects nothing and one that disagrees
+        // with the inline key has no defined resolution.
+        if (params.kid !== undefined) {
+            throw invalidKey(
+                'Signature-Key hwk scheme MUST NOT include a kid parameter',
+            )
         }
 
         return [{ label, type: 'hwk', value: params }]
@@ -316,33 +340,24 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
         ]
     }
 
-    // Note: x509 scheme not yet implemented
-    // Future implementation would parse: x509;x5u="...";x5t="..."
-    // if (scheme === 'x509') {
-    //     if (!params.x5u || !params.x5t) {
-    //         throw new Error('Signature-Key x509 scheme missing x5u/x5t parameters')
-    //     }
-    //     return [{ label, type: 'x509', value: { x5u: params.x5u, x5t: params.x5t } }]
-    // }
+    // Note: the x509, jwks, and self-jwt schemes are not yet implemented.
+    // Unknown and unimplemented schemes take the same defined path.
 
-    throw new Error(`Unsupported Signature-Key scheme: ${scheme}`)
+    throw unsupportedScheme(`Unsupported Signature-Key scheme: ${scheme}`)
 }
 
 /**
  * Generate Signature-Error header value as RFC 8941 Dictionary
- * Format: error=<code>[, supported_algorithms=("alg1" "alg2")][, required_input=("comp1" "comp2")]
+ * Format: error=<code>[, required_input=("comp1" "comp2")]
+ *
+ * The supported_algorithms member was removed in -07. A server states what
+ * would have worked in the Accept-Signature-Alg and Accept-Signature-Scheme
+ * header fields, which work on a challenge and on an error alike.
  */
 export function generateSignatureErrorHeader(
     signatureError: SignatureError,
 ): string {
     const parts: string[] = [`error=${signatureError.error}`]
-
-    if (signatureError.supported_algorithms) {
-        const algList = signatureError.supported_algorithms
-            .map((a) => `"${a}"`)
-            .join(' ')
-        parts.push(`supported_algorithms=(${algList})`)
-    }
 
     if (signatureError.required_input) {
         const inputList = signatureError.required_input
@@ -369,6 +384,7 @@ export function parseSignatureError(header: string): SignatureError {
     const error = errorMatch[1] as SignatureErrorCode
     const validCodes: SignatureErrorCode[] = [
         'unsupported_algorithm',
+        'unsupported_scheme',
         'invalid_signature',
         'invalid_input',
         'invalid_request',
@@ -383,15 +399,6 @@ export function parseSignatureError(header: string): SignatureError {
 
     const result: SignatureError = { error }
 
-    // Parse supported_algorithms inner list
-    const algMatch = trimmed.match(/supported_algorithms=\(([^)]*)\)/)
-    if (algMatch) {
-        result.supported_algorithms = algMatch[1]
-            .split(/\s+/)
-            .map((a) => a.replace(/"/g, ''))
-            .filter((a) => a)
-    }
-
     // Parse required_input inner list
     const inputMatch = trimmed.match(/required_input=\(([^)]*)\)/)
     if (inputMatch) {
@@ -405,19 +412,80 @@ export function parseSignatureError(header: string): SignatureError {
 }
 
 /**
+ * Generate an RFC 8941 List of Tokens.
+ */
+function generateTokenList(values: string[]): string {
+    for (const value of values) {
+        if (!/^[A-Za-z*][A-Za-z0-9!#$%&'*+\-.^_`|~:/]*$/.test(value)) {
+            throw new Error(
+                `Value is not a valid Structured Field Token: ${value}`,
+            )
+        }
+    }
+    return values.join(', ')
+}
+
+/**
+ * Parse an RFC 8941 List of Tokens, ignoring entries that are not tokens.
+ */
+function parseTokenList(header: string): string[] {
+    return header
+        .split(',')
+        .map((v) => v.trim())
+        .filter((v) => /^[A-Za-z*][A-Za-z0-9!#$%&'*+\-.^_`|~:/]*$/.test(v))
+}
+
+/**
+ * Generate Accept-Signature-Scheme: the Signature-Key schemes the server
+ * accepts, in descending order of preference.
+ *
+ * Format: scheme1, scheme2
+ */
+export function generateAcceptSignatureSchemeHeader(schemes: string[]): string {
+    return generateTokenList(schemes)
+}
+
+/**
+ * Parse Accept-Signature-Scheme. Unrecognized tokens are preserved: a client
+ * ignores what it does not know so a server may list schemes registered after
+ * the client was written.
+ */
+export function parseAcceptSignatureScheme(header: string): string[] {
+    return parseTokenList(header)
+}
+
+/**
+ * Generate Accept-Signature-Alg: the signature algorithms the server accepts,
+ * as fully-specified JOSE identifiers.
+ *
+ * Format: alg1, alg2
+ */
+export function generateAcceptSignatureAlgHeader(algs: string[]): string {
+    return generateTokenList(algs)
+}
+
+/**
+ * Parse Accept-Signature-Alg.
+ */
+export function parseAcceptSignatureAlg(header: string): string[] {
+    return parseTokenList(header)
+}
+
+/**
  * Generate Accept-Signature header value
- * Format: label=("comp1" "comp2");sigkey=jkt[;alg="algo"][;tag="tag"]
+ * Format: label=("comp1" "comp2")[;alg="algo"][;tag="tag"]
+ *
+ * The sigkey parameter was removed in -07. A parameter value is a bare Item
+ * and cannot be a list, so sigkey could name only one scheme. Use
+ * Accept-Signature-Scheme and Accept-Signature-Alg instead.
  */
 export function generateAcceptSignatureHeader(
     params: AcceptSignatureParams,
 ): string {
-    const { label = 'sig', components, sigkey, alg, tag } = params
+    const { label = 'sig', components, alg, tag } = params
     const componentList = components.map((c) => `"${c}"`).join(' ')
     let header = `${label}=(${componentList})`
 
-    if (sigkey) {
-        header += `;sigkey=${sigkey}`
-    }
     if (alg) {
         header += `;alg="${alg}"`
     }
@@ -430,7 +498,7 @@ export function generateAcceptSignatureHeader(
 
 /**
  * Parse Accept-Signature header
- * Format: label=("comp1" "comp2");sigkey=jkt[;alg="algo"][;tag="tag"]
+ * Format: label=("comp1" "comp2")[;alg="algo"][;tag="tag"]
  */
 export function parseAcceptSignature(header: string): AcceptSignatureParams {
     const trimmed = header.trim()
@@ -453,15 +521,6 @@ export function parseAcceptSignature(header: string): AcceptSignatureParams {
     const result: AcceptSignatureParams = { label, components }
 
     if (paramsStr) {
-        // Parse sigkey token parameter
-        const sigkeyMatch = paramsStr.match(/;sigkey=([\w]+)/)
-        if (sigkeyMatch) {
-            const value = sigkeyMatch[1] as SigKeyValue
-            if (['jkt', 'uri', 'x509'].includes(value)) {
-                result.sigkey = value
-            }
-        }
-
         // Parse alg string parameter
         const algMatch = paramsStr.match(/;alg="([^"]*)"/)
         if (algMatch) {

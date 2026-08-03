@@ -112,7 +112,8 @@ test('Validation: Label mismatch - no matching Signature-Input', async () => {
         authority: 'api.example.com',
         path: '/data',
         headers: {
-            'signature-key': 'sig1=hwk;kty="OKP";crv="Ed25519";x="test"',
+            'signature-key':
+                'sig1=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="test"',
             'signature-input':
                 'sig2=("@method" "@authority" "@path");created=1234567890', // Different label
             signature: 'sig1=:dGVzdA==:',
@@ -138,14 +139,14 @@ test('Validation: Label mismatch - no matching Signature', async () => {
             authority: 'api.example.com',
             path: '/data',
             headers: {
-                'signature-key': 'sig1=hwk;kty="OKP";crv="Ed25519";x="test"',
+                'signature-key':
+                    'sig1=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="test"',
                 'signature-input':
                     'sig1=("@method" "@authority" "@path" "signature-key");created=1234567890',
                 signature: 'sig2=:dGVzdA==:', // Different label
             },
         },
         {
-            strictAAuth: false, // Disable AAuth check to test label mismatch specifically
             maxClockSkew: 999999999, // Allow any timestamp to avoid clock skew errors
         },
     )
@@ -184,69 +185,40 @@ test('Validation: Missing scheme (invalid format)', async () => {
 })
 
 /**
- * Test: signature-key not in covered components (AAuth violation)
+ * Test: signature-key not in covered components
+ *
+ * Covering `signature-key` is a requirement of the specification, not a
+ * profile choice: an uncovered Signature-Key header can be substituted by an
+ * attacker without invalidating the signature, which is the scheme- and
+ * identity-substitution attack. There is no option to disable this.
  */
-test('Validation: signature-key not in covered components (strictAAuth=true)', async () => {
-    const result = await verify(
-        {
-            method: 'GET',
-            authority: 'api.example.com',
-            path: '/data',
-            headers: {
-                'signature-key': 'sig=hwk;kty="OKP";crv="Ed25519";x="test"',
-                // Note: signature-key is NOT in the covered components list
-                'signature-input':
-                    'sig=("@method" "@authority" "@path");created=1234567890',
-                signature: 'sig=:dGVzdA==:',
-            },
+test('Validation: signature-key not in covered components is always rejected', async () => {
+    const result = await verify({
+        method: 'GET',
+        authority: 'api.example.com',
+        path: '/data',
+        headers: {
+            'signature-key':
+                'sig=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="test"',
+            // Note: signature-key is NOT in the covered components list
+            'signature-input':
+                'sig=("@method" "@authority" "@path");created=1234567890',
+            signature: 'sig=:dGVzdA==:',
         },
-        {
-            strictAAuth: true, // Enforce AAuth profile
-        },
-    )
+    })
 
-    console.log('\nSignature-key not covered (strict AAuth) test:')
+    console.log('\nSignature-key not covered test:')
     console.log('  Verified:', result.verified)
     console.log('  Error:', result.error)
 
     assert.strictEqual(result.verified, false)
-    assert.ok(result.error?.includes('AAuth profile violation'))
+    assert.strictEqual(result.signatureError?.error, 'invalid_input')
     assert.ok(
-        result.error?.includes('signature-key must be in covered components'),
+        result.signatureError?.required_input?.includes('signature-key'),
+        'Should name signature-key as a required covered component',
     )
-})
-
-/**
- * Test: signature-key not in covered components bypasses AAuth check when strictAAuth=false
- */
-test('Validation: signature-key not covered bypasses AAuth check with strictAAuth=false', async () => {
-    const result = await verify(
-        {
-            method: 'GET',
-            authority: 'api.example.com',
-            path: '/data',
-            headers: {
-                'signature-key': 'sig=hwk;kty="OKP";crv="Ed25519";x="test"',
-                // Note: signature-key is NOT in covered components
-                'signature-input':
-                    'sig=("@method" "@authority" "@path");created=1234567890',
-                signature: 'sig=:dGVzdA==:',
-            },
-        },
-        {
-            strictAAuth: false, // Disable AAuth profile enforcement
-        },
-    )
-
-    console.log('\nSignature-key not covered (strictAAuth=false) test:')
-    console.log('  Verified:', result.verified)
-    console.log('  Error:', result.error)
-
-    // Should NOT fail due to AAuth violation (though it will fail for other reasons like invalid signature)
-    assert.strictEqual(result.verified, false, 'Signature should be invalid')
     assert.ok(
-        !result.error?.includes('AAuth profile violation'),
-        'Should not mention AAuth violation when strictAAuth=false',
+        result.error?.includes('signature-key must be a covered component'),
     )
 })
 
@@ -264,10 +236,7 @@ test('Signature-Key validation: Summary', () => {
     console.log('✓ Label mismatch with Signature-Input is rejected')
     console.log('✓ Label mismatch with Signature is rejected')
     console.log('✓ Missing scheme parameter is rejected')
-    console.log('✓ signature-key not covered is rejected (strictAAuth=true)')
-    console.log(
-        '✓ signature-key not covered bypasses AAuth check (strictAAuth=false)',
-    )
+    console.log('✓ signature-key not covered is always rejected')
     console.log(
         '\nAll RFC 8941 Dictionary format validations working correctly!',
     )

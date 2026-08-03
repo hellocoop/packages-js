@@ -1,0 +1,146 @@
+# Migrating to 2.0
+
+2.0 tracks `draft-hardt-httpbis-signature-key-07`, which is not backward
+compatible with the `-05`-era protocol that 1.x implements. A 1.x client and a
+2.x verifier will not interoperate, in either direction. There is no version
+negotiation in the protocol, so both ends have to move together.
+
+1.x continues on the `1.x` branch and keeps the npm `latest` tag until 2.0 is
+released.
+
+## Every JWK must carry `alg`
+
+This is the change that touches most callers.
+
+The algorithm is now taken from the JWK's `alg` member and is never derived
+from `kty` and `crv`. Those underdetermine it: an RSA key has no `crv` at all
+and leaves both padding and hash free, and an EC key's curve does not fix the
+hash.
+
+`alg` must be a _fully-specified_ identifier (RFC 9864). The polymorphic
+`EdDSA` identifier is rejected — use `Ed25519` or `Ed448`.
+
+```js
+// 1.x
+const key = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
+
+// 2.x — WebCrypto does not set alg, so set it yourself
+const key = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
+key.alg = 'Ed25519'
+```
+
+`generateKeyPair()` from this package stamps `alg` for you, so prefer it:
+
+```js
+import { generateKeyPair } from '@hellocoop/httpsig'
+const { privateKey, publicKey } = await generateKeyPair({
+    algorithm: 'Ed25519',
+})
+```
+
+A JWK whose `kty` or `crv` disagrees with its `alg` is rejected rather than
+resolved in favour of either reading.
+
+Supported: `Ed25519`, `Ed448`, `ES256`, `ES384`, `ES512`, `PS256`, `PS384`,
+`PS512`, `RS256`, `RS384`, `RS512`. RSA is newly supported in 2.0. Symmetric
+algorithms (`oct`, `HS*`, `hmac-sha256`) are rejected: every scheme here
+distributes a public key, and a shared secret handed to the verifier proves
+nothing.
+
+`ML-DSA-*` and the `AKP` key type are recognized and declined with
+`unsupported_algorithm` rather than failing as malformed. WebCrypto cannot
+implement them.
+
+## `hwk` carries `alg` and must not carry `kid`
+
+The `hwk` scheme now emits and requires an `alg` parameter. In `-06` it was
+forbidden, so a header serialized by 1.x is rejected by 2.x and vice versa.
+
+```
+# 1.x
+Signature-Key: sig=hwk;kty="OKP";crv="Ed25519";x="..."
+
+# 2.x
+Signature-Key: sig=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="..."
+```
+
+A `kid` parameter on `hwk` is now rejected: the key is inline, so an identifier
+selects nothing, and one that disagrees with the inline key has no defined
+resolution.
+
+## `sigkey` is replaced by two header fields
+
+A Structured Fields parameter value is a bare Item and cannot be a list, so
+`sigkey` could name only one scheme. It is replaced by `Accept-Signature-Scheme`
+and `Accept-Signature-Alg`, which are Lists of Tokens and let a client choose
+before it signs rather than after a rejection.
+
+```js
+// 1.x
+generateAcceptSignatureHeader({ label: 'sig', components, sigkey: 'jkt' })
+
+// 2.x
+generateAcceptSignatureHeader({ label: 'sig', components })
+generateAcceptSignatureSchemeHeader(['hwk', 'jkt-jwt'])
+generateAcceptSignatureAlgHeader(['Ed25519', 'ES256'])
+```
+
+The `SigKeyValue` type is removed.
+
+## `supported_algorithms` is removed from `Signature-Error`
+
+Use `Accept-Signature-Alg`, which works on a challenge and on an error alike,
+rather than only after a rejection.
+
+The `unsupported_scheme` error code is added, and an unrecognized
+`Signature-Key` scheme now reports it instead of `invalid_key`.
+
+## `signature-key` coverage is always enforced
+
+The `strictAAuth` option is removed from `VerifyOptions`. Covering
+`signature-key` is a requirement of the specification, not a profile choice: an
+uncovered `Signature-Key` header can be substituted by an attacker without
+invalidating the signature. There is no way to disable the check.
+
+Requests whose covered components omit `signature-key` are rejected with
+`invalid_input`, and `required_input` names what was missing.
+
+## The `jwt` scheme validates `exp`
+
+1.x extracted `cnf.jwk` and validated nothing, leaving expiry to the caller.
+2.x requires `exp` and rejects an expired assertion with `expired_jwt`, because
+`exp` is what bounds how long the confirmation key the assertion carries
+remains acceptable. An assertion without `exp` leaves that key acceptable
+indefinitely.
+
+`iat`, if present, must not be in the future.
+
+Validating the issuer's signature over the assertion remains the caller's job.
+
+## Errors are typed
+
+Verification failures now throw `SignatureVerificationError`, which carries the
+`Signature-Error` code directly instead of leaving it to be recovered by
+matching on message text.
+
+```js
+import { SignatureVerificationError } from '@hellocoop/httpsig'
+
+try {
+    await fetch(url, opts)
+} catch (error) {
+    if (error instanceof SignatureVerificationError) {
+        console.log(error.code) // e.g. 'invalid_key'
+    }
+}
+```
+
+`verify()` still returns a result object rather than throwing; its
+`signatureError` member is now derived from the code rather than the message.
+
+## Not yet implemented
+
+The `jwks`, `self-jwt`, and `x509` schemes are defined by the draft but not
+implemented here. Assertion caching — the `cached` scheme, `Signature-Key-Cache`
+and `cache_miss` — is deliberately not implemented: the draft carries an
+Editor's Note calling it a straw man, and the design is not settled.

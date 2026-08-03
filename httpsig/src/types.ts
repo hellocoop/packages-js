@@ -108,11 +108,12 @@ export interface VerifyOptions {
 
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
-
-    // AAuth profile enforcement
-    strictAAuth?: boolean // Enforce AAuth profile requirements (default: true)
-    // When true, requires signature-key in covered components
 }
+
+// Note: the strictAAuth option was removed in 2.0. Covering `signature-key` is
+// a requirement of the specification, not a profile choice -- an uncovered
+// Signature-Key header admits the scheme-substitution and identity-
+// substitution attacks -- so it is always enforced and cannot be disabled.
 
 export interface VerificationResult {
     verified: boolean // Overall verification status
@@ -170,6 +171,8 @@ export interface ParsedSignatureKey {
 }
 
 export interface HwkValue {
+    /** REQUIRED. A fully-specified JOSE algorithm identifier. */
+    alg: string
     kty: string
     crv?: string
     x?: string
@@ -193,6 +196,7 @@ export interface JwksUriValue {
  */
 export type SignatureErrorCode =
     | 'unsupported_algorithm'
+    | 'unsupported_scheme'
     | 'invalid_signature'
     | 'invalid_input'
     | 'invalid_request'
@@ -203,33 +207,55 @@ export type SignatureErrorCode =
 
 /**
  * Parsed Signature-Error header
+ *
+ * The supported_algorithms member was removed in -07; a server states what
+ * would have worked in Accept-Signature-Alg instead.
  */
 export interface SignatureError {
     error: SignatureErrorCode
-    supported_algorithms?: string[]
     required_input?: string[]
 }
 
 /**
- * Accept-Signature sigkey parameter values
+ * Signature-Key schemes defined by the draft. Not all are implemented here.
  */
-export type SigKeyValue = 'jkt' | 'uri' | 'x509'
+export type SignatureKeyScheme =
+    | 'hwk'
+    | 'jwt'
+    | 'jkt-jwt'
+    | 'jwks_uri'
+    | 'jwks'
+    | 'self-jwt'
+    | 'x509'
 
 /**
  * Parsed Accept-Signature header parameters
+ *
+ * The sigkey parameter was removed in -07. Use the Accept-Signature-Scheme
+ * and Accept-Signature-Alg header fields.
  */
 export interface AcceptSignatureParams {
     label: string
     components: string[]
-    sigkey?: SigKeyValue
     alg?: string
     tag?: string
 }
 
 /**
- * Supported signature algorithms
+ * Fully-specified JOSE algorithm identifiers this implementation supports.
  */
-export type SignatureAlgorithm = 'Ed25519' | 'ES256'
+export type SignatureAlgorithm =
+    | 'Ed25519'
+    | 'Ed448'
+    | 'ES256'
+    | 'ES384'
+    | 'ES512'
+    | 'PS256'
+    | 'PS384'
+    | 'PS512'
+    | 'RS256'
+    | 'RS384'
+    | 'RS512'
 
 /**
  * Algorithm parameters for signing

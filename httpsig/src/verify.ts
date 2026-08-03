@@ -23,11 +23,37 @@ import {
 import { base64urlDecode } from './utils/base64.js'
 import { calculateThumbprint } from './utils/thumbprint.js'
 import { BoundedTtlCache } from './utils/cache.js'
+import {
+    SignatureVerificationError,
+    invalidInput,
+    invalidJwt,
+    expiredJwt,
+} from './errors.js'
 
 // JWKS cache. Bounded: the cache key is a URL derived from the request being
 // verified, so an unauthenticated signer would otherwise be able to grow this
 // without limit by varying the id/dwk it presents.
 const jwksCache = new BoundedTtlCache<any>()
+
+/**
+ * Map a thrown error to a structured SignatureError.
+ *
+ * A SignatureVerificationError carries its code explicitly. Anything else is
+ * matched on message text, which covers paths that still throw plain Errors.
+ */
+function toSignatureError(error: unknown): SignatureError {
+    if (error instanceof SignatureVerificationError) {
+        const result: SignatureError = { error: error.code }
+        if (error.requiredInput) {
+            result.required_input = error.requiredInput
+        }
+        return result
+    }
+
+    return mapToSignatureError(
+        error instanceof Error ? error.message : String(error),
+    )
+}
 
 /**
  * Map an error message from verification to a structured SignatureError
@@ -181,28 +207,58 @@ async function getPublicKeyFromJWKS(
 }
 
 /**
- * Decode JWT and extract cnf.jwk claim
+ * Decode a jwt-scheme assertion and extract its cnf.jwk confirmation key.
+ *
+ * The issuer's signature over the assertion is NOT checked here -- the caller
+ * validates the issuer -- but `exp` is, because `exp` is what bounds how long
+ * the confirmation key the assertion carries remains acceptable. An assertion
+ * without `exp` would leave that key acceptable indefinitely.
  */
-function decodeJWT(jwt: string): {
+function decodeJWT(
+    jwt: string,
+    maxClockSkew: number,
+): {
     header: any
     payload: any
     publicKey: JsonWebKey
 } {
     const parts = jwt.split('.')
     if (parts.length !== 3) {
-        throw new Error('Invalid JWT format')
+        throw invalidJwt('Invalid JWT format')
     }
 
-    const header = JSON.parse(
-        new TextDecoder().decode(base64urlDecode(parts[0])),
-    )
-    const payload = JSON.parse(
-        new TextDecoder().decode(base64urlDecode(parts[1])),
-    )
+    let header: any
+    let payload: any
+    try {
+        header = JSON.parse(new TextDecoder().decode(base64urlDecode(parts[0])))
+        payload = JSON.parse(
+            new TextDecoder().decode(base64urlDecode(parts[1])),
+        )
+    } catch {
+        throw invalidJwt('Invalid JWT: header or payload is not valid JSON')
+    }
 
     // Extract cnf.jwk
     if (!payload.cnf || !payload.cnf.jwk) {
-        throw new Error('JWT missing cnf.jwk claim')
+        throw invalidJwt('JWT missing cnf.jwk claim')
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+
+    if (typeof payload.exp !== 'number') {
+        throw invalidJwt('JWT missing required exp claim')
+    }
+    if (payload.exp + maxClockSkew < now) {
+        throw expiredJwt('JWT expired')
+    }
+
+    if (payload.iat !== undefined) {
+        if (typeof payload.iat !== 'number') {
+            throw invalidJwt('JWT iat claim is not a number')
+        }
+        if (payload.iat - maxClockSkew > now) {
+            throw invalidJwt('JWT iat is in the future')
+        }
     }
 
     return {
@@ -344,7 +400,6 @@ export async function verify(
     const {
         maxClockSkew = 60,
         jwksCacheTtl = 3600000, // 1 hour
-        strictAAuth = true, // Enforce AAuth profile by default
     } = options
 
     try {
@@ -380,11 +435,16 @@ export async function verify(
 
         const { components, params } = signatureInput
 
-        // Validate that signature-key is in covered components (AAuth profile requirement)
-        if (strictAAuth && !components.includes('signature-key')) {
-            throw new Error(
-                'AAuth profile violation: signature-key must be in covered components',
-            )
+        // signature-key MUST be a covered component. If it is not, an attacker
+        // can substitute the scheme or the signer identity without
+        // invalidating the signature, so this is not optional.
+        if (!components.includes('signature-key')) {
+            throw invalidInput('signature-key must be a covered component', [
+                '@method',
+                '@authority',
+                '@path',
+                'signature-key',
+            ])
         }
 
         // Validate timestamp
@@ -415,7 +475,10 @@ export async function verify(
             publicJwk = signatureKey.value as JsonWebKey
         } else if (signatureKey.type === 'jwt') {
             const jwtValue = signatureKey.value as { jwt: string }
-            const { header, payload, publicKey } = decodeJWT(jwtValue.jwt)
+            const { header, payload, publicKey } = decodeJWT(
+                jwtValue.jwt,
+                maxClockSkew,
+            )
             publicJwk = publicKey
             jwtData = {
                 header,
@@ -611,7 +674,7 @@ export async function verify(
             thumbprint: '',
             created: 0,
             error: errorMessage,
-            signatureError: mapToSignatureError(errorMessage),
+            signatureError: toSignatureError(error),
         }
     }
 }

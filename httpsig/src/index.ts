@@ -18,10 +18,20 @@ export {
     parseSignatureError,
     generateAcceptSignatureHeader,
     parseAcceptSignature,
+    generateAcceptSignatureSchemeHeader,
+    parseAcceptSignatureScheme,
+    generateAcceptSignatureAlgHeader,
+    parseAcceptSignatureAlg,
 } from './utils/signature.js'
 
-export { generateKeyPair } from './utils/crypto.js'
-export type { GenerateKeyPairOptions, KeyPair } from './utils/crypto.js'
+export { generateKeyPair, determineAlgorithm } from './utils/crypto.js'
+export type {
+    GenerateKeyPairOptions,
+    GeneratableAlgorithm,
+    KeyPair,
+} from './utils/crypto.js'
+
+export { SignatureVerificationError } from './errors.js'
 
 export { calculateThumbprint } from './utils/thumbprint.js'
 
@@ -35,8 +45,9 @@ export type {
     VerificationResult,
     SignatureError,
     SignatureErrorCode,
+    SignatureKeyScheme,
+    SignatureAlgorithm,
     AcceptSignatureParams,
-    SigKeyValue,
 } from './types.js'
 
 export {

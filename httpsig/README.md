@@ -6,6 +6,18 @@ HTTP Message Signatures (RFC 9421) implementation with Signature-Key header supp
 
 This package implements [RFC 9421 HTTP Message Signatures](https://datatracker.ietf.org/doc/html/rfc9421) with support for the [Signature-Key header proposal](https://github.com/DickHardt/signature-key), enabling cryptographic signing and verification of HTTP requests.
 
+### Draft version
+
+| Package line | Implements                             | npm dist-tag |
+| ------------ | -------------------------------------- | ------------ |
+| `2.x`        | `draft-hardt-httpbis-signature-key-07` | `alpha`      |
+| `1.x`        | `draft-hardt-httpbis-signature-key-05` | `latest`     |
+
+The draft is not yet adopted and `-07` is not backward compatible with `-05`.
+The `2.x` line tracks it and is published as a prerelease; `npm install
+@hellocoop/httpsig` continues to give you `1.x` until `2.0.0` is released. See
+[MIGRATING-2.0.md](./MIGRATING-2.0.md) for what changed.
+
 **Key Features:**
 
 - Zero dependencies
