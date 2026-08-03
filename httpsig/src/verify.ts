@@ -602,7 +602,17 @@ export async function verify(
             componentValues.set(component, value)
         }
 
-        // Add @signature-params
+        // Add @signature-params.
+        //
+        // Every parameter the signer sent is reproduced verbatim, including an
+        // `alg` parameter if one is present. @signature-params is covered by
+        // the signature, so dropping a parameter here would change the
+        // signature base and fail verification.
+        //
+        // Reproducing `alg` is not the same as honouring it: the algorithm is
+        // taken from the key material only (see getAlgorithmFromJwk below),
+        // per RFC 9421 Section 3.3.7. A signer that declares a misleading
+        // `alg` does not change which operation the verifier performs.
         const componentList = components.map((c) => `"${c}"`).join(' ')
         const paramPairs = Object.entries(params)
             .map(([key, value]) => {

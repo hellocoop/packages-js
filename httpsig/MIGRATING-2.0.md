@@ -51,6 +51,29 @@ nothing.
 `unsupported_algorithm` rather than failing as malformed. WebCrypto cannot
 implement them.
 
+## The `alg` signature parameter is not used
+
+RFC 9421 Section 1.4 gives three ways to establish the algorithm — state it in
+the `alg` signature parameter, derive it from the key material, or agree it out
+of band. This package takes the second, which Section 3.3.7 develops for JOSE
+signing algorithms: _"the explicit `alg` signature parameter is not used at all
+when using JOSE signing algorithms."_
+
+So `fetch()` never emits `alg` in `Signature-Input`, and `verify()` ignores one
+if a signer sends it. A signer that declares a misleading `alg` does not change
+which operation the verifier performs — the key decides.
+
+Ignoring is not the same as discarding: `alg` lives inside
+`@signature-params`, which is covered by the signature, so it is still
+reproduced verbatim when the signature base is reconstructed. Dropping it would
+change the base and fail verification.
+
+Nothing changes for callers — 1.x behaved this way too — but it is now
+guaranteed and tested rather than incidental.
+
+Note this is only the **Signature-Input** `alg`. The `alg` member of a JWK is
+required (above), and `Accept-Signature`'s own `alg` parameter is unaffected.
+
 ## `hwk` carries `alg` and must not carry `kid`
 
 The `hwk` scheme now emits and requires an `alg` parameter. In `-06` it was

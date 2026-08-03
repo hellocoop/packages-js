@@ -35,6 +35,13 @@ export function generateSignatureBase(
 
 /**
  * Generate Signature-Input header value
+ *
+ * The `alg` signature parameter is deliberately never emitted. The algorithm
+ * is signaled by the key, per the JOSE path of RFC 9421 Section 3.3.7, which
+ * states that "the explicit alg signature parameter is not used at all when
+ * using JOSE signing algorithms". Emitting it would create a second source of
+ * truth in a namespace that does not correspond to the JWK `alg` anyway --
+ * JWA values are not registered in the HTTP Signature Algorithms registry.
  */
 export function generateSignatureInputHeader(
     label: string,
