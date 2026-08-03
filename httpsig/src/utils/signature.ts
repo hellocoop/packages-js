@@ -357,7 +357,7 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
  * Generate Signature-Error header value as RFC 8941 Dictionary
  * Format: error=<code>[, required_input=("comp1" "comp2")]
  *
- * The supported_algorithms member was removed in -07. A server states what
+ * The supported_algorithms member was removed in -08. A server states what
  * would have worked in the Accept-Signature-Alg and Accept-Signature-Scheme
  * header fields, which work on a challenge and on an error alike.
  */
@@ -482,7 +482,7 @@ export function parseAcceptSignatureAlg(header: string): string[] {
  * Generate Accept-Signature header value
  * Format: label=("comp1" "comp2")[;alg="algo"][;tag="tag"]
  *
- * The sigkey parameter was removed in -07. A parameter value is a bare Item
+ * The sigkey parameter was removed in -08. A parameter value is a bare Item
  * and cannot be a list, so sigkey could name only one scheme. Use
  * Accept-Signature-Scheme and Accept-Signature-Alg instead.
  */

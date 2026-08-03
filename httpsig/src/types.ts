@@ -208,7 +208,7 @@ export type SignatureErrorCode =
 /**
  * Parsed Signature-Error header
  *
- * The supported_algorithms member was removed in -07; a server states what
+ * The supported_algorithms member was removed in -08; a server states what
  * would have worked in Accept-Signature-Alg instead.
  */
 export interface SignatureError {
@@ -231,7 +231,7 @@ export type SignatureKeyScheme =
 /**
  * Parsed Accept-Signature header parameters
  *
- * The sigkey parameter was removed in -07. Use the Accept-Signature-Scheme
+ * The sigkey parameter was removed in -08. Use the Accept-Signature-Scheme
  * and Accept-Signature-Alg header fields.
  */
 export interface AcceptSignatureParams {

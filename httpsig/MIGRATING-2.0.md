@@ -1,6 +1,6 @@
 # Migrating to 2.0
 
-2.0 tracks `draft-hardt-httpbis-signature-key-07`, which is not backward
+2.0 tracks `draft-hardt-httpbis-signature-key-08`, which is not backward
 compatible with the `-05`-era protocol that 1.x implements. A 1.x client and a
 2.x verifier will not interoperate, in either direction. There is no version
 negotiation in the protocol, so both ends have to move together.
@@ -76,8 +76,8 @@ required (above), and `Accept-Signature`'s own `alg` parameter is unaffected.
 
 ## `hwk` carries `alg` and must not carry `kid`
 
-The `hwk` scheme now emits and requires an `alg` parameter. In `-06` it was
-forbidden, so a header serialized by 1.x is rejected by 2.x and vice versa.
+The `hwk` scheme now emits and requires an `alg` parameter. It was forbidden
+through `-07`, so a header serialized by 1.x is rejected by 2.x and vice versa.
 
 ```
 # 1.x

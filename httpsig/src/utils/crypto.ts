@@ -1,7 +1,7 @@
 /**
  * Cryptographic utilities for HTTP Message Signatures
  *
- * Algorithm determination follows draft-hardt-httpbis-signature-key-07,
+ * Algorithm determination follows draft-hardt-httpbis-signature-key-08,
  * Algorithm Determination: the signature algorithm is taken from the JWK `alg`
  * member, which must be a fully-specified identifier (RFC 9864). It is never
  * derived from `kty` and `crv` -- those underdetermine the algorithm for RSA
