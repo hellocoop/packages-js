@@ -22,9 +22,12 @@ import {
 } from './utils/signature.js'
 import { base64urlDecode } from './utils/base64.js'
 import { calculateThumbprint } from './utils/thumbprint.js'
+import { BoundedTtlCache } from './utils/cache.js'
 
-// JWKS cache
-const jwksCache = new Map<string, { jwks: any; expiresAt: number }>()
+// JWKS cache. Bounded: the cache key is a URL derived from the request being
+// verified, so an unauthenticated signer would otherwise be able to grow this
+// without limit by varying the id/dwk it presents.
+const jwksCache = new BoundedTtlCache<any>()
 
 /**
  * Map an error message from verification to a structured SignatureError
@@ -119,8 +122,8 @@ function normalizeHeaders(
 async function fetchJWKS(url: string, cacheTtl: number): Promise<any> {
     // Check cache
     const cached = jwksCache.get(url)
-    if (cached && cached.expiresAt > Date.now()) {
-        return cached.jwks
+    if (cached !== undefined) {
+        return cached
     }
 
     // Fetch JWKS
@@ -134,10 +137,7 @@ async function fetchJWKS(url: string, cacheTtl: number): Promise<any> {
     const jwks = await response.json()
 
     // Cache the result
-    jwksCache.set(url, {
-        jwks,
-        expiresAt: Date.now() + cacheTtl,
-    })
+    jwksCache.set(url, jwks, cacheTtl)
 
     return jwks
 }
