@@ -108,6 +108,18 @@ export interface VerifyOptions {
 
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
+
+    /**
+     * The algorithms this verifier accepts. A key whose `alg` falls outside
+     * this set is rejected with `unsupported_algorithm`, and the set is
+     * reported back on the result as `acceptSignatureAlg` so the caller can
+     * send it in an Accept-Signature-Alg response header.
+     *
+     * Defaults to every algorithm this implementation can verify
+     * (SUPPORTED_ALGORITHMS). Narrow it to decline algorithms by policy --
+     * for example to accept Ed25519 only, or to refuse RSASSA-PKCS1-v1_5.
+     */
+    supportedAlgorithms?: SignatureAlgorithm[]
 }
 
 // Note: the strictAAuth option was removed in 2.0. Covering `signature-key` is
@@ -153,6 +165,14 @@ export interface VerificationResult {
 
     // Structured error for Signature-Error response header
     signatureError?: SignatureError
+
+    /**
+     * The algorithms this verifier accepts. Present when verification failed
+     * with `unsupported_algorithm`. Send it in an Accept-Signature-Alg
+     * response header -- not in Signature-Error, whose supported_algorithms
+     * member was removed in -08.
+     */
+    acceptSignatureAlg?: string[]
 }
 
 export interface ParsedSignatureInput {

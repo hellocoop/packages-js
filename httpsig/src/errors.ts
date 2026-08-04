@@ -10,12 +10,19 @@ import { SignatureErrorCode } from './types.js'
 export interface SignatureVerificationErrorOptions {
     /** Covered components the server requires, for invalid_input. */
     requiredInput?: string[]
+    /**
+     * Algorithms the verifier accepts, for unsupported_algorithm. Sent as
+     * Accept-Signature-Alg -- NOT as a Signature-Error member, since the
+     * supported_algorithms member was removed in -08.
+     */
+    supportedAlgorithms?: string[]
     cause?: unknown
 }
 
 export class SignatureVerificationError extends Error {
     readonly code: SignatureErrorCode
     readonly requiredInput?: string[]
+    readonly supportedAlgorithms?: string[]
 
     constructor(
         code: SignatureErrorCode,
@@ -26,6 +33,7 @@ export class SignatureVerificationError extends Error {
         this.name = 'SignatureVerificationError'
         this.code = code
         this.requiredInput = options.requiredInput
+        this.supportedAlgorithms = options.supportedAlgorithms
     }
 }
 
@@ -34,11 +42,17 @@ export function invalidKey(message: string): SignatureVerificationError {
     return new SignatureVerificationError('invalid_key', message)
 }
 
-/** The algorithm is well formed but this implementation cannot use it. */
+/**
+ * The algorithm is well formed but this verifier will not use it -- either
+ * unimplemented, or outside the accepted set.
+ */
 export function unsupportedAlgorithm(
     message: string,
+    supportedAlgorithms?: string[],
 ): SignatureVerificationError {
-    return new SignatureVerificationError('unsupported_algorithm', message)
+    return new SignatureVerificationError('unsupported_algorithm', message, {
+        supportedAlgorithms,
+    })
 }
 
 /** The Signature-Key scheme is not one this implementation understands. */

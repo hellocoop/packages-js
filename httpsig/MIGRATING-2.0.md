@@ -74,6 +74,49 @@ guaranteed and tested rather than incidental.
 Note this is only the **Signature-Input** `alg`. The `alg` member of a JWK is
 required (above), and `Accept-Signature`'s own `alg` parameter is unaffected.
 
+## New: `supportedAlgorithms`
+
+A verifier now declares which algorithms it accepts. A key whose `alg` falls
+outside that set is rejected with `unsupported_algorithm`, and the set comes
+back on the result so you can send it in an `Accept-Signature-Alg` response
+header.
+
+```js
+const result = await verify(request, {
+    supportedAlgorithms: ['Ed25519', 'ES256'],
+})
+
+if (result.signatureError?.error === 'unsupported_algorithm') {
+    res.setHeader(
+        'Accept-Signature-Alg',
+        generateAcceptSignatureAlgHeader(result.acceptSignatureAlg),
+    )
+}
+```
+
+Defaults to every algorithm the library implements, exported as
+`SUPPORTED_ALGORITHMS`, so omitting it changes nothing. Narrow it to decline an
+algorithm by policy — refusing RSASSA-PKCS1-v1_5 while still implementing it,
+say. Declining by policy and not implementing at all report the same code;
+the difference is only which set you advertise.
+
+Note the accepted set travels on the **result**, not inside `SignatureError`.
+The `supported_algorithms` member of `Signature-Error` was removed in `-08`.
+
+## Unusable keys elsewhere in a JWKS are ignored
+
+A verifier resolving a key from a JWKS selects the member matching `kid`
+without requiring any other member to be usable, and does not fail because
+some other entry names a key type it cannot parse.
+
+This is what lets a signer introduce a new algorithm at all: an issuer adding
+a post-quantum key alongside a classical one would otherwise break every
+verifier that does not implement the new type, including verifiers only ever
+going to use the classical key.
+
+Behaviour is unchanged from 1.x — the library already selected by `kid`
+without parsing the rest — but it is now specified and tested.
+
 ## `hwk` carries `alg` and must not carry `kid`
 
 The `hwk` scheme now emits and requires an `alg` parameter. It was forbidden

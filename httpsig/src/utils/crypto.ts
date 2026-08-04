@@ -84,6 +84,14 @@ export const FULLY_SPECIFIED_ALGORITHMS: Readonly<
 }
 
 /**
+ * Every algorithm this implementation can verify. A deployment accepting a
+ * narrower set passes `supportedAlgorithms` to verify().
+ */
+export const SUPPORTED_ALGORITHMS: readonly string[] = Object.freeze(
+    Object.keys(FULLY_SPECIFIED_ALGORITHMS),
+)
+
+/**
  * Identifiers that name a different signature algorithm depending on the key
  * they are used with. Deprecated by RFC 9864 and forbidden by the draft.
  */

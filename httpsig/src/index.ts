@@ -24,7 +24,11 @@ export {
     parseAcceptSignatureAlg,
 } from './utils/signature.js'
 
-export { generateKeyPair, determineAlgorithm } from './utils/crypto.js'
+export {
+    generateKeyPair,
+    determineAlgorithm,
+    SUPPORTED_ALGORITHMS,
+} from './utils/crypto.js'
 export type {
     GenerateKeyPairOptions,
     GeneratableAlgorithm,

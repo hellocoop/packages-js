@@ -13,6 +13,7 @@ import {
     verify as cryptoVerify,
     getAlgorithmFromJwk,
     validateJwk,
+    SUPPORTED_ALGORITHMS,
 } from './utils/crypto.js'
 import {
     parseSignatureInput,
@@ -28,6 +29,7 @@ import {
     invalidInput,
     invalidJwt,
     expiredJwt,
+    unsupportedAlgorithm,
 } from './errors.js'
 
 // JWKS cache. Bounded: the cache key is a URL derived from the request being
@@ -400,7 +402,13 @@ export async function verify(
     const {
         maxClockSkew = 60,
         jwksCacheTtl = 3600000, // 1 hour
+        supportedAlgorithms,
     } = options
+
+    // The set this verifier accepts. Reported in Accept-Signature-Alg on an
+    // unsupported_algorithm rejection, so a client learns what would work.
+    const accepted: readonly string[] =
+        supportedAlgorithms ?? SUPPORTED_ALGORITHMS
 
     try {
         // Normalize headers
@@ -528,8 +536,19 @@ export async function verify(
             )
         }
 
-        // Validate public key
+        // Validate public key. This determines the algorithm from the key's
+        // alg member and rejects a key that has none.
         validateJwk(publicJwk)
+
+        // The algorithm must be one this verifier accepts. Checked before any
+        // signature verification: there is no point verifying with an
+        // algorithm that will be declined either way.
+        if (!accepted.includes(publicJwk.alg as string)) {
+            throw unsupportedAlgorithm(
+                `Algorithm "${publicJwk.alg}" is not accepted by this verifier`,
+                [...accepted],
+            )
+        }
 
         // Parse Signature header
         const signatureHeader = headers.get('signature')
@@ -685,6 +704,10 @@ export async function verify(
             created: 0,
             error: errorMessage,
             signatureError: toSignatureError(error),
+            ...(error instanceof SignatureVerificationError &&
+            error.supportedAlgorithms
+                ? { acceptSignatureAlg: error.supportedAlgorithms }
+                : {}),
         }
     }
 }
