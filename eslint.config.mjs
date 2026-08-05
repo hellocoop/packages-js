@@ -8,7 +8,14 @@ export default [
     ...tseslint.configs.recommended,
     prettierConfig, // Disable ESLint rules that conflict with Prettier
     {
-        ignores: ['**/dist', '**/dist-test', '**/node_modules', 'archive*/'],
+        ignores: [
+            '**/dist',
+            '**/dist-test',
+            '**/node_modules',
+            '**/.svelte-kit',
+            'archive*/',
+            '.claude/',
+        ],
     },
     {
         languageOptions: {
@@ -28,6 +35,18 @@ export default [
 
             '@typescript-eslint/ban-ts-comment': 'off', // TBD: allow @ts-ignore comments
             '@typescript-eslint/no-empty-object-type': 'off', // TBD: Auth | {} allow empty object
+
+            // Destructuring to omit members -- stripping private fields from a
+            // JWK, for example -- names the fields it is discarding. They are
+            // not unused; naming them is how the omission works.
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    ignoreRestSiblings: true,
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                },
+            ],
         },
     },
 ]

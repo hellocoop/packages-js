@@ -144,7 +144,6 @@ describe('IssuanceToken Functions', () => {
         })
 
         it('should throw error for missing JWK algorithm', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { alg: _alg, ...keyWithoutAlg } = rsaPrivateKey
 
             await expect(
@@ -153,7 +152,6 @@ describe('IssuanceToken Functions', () => {
         })
 
         it('should throw error for missing JWK kid', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { kid: _kid, ...keyWithoutKid } = rsaPrivateKey
 
             await expect(
@@ -295,7 +293,6 @@ describe('IssuanceToken Functions', () => {
         })
 
         it('should throw error for missing cnf.jwk claim', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { cnf: _cnf, ...payloadWithoutCnf } = testPayload
 
             const header = {
