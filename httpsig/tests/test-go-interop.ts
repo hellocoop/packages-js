@@ -39,12 +39,12 @@ for (const vector of vectors) {
         // Using RFC 8941 Dictionary format: label=scheme;param1="value1";param2="value2"
         let signatureKeyHeader: string
         if (vector.algorithm === 'Ed25519') {
-            signatureKeyHeader = `sig=hwk;kty="OKP";crv="Ed25519";x="${vector.publicKey.x}"`
+            signatureKeyHeader = `sig=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="${vector.publicKey.x}"`
             console.log(
                 `Public Key: kty=${vector.publicKey.kty}, crv=${vector.publicKey.crv}, x=${vector.publicKey.x}`,
             )
         } else if (vector.algorithm === 'ES256') {
-            signatureKeyHeader = `sig=hwk;kty="EC";crv="P-256";x="${vector.publicKey.x}";y="${vector.publicKey.y}"`
+            signatureKeyHeader = `sig=hwk;alg="ES256";kty="EC";crv="P-256";x="${vector.publicKey.x}";y="${vector.publicKey.y}"`
             console.log(
                 `Public Key: kty=${vector.publicKey.kty}, crv=${vector.publicKey.crv}, x=${vector.publicKey.x}, y=${vector.publicKey.y}`,
             )
@@ -73,7 +73,6 @@ for (const vector of vectors) {
             },
             {
                 maxClockSkew: 999999999, // Large skew since these are historical
-                strictAAuth: false, // Go test vectors are RFC 9421, not AAuth profile
             },
         )
 
@@ -88,13 +87,23 @@ for (const vector of vectors) {
             console.log(`  Error: ${result.error}`)
         }
 
+        // These vectors are bare RFC 9421: their component list is empty, so
+        // `signature-key` is not covered. Covering it is a requirement of the
+        // specification rather than a profile choice, because an uncovered
+        // Signature-Key header can be substituted without invalidating the
+        // signature, so they are rejected.
         assert.strictEqual(
             result.verified,
-            true,
-            `Should verify Go-generated signature for: ${vector.name}`,
+            false,
+            `Go vector does not cover signature-key and must be rejected: ${vector.name}`,
+        )
+        assert.strictEqual(
+            result.signatureError?.error,
+            'invalid_input',
+            `Should report invalid_input for: ${vector.name}`,
         )
 
-        console.log(`\n✓ Successfully verified Go-generated signature!`)
+        console.log(`\n✓ Correctly rejected: signature-key not covered`)
     })
 }
 

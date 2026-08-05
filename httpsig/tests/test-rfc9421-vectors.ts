@@ -42,7 +42,7 @@ test('RFC 9421 Test Vector B.2.6: Ed25519 signature verification', async () => {
         // This is our extension - allows verify() to get the public key
         // The key is from RFC 9421 Appendix B.1.4 (test-key-ed25519)
         'signature-key':
-            'sig-b26=hwk;kty="OKP";crv="Ed25519";x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"',
+            'sig-b26=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"',
     })
 
     // Body from RFC test message
@@ -84,7 +84,6 @@ test('RFC 9421 Test Vector B.2.6: Ed25519 signature verification', async () => {
         {
             // Allow larger clock skew since test is from 2021
             maxClockSkew: 999999999,
-            strictAAuth: false, // RFC 9421 test vectors are not AAuth profile
         },
     )
 
@@ -100,39 +99,32 @@ test('RFC 9421 Test Vector B.2.6: Ed25519 signature verification', async () => {
         console.log('  Error:', result.error)
     }
 
-    // Assertions
+    // The RFC vector's covered components are
+    // ("date" "@method" "@path" "@authority" "content-type" "content-length"),
+    // which does not include signature-key. The signature was produced before
+    // this specification existed, so the component cannot be added without
+    // invalidating it. Covering signature-key is a requirement rather than a
+    // profile choice, so the vector is rejected.
     assert.strictEqual(
         result.verified,
-        true,
-        'RFC 9421 test vector should verify successfully',
+        false,
+        'RFC 9421 vector does not cover signature-key and must be rejected',
     )
     assert.strictEqual(
-        result.label,
-        'sig-b26',
-        'Should use label from RFC test vector',
+        result.signatureError?.error,
+        'invalid_input',
+        'Should report invalid_input',
     )
-    assert.strictEqual(result.keyType, 'hwk', 'Should extract key from hwk')
-    assert.strictEqual(result.publicKey.kty, 'OKP', 'Should be OKP key')
-    assert.strictEqual(
-        result.publicKey.crv,
-        'Ed25519',
-        'Should be Ed25519 curve',
+    assert.ok(
+        result.signatureError?.required_input?.includes('signature-key'),
+        'Should name signature-key as required',
     )
-    assert.strictEqual(
-        result.publicKey.x,
-        'JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs',
-        'Should extract correct public key',
-    )
-    assert.strictEqual(
-        result.created,
-        1618884473,
-        'Should extract correct timestamp',
-    )
+    // Rejection happens before key extraction, so no key or timestamp is
+    // reported. Cryptographic agreement with the RFC vector is covered by the
+    // signature base test below.
 
-    console.log('\n✓ RFC 9421 Test Vector B.2.6 verified successfully!')
-    console.log(
-        '  This proves our implementation can verify standard RFC 9421 signatures.',
-    )
+    console.log('\n✓ RFC 9421 Test Vector B.2.6 correctly rejected')
+    console.log('  signature-key is not among its covered components.')
 })
 
 /**
@@ -191,7 +183,7 @@ test('RFC 9421 Test Vector B.2.6: Component handling', async () => {
         signature:
             'sig-b26=:wqcAqbmYJ2ji2glfAMaRy4gruYYnx2nEFN2HN6jrnDnQCK1u02Gb04v9EDgwUPiu4A0w6vuQv5lIp5WPpBKRCw==:',
         'signature-key':
-            'sig-b26=hwk;kty="OKP";crv="Ed25519";x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"',
+            'sig-b26=hwk;alg="Ed25519";kty="OKP";crv="Ed25519";x="JrQLj5P_89iXES9-vFgrIy29clF9CC_oPPsw3c5D0bs"',
     })
 
     // Parse URL to extract authority, path, and query
@@ -208,15 +200,17 @@ test('RFC 9421 Test Vector B.2.6: Component handling', async () => {
         },
         {
             maxClockSkew: 999999999,
-            strictAAuth: false, // RFC 9421 test vectors are not AAuth profile
         },
     )
 
+    // Same as above: the RFC vector predates this specification and does not
+    // cover signature-key.
     assert.strictEqual(
         result.verified,
-        true,
-        'Should correctly handle @path, @authority, and content-length components from RFC test',
+        false,
+        'RFC 9421 vector does not cover signature-key and must be rejected',
     )
+    assert.strictEqual(result.signatureError?.error, 'invalid_input')
 
     console.log('\n✓ Successfully verified signature using RFC components:')
     console.log('  - @method (standard)')

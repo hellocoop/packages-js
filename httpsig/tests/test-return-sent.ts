@@ -17,6 +17,9 @@ async function generateEd25519KeyPair() {
     )) as CryptoKeyPair
 
     const privateJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
+
+    // alg is REQUIRED on a JWK; WebCrypto does not set it.
+    privateJwk.alg = 'Ed25519'
     return { privateJwk }
 }
 

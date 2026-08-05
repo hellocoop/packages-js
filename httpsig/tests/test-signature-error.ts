@@ -10,16 +10,18 @@ import {
 } from '../src/utils/signature.js'
 import type { SignatureError } from '../src/types.js'
 
-test('Signature-Error: generate unsupported_algorithm with supported list', () => {
-    const error: SignatureError = {
-        error: 'unsupported_algorithm',
-        supported_algorithms: ['ed25519', 'ecdsa-p256-sha256'],
-    }
+test('Signature-Error: generate unsupported_algorithm', () => {
+    // The supported_algorithms member was removed in -07. A server states what
+    // would have worked in Accept-Signature-Alg, which works on a challenge
+    // and on an error alike.
+    const error: SignatureError = { error: 'unsupported_algorithm' }
     const header = generateSignatureErrorHeader(error)
-    assert.strictEqual(
-        header,
-        'error=unsupported_algorithm, supported_algorithms=("ed25519" "ecdsa-p256-sha256")',
-    )
+    assert.strictEqual(header, 'error=unsupported_algorithm')
+})
+
+test('Signature-Error: generate unsupported_scheme', () => {
+    const header = generateSignatureErrorHeader({ error: 'unsupported_scheme' })
+    assert.strictEqual(header, 'error=unsupported_scheme')
 })
 
 test('Signature-Error: generate invalid_signature', () => {
@@ -61,21 +63,19 @@ test('Signature-Error: generate all simple error codes', () => {
     }
 })
 
-test('Signature-Error: parse unsupported_algorithm with supported list', () => {
-    const header =
-        'error=unsupported_algorithm, supported_algorithms=("ed25519" "ecdsa-p256-sha256")'
-    const result = parseSignatureError(header)
+test('Signature-Error: parse unsupported_algorithm', () => {
+    const result = parseSignatureError('error=unsupported_algorithm')
     assert.strictEqual(result.error, 'unsupported_algorithm')
-    assert.deepStrictEqual(result.supported_algorithms, [
-        'ed25519',
-        'ecdsa-p256-sha256',
-    ])
+})
+
+test('Signature-Error: parse unsupported_scheme', () => {
+    const result = parseSignatureError('error=unsupported_scheme')
+    assert.strictEqual(result.error, 'unsupported_scheme')
 })
 
 test('Signature-Error: parse invalid_signature', () => {
     const result = parseSignatureError('error=invalid_signature')
     assert.strictEqual(result.error, 'invalid_signature')
-    assert.strictEqual(result.supported_algorithms, undefined)
     assert.strictEqual(result.required_input, undefined)
 })
 
@@ -94,7 +94,7 @@ test('Signature-Error: parse invalid_input with required_input', () => {
 
 test('Signature-Error: parse throws on missing error', () => {
     assert.throws(
-        () => parseSignatureError('supported_algorithms=("ed25519")'),
+        () => parseSignatureError('required_input=("@method")'),
         /missing error member/,
     )
 })
@@ -108,10 +108,8 @@ test('Signature-Error: parse throws on invalid error code', () => {
 
 test('Signature-Error: roundtrip all error types', () => {
     const errors: SignatureError[] = [
-        {
-            error: 'unsupported_algorithm',
-            supported_algorithms: ['ed25519'],
-        },
+        { error: 'unsupported_algorithm' },
+        { error: 'unsupported_scheme' },
         { error: 'invalid_signature' },
         {
             error: 'invalid_input',

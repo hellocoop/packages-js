@@ -21,6 +21,10 @@ async function generateEd25519KeyPair() {
     const privateJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
     const publicJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey)
 
+    // alg is REQUIRED on a JWK; WebCrypto does not set it.
+    privateJwk.alg = 'Ed25519'
+    publicJwk.alg = 'Ed25519'
+
     return { privateJwk, publicJwk }
 }
 
@@ -36,6 +40,10 @@ async function generateP256KeyPair() {
 
     const privateJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey)
     const publicJwk = await crypto.subtle.exportKey('jwk', keyPair.publicKey)
+
+    // alg is REQUIRED on a JWK; WebCrypto does not set it.
+    privateJwk.alg = 'ES256'
+    publicJwk.alg = 'ES256'
 
     return { privateJwk, publicJwk }
 }
