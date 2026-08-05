@@ -5,7 +5,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { fetch, verify } from '../src/index.js'
-import { base64urlEncode, base64urlDecode } from '../src/utils/base64.js'
+import { base64urlEncode } from '../src/utils/base64.js'
 import { calculateThumbprint } from '../src/utils/thumbprint.js'
 
 /**

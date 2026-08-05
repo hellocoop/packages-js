@@ -233,7 +233,6 @@ describe('PresentationToken Functions', () => {
         })
 
         it('should throw error for invalid JWK', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { alg: _alg, ...invalidKey } = rsaBrowserKey
 
             const issuanceTokenPayload: IssuanceTokenPayload = {

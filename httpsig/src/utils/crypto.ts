@@ -249,7 +249,6 @@ export async function importPublicKey(jwk: JsonWebKey): Promise<CryptoKey> {
  * Extract public JWK from private JWK
  */
 export function getPublicJwk(privateJwk: JsonWebKey): JsonWebKey {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { d, p, q, dp, dq, qi, ...publicJwk } = privateJwk
     return publicJwk
 }
