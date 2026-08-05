@@ -399,6 +399,8 @@ export function parseSignatureError(header: string): SignatureError {
         'unknown_key',
         'invalid_jwt',
         'expired_jwt',
+        'issuer_missing',
+        'issuer_mismatch',
     ]
     if (!validCodes.includes(error)) {
         throw new Error(`Invalid Signature-Error code: ${error}`)

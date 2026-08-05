@@ -1,6 +1,7 @@
 # Migrating to 2.0
 
-2.0 tracks `draft-hardt-httpbis-signature-key-08`, which is not backward
+2.0 tracks `draft-hardt-httpbis-signature-key-08`, published to the IETF
+datatracker on 2026-08-05, which is not backward
 compatible with the `-05`-era protocol that 1.x implements. A 1.x client and a
 2.x verifier will not interoperate, in either direction. There is no version
 negotiation in the protocol, so both ends have to move together.
@@ -102,6 +103,24 @@ the difference is only which set you advertise.
 
 Note the accepted set travels on the **result**, not inside `SignatureError`.
 The `supported_algorithms` member of `Signature-Error` was removed in `-08`.
+
+## Discovery metadata must carry a matching `issuer`
+
+New in `-08`. The metadata document at `{id}/.well-known/{dwk}` must contain an
+`issuer` member equal to `id`, compared by byte equality with no normalization
+— a trailing slash is a different identifier.
+
+Two new error codes: `issuer_missing` and `issuer_mismatch`.
+
+This is the check RFC 8414 Section 3.3 requires of authorization server
+metadata. Without it a document served under one identity — misconfigured
+shared hosting, a subdomain takeover — could point `jwks_uri` at keys belonging
+to someone else, and the verifier would attribute the request to the identity
+in the header. 1.x followed `jwks_uri` without checking.
+
+Documents conforming to RFC 8414 or OpenID Connect Discovery already carry
+`issuer`, so existing metadata is unaffected. A hand-rolled `.well-known`
+document that omits it will now be rejected.
 
 ## Unusable keys elsewhere in a JWKS are ignored
 

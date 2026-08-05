@@ -153,6 +153,8 @@ test('jwks_uri: POST request with body', async () => {
         keys: [{ ...publicJwk, kid: 'key-post', use: 'sig' }],
     }
     const mockMetadata = {
+        // issuer is REQUIRED and must equal the id the document is fetched under
+        issuer: 'https://agent-post.example',
         jwks_uri: 'https://agent-post.example/jwks.json',
     }
     globalThis.fetch = (async (
@@ -279,6 +281,8 @@ test('jwks_uri: Caching should work (second verify should not re-fetch)', async 
     }
 
     const mockMetadata = {
+        // issuer is REQUIRED and must equal the id the document is fetched under
+        issuer: 'https://agent-cache.example',
         jwks_uri: 'https://agent-cache.example/jwks.json',
     }
 

@@ -65,6 +65,20 @@ export function invalidJwt(message: string): SignatureVerificationError {
     return new SignatureVerificationError('invalid_jwt', message)
 }
 
+/** The discovery metadata document has no issuer member. */
+export function issuerMissing(message: string): SignatureVerificationError {
+    return new SignatureVerificationError('issuer_missing', message)
+}
+
+/**
+ * The metadata document's issuer does not match the identity it was fetched
+ * under. Binds the document to that identity, so a document served under one
+ * origin cannot point jwks_uri at another's keys.
+ */
+export function issuerMismatch(message: string): SignatureVerificationError {
+    return new SignatureVerificationError('issuer_mismatch', message)
+}
+
 /** The assertion is well formed but no longer valid. */
 export function expiredJwt(message: string): SignatureVerificationError {
     return new SignatureVerificationError('expired_jwt', message)

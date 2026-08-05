@@ -30,6 +30,8 @@ import {
     invalidJwt,
     expiredJwt,
     unsupportedAlgorithm,
+    issuerMissing,
+    issuerMismatch,
 } from './errors.js'
 
 // JWKS cache. Bounded: the cache key is a URL derived from the request being
@@ -182,6 +184,23 @@ async function getPublicKeyFromJWKS(
     // Fetch metadata document first
     const metadataUrl = `${id}/.well-known/${dwk}`
     const metadata = await fetchJWKS(metadataUrl, cacheTtl)
+
+    // Bind the metadata document to the identity it was fetched under. Without
+    // this, a document served at {id}/.well-known/{dwk} -- via misconfigured
+    // shared hosting or a subdomain takeover -- could point jwks_uri at keys
+    // that do not belong to id, and the verifier would attribute the request
+    // accordingly. Same check as RFC 8414 Section 3.3.
+    if (metadata.issuer === undefined) {
+        throw issuerMissing(`Metadata document missing issuer: ${metadataUrl}`)
+    }
+
+    // Byte equality as presented, matching the identifier-comparison rule the
+    // draft uses for the jwks url. No normalization.
+    if (metadata.issuer !== id) {
+        throw issuerMismatch(
+            `Metadata issuer "${metadata.issuer}" does not match id "${id}"`,
+        )
+    }
 
     if (!metadata.jwks_uri) {
         throw new Error(`Metadata document missing jwks_uri: ${metadataUrl}`)
