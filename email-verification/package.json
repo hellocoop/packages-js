@@ -61,7 +61,7 @@
         "node": ">=20"
     },
     "dependencies": {
-        "@hellocoop/httpsig": "^1.7.0",
+        "@hellocoop/httpsig": "^2.0.0",
         "jose": "^5.0.0"
     },
     "devDependencies": {

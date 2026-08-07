@@ -58,9 +58,10 @@ export async function verifyIssuanceRequest(
     }
 
     // Verify the HTTP Message Signature using httpsig
+    // (httpsig 2.x always enforces signature-key coverage; the former
+    // strictAAuth option was removed)
     const verifyOptions: VerifyOptions = {
         maxClockSkew,
-        strictAAuth: true,
     }
 
     const result = await verify(
@@ -81,9 +82,7 @@ export async function verifyIssuanceRequest(
         )
     }
 
-    // Verify required components are covered
-    // Note: httpsig with strictAAuth=true should already validate this,
-    // but we double-check for the EVP-specific requirements
+    // Verify the EVP-specific requirement that the key is presented inline
     if (result.keyType !== 'hwk') {
         throw new InvalidSignatureError(
             `Invalid Signature-Key type: expected 'hwk', got '${result.keyType}'`,
