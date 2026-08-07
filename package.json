@@ -17,8 +17,7 @@
         "quickstart",
         "react",
         "svelte",
-        "vue",
-        "web-identity"
+        "vue"
     ],
     "repository": {
         "type": "git",

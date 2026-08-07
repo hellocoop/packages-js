@@ -54,14 +54,6 @@ A set of client side helper functions for the Hellō OpenID Connect Provider.
 
 [Hellō core / client SDK documentation](https://www.hello.dev/docs/sdks/helper/)
 
-## 🧪 [@hellocoop/web-identity](./web-identity/) - EXPERIMENTAL
-
-TypeScript functions for generating and verifying JWT tokens used in the [Verified Email Autocomplete](https://github.com/dickhardt/verified-email-autocomplete) protocol. This package implements RequestToken, IssuedToken (SD-JWT), and PresentationToken (SD-JWT+KB) generation and verification, along with DNS-based issuer discovery.
-
-**Status**: Experimental - API may change
-
-[Package README](./web-identity/README.md) | [Specification](https://github.com/dickhardt/verified-email-autocomplete)
-
 # Publishing New Versions
 
 - make updates and commit changes to repo
