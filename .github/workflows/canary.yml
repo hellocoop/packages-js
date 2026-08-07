@@ -32,6 +32,6 @@ jobs:
             - run: npm run build
             - run: lerna run test
             - name: Publish canary packages
-              run: lerna publish --canary --preid ${{ inputs.preid }} --yes --no-private
+              run: lerna publish --canary --preid ${{ inputs.preid }} --yes --no-private --ignore @hellocoop/web-identity
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
