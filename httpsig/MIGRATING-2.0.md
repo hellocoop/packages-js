@@ -6,8 +6,7 @@ compatible with the `-05`-era protocol that 1.x implements. A 1.x client and a
 2.x verifier will not interoperate, in either direction. There is no version
 negotiation in the protocol, so both ends have to move together.
 
-1.x continues on the `1.x` branch and keeps the npm `latest` tag until 2.0 is
-released.
+1.x continues on the `1.x` branch.
 
 ## Every JWK must carry `alg`
 
