@@ -226,12 +226,29 @@ export function validateJwk(jwk: JsonWebKey): void {
 }
 
 /**
+ * WebCrypto implementations disagree on which JWK `alg` values they accept:
+ * workerd rejects an Ed25519 import whose `alg` is the fully-specified
+ * "Ed25519" the -08 wire format requires, expecting "EdDSA". The operation
+ * is already resolved by determineAlgorithm, so drop the hint before import.
+ */
+function withoutAlg(jwk: JsonWebKey): JsonWebKey {
+    const { alg: _alg, ...rest } = jwk
+    return rest
+}
+
+/**
  * Import a JWK as a CryptoKey for signing
  */
 export async function importPrivateKey(jwk: JsonWebKey): Promise<CryptoKey> {
     const algorithm = determineAlgorithm(jwk)
 
-    return await crypto.subtle.importKey('jwk', jwk, algorithm, false, ['sign'])
+    return await crypto.subtle.importKey(
+        'jwk',
+        withoutAlg(jwk),
+        algorithm,
+        false,
+        ['sign'],
+    )
 }
 
 /**
@@ -240,9 +257,13 @@ export async function importPrivateKey(jwk: JsonWebKey): Promise<CryptoKey> {
 export async function importPublicKey(jwk: JsonWebKey): Promise<CryptoKey> {
     const algorithm = determineAlgorithm(jwk)
 
-    return await crypto.subtle.importKey('jwk', jwk, algorithm, false, [
-        'verify',
-    ])
+    return await crypto.subtle.importKey(
+        'jwk',
+        withoutAlg(jwk),
+        algorithm,
+        false,
+        ['verify'],
+    )
 }
 
 /**
