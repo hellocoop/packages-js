@@ -721,6 +721,73 @@ We support the two most widely recommended algorithms from the [IANA HTTP Messag
     - Widely supported
     - Perfect interoperability
 
+## Structured Fields (RFC 8941)
+
+Every header this package reads or writes is an RFC 8941 Structured Field, and
+the parser and serializer that handle them are exported. Use them for
+neighbouring fields rather than writing another parser — `AAuth-Requirement` is
+a Dictionary, `AAuth-Capabilities` a List of Tokens, and hand-rolled 8941 fails
+on the same three things every time: quoting, escaping, and byte sequences.
+
+```ts
+import {
+    parseDictionary,
+    serializeDictionary,
+    Token,
+    bareItemToString,
+} from '@hellocoop/httpsig'
+
+// A `;` inside a quoted string does not end the parameter list.
+const dict = parseDictionary(
+    'requirement=interaction; url="https://resource.example/i?a=1;b=2"; code="A1B2-C3D4"',
+)
+
+const [value, params] = dict.get('requirement') as Item
+value instanceof Token // true — `interaction` is a Token, not a String
+params.get('url') // 'https://resource.example/i?a=1;b=2'
+params.get('code') // 'A1B2-C3D4'
+
+serializeDictionary(
+    new Map([
+        [
+            'requirement',
+            [new Token('auth-token'), new Map([['resource-token', jwt]])],
+        ],
+    ]),
+)
+```
+
+**Exported**
+
+|             |                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parsing     | `parseDictionary`, `parseList`, `parseItem`, `ParseError`                                                                                   |
+| Serializing | `serializeDictionary`, `serializeList`, `serializeItem`, `serializeInnerList`, `serializeBareItem`, `serializeParameters`, `SerializeError` |
+| Values      | `Token`, `ByteSequence`                                                                                                                     |
+| Guards      | `isInnerList`, `isByteSequence`, `isValidTokenStr`, `isValidKeyStr`                                                                         |
+| Helper      | `bareItemToString` — reads a String or a Token, refuses anything else                                                                       |
+| Types       | `Dictionary`, `List`, `Item`, `InnerList`, `Parameters`, `BareItem`                                                                         |
+
+Shapes:
+
+```
+Dictionary  Map<string, Item | InnerList>
+List        (Item | InnerList)[]
+Item        [BareItem, Parameters]
+InnerList   [Item[], Parameters]
+Parameters  Map<string, BareItem>
+BareItem    number | string | Token | ByteSequence | boolean
+```
+
+A `Token` is a bare word (`hwk`, `Ed25519`); a `string` is a quoted sf-string.
+The distinction is load-bearing — `@signature-params` is covered by the
+signature, so a parameter that arrives as a Token must go back out as a Token.
+
+The implementation is vendored from
+[`structured-headers`](https://github.com/evert/structured-header) v1.0.1 (MIT)
+rather than taken as a dependency, because this package has zero runtime
+dependencies by design. See `src/vendor/structured-headers/README.md`.
+
 ## Security Considerations
 
 ### Timestamp Validation

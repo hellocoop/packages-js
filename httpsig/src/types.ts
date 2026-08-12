@@ -2,6 +2,8 @@
  * Type definitions for @hellocoop/httpsig
  */
 
+import type { InnerList } from './structured-fields.js'
+
 /**
  * Valid derived components from RFC 9421 Section 2.2
  */
@@ -176,12 +178,25 @@ export interface VerificationResult {
 }
 
 export interface ParsedSignatureInput {
+    /** The Dictionary key this signature is under. */
     label: string
+    /** The covered component identifiers, unquoted. */
     components: string[]
+    /**
+     * The Inner List parameters, as Structured Field values: `created` is an
+     * Integer, a quoted `keyid` is a string, a bare one is a `Token`.
+     */
     params: {
         created: number
         [key: string]: any
     }
+    /**
+     * The parsed Inner List exactly as the signer sent it. Serializing this is
+     * how `@signature-params` is reproduced for the signature base -- it is
+     * covered by the signature, so every parameter must survive the round
+     * trip, including ones this implementation does not act on.
+     */
+    signatureParams: InnerList
 }
 
 export interface ParsedSignatureKey {

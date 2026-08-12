@@ -1,6 +1,6 @@
 {
     "name": "@hellocoop/httpsig",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "HTTP Message Signatures (RFC 9421) with Signature-Key header support",
     "repository": {
         "type": "git",
@@ -10,10 +10,18 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./dist/index.js"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./structured-fields": {
+            "types": "./dist/structured-fields.d.ts",
+            "default": "./dist/structured-fields.js"
+        }
     },
     "files": [
-        "dist/"
+        "dist/",
+        "src/vendor/"
     ],
     "keywords": [
         "http",
