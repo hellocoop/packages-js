@@ -26,6 +26,10 @@ The whole parser and serializer, from upstream `src/`:
 Nothing else from the package was taken: no build config, no tests, no browser
 bundle.
 
+This directory is listed in the package's `files`, so the MIT licence text
+travels with every published copy of the compiled output, as the licence
+requires.
+
 ## Why vendored rather than depended on
 
 `@hellocoop/httpsig` has zero runtime dependencies, deliberately. It verifies
