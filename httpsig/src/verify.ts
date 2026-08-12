@@ -21,6 +21,7 @@ import {
     parseSignature,
     generateSignatureBase,
 } from './utils/signature.js'
+import { serializeInnerList } from './structured-fields.js'
 import { base64urlDecode } from './utils/base64.js'
 import { calculateThumbprint } from './utils/thumbprint.js'
 import { BoundedTtlCache } from './utils/cache.js'
@@ -651,21 +652,15 @@ export async function verify(
         // taken from the key material only (see getAlgorithmFromJwk below),
         // per RFC 9421 Section 3.3.7. A signer that declares a misleading
         // `alg` does not change which operation the verifier performs.
-        const componentList = components.map((c) => `"${c}"`).join(' ')
-        const paramPairs = Object.entries(params)
-            .map(([key, value]) => {
-                if (typeof value === 'number') {
-                    return `${key}=${value}`
-                }
-                // String values from parsing may already have quotes
-                const stringValue = String(value)
-                if (stringValue.startsWith('"') && stringValue.endsWith('"')) {
-                    return `${key}=${stringValue}`
-                }
-                return `${key}="${stringValue}"`
-            })
-            .join(';')
-        const signatureParams = `(${componentList});${paramPairs}`
+        //
+        // The value is re-serialized from the parsed Inner List rather than
+        // rebuilt from the extracted parts, so a String stays a String and a
+        // Token stays a Token. Rebuilding by hand is what quoted every value
+        // alike and would have corrupted the base for any signer that sent a
+        // Token-valued parameter.
+        const signatureParams = serializeInnerList(
+            signatureInput.signatureParams,
+        )
         componentValues.set('@signature-params', signatureParams)
         const componentsWithParams = [...components, '@signature-params']
 

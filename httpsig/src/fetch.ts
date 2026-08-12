@@ -19,6 +19,7 @@ import {
 import {
     generateSignatureBase,
     generateSignatureInputHeader,
+    generateSignatureParams,
     generateSignatureKeyHeader,
     generateSignatureHeader,
     generateContentDigest,
@@ -266,10 +267,13 @@ export async function fetch(
     )
     headers.set('signature-input', signatureInputHeader)
 
-    // Add signature params to component values
-    const componentList = components.map((c) => `"${c}"`).join(' ')
-    const signatureParams = `(${componentList});created=${created}`
-    componentValues.set('@signature-params', signatureParams)
+    // Add signature params to component values. Serialized from the same
+    // structure the Signature-Input header was built from, so the header and
+    // the signature base cannot disagree.
+    componentValues.set(
+        '@signature-params',
+        generateSignatureParams(components, created),
+    )
     components.push('@signature-params')
 
     // Generate signature base

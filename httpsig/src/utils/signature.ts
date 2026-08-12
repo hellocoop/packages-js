@@ -2,7 +2,7 @@
  * HTTP Message Signature generation and parsing utilities
  */
 
-import { base64Encode, sha256 } from './base64.js'
+import { base64Encode, base64Decode, sha256 } from './base64.js'
 import {
     ParsedSignatureInput,
     ParsedSignatureKey,
@@ -10,8 +10,53 @@ import {
     SignatureError,
     SignatureErrorCode,
     AcceptSignatureParams,
+    HwkValue,
 } from '../types.js'
 import { invalidKey, unsupportedScheme } from '../errors.js'
+import {
+    parseDictionary,
+    parseList,
+    serializeDictionary,
+    serializeList,
+    serializeInnerList,
+    isInnerList,
+    isByteSequence,
+    isValidTokenStr,
+    bareItemToString,
+    Token,
+    ByteSequence,
+} from '../structured-fields.js'
+import type {
+    Dictionary,
+    InnerList,
+    Item,
+    Parameters,
+} from '../structured-fields.js'
+
+/**
+ * Build the Inner List that a Signature-Input dictionary member carries: the
+ * covered component identifiers, parameterized with `created`.
+ *
+ * Serialized, this is also the `@signature-params` component value. Both the
+ * header and the signature base are produced from this one structure so they
+ * cannot drift apart.
+ */
+function buildSignatureParams(
+    components: string[],
+    created: number,
+): InnerList {
+    const items: Item[] = components.map((component) => [
+        component,
+        new Map() as Parameters,
+    ])
+    return [items, new Map([['created', created]]) as Parameters]
+}
+
+/** Wrap a parse failure in a message naming the field that failed. */
+function parseFailure(field: string, error: unknown): Error {
+    const detail = error instanceof Error ? error.message : String(error)
+    return new Error(`Invalid ${field} format: ${detail}`)
+}
 
 /**
  * Generate signature base string from components
@@ -48,8 +93,20 @@ export function generateSignatureInputHeader(
     components: string[],
     created: number,
 ): string {
-    const componentList = components.map((c) => `"${c}"`).join(' ')
-    return `${label}=(${componentList});created=${created}`
+    return serializeDictionary(
+        new Map([[label, buildSignatureParams(components, created)]]),
+    )
+}
+
+/**
+ * Generate the `@signature-params` component value: the serialized Inner List
+ * that the Signature-Input dictionary member for `label` carries.
+ */
+export function generateSignatureParams(
+    components: string[],
+    created: number,
+): string {
+    return serializeInnerList(buildSignatureParams(components, created))
 }
 
 /**
@@ -64,6 +121,14 @@ export function generateSignatureKeyHeader(
     signatureKey: SignatureKeyType,
     publicJwk?: JsonWebKey,
 ): string {
+    /** One-member Dictionary: label=<scheme token>;<string parameters>. */
+    const oneMember = (scheme: string, params: [string, string][]): string =>
+        serializeDictionary(
+            new Map([
+                [label, [new Token(scheme), new Map(params) as Parameters]],
+            ]) as Dictionary,
+        )
+
     if (signatureKey.type === 'hwk') {
         if (!publicJwk) {
             throw new Error('Public JWK required for hwk signature key type')
@@ -79,36 +144,34 @@ export function generateSignatureKeyHeader(
 
         // Build hwk parameters from JWK. kid is deliberately not emitted: the
         // key is inline, so an identifier selects nothing.
-        const params: string[] = [
-            `alg="${publicJwk.alg}"`,
-            `kty="${publicJwk.kty}"`,
+        const params: [string, string][] = [
+            ['alg', publicJwk.alg],
+            ['kty', publicJwk.kty as string],
         ]
 
-        if (publicJwk.crv) params.push(`crv="${publicJwk.crv}"`)
-        if (publicJwk.x) params.push(`x="${publicJwk.x}"`)
-        if (publicJwk.y) params.push(`y="${publicJwk.y}"`)
-        if (publicJwk.n) params.push(`n="${publicJwk.n}"`)
-        if (publicJwk.e) params.push(`e="${publicJwk.e}"`)
+        if (publicJwk.crv) params.push(['crv', publicJwk.crv])
+        if (publicJwk.x) params.push(['x', publicJwk.x])
+        if (publicJwk.y) params.push(['y', publicJwk.y])
+        if (publicJwk.n) params.push(['n', publicJwk.n])
+        if (publicJwk.e) params.push(['e', publicJwk.e])
 
-        return `${label}=hwk;${params.join(';')}`
+        return oneMember('hwk', params)
     }
 
     if (signatureKey.type === 'jwt') {
-        return `${label}=jwt;jwt="${signatureKey.jwt}"`
+        return oneMember('jwt', [['jwt', signatureKey.jwt]])
     }
 
     if (signatureKey.type === 'jkt_jwt') {
-        return `${label}=jkt-jwt;jwt="${signatureKey.jwt}"`
+        return oneMember('jkt-jwt', [['jwt', signatureKey.jwt]])
     }
 
     if (signatureKey.type === 'jwks_uri') {
-        const params = [
-            `id="${signatureKey.id}"`,
-            `dwk="${signatureKey.dwk}"`,
-            `kid="${signatureKey.kid}"`,
-        ]
-
-        return `${label}=jwks_uri;${params.join(';')}`
+        return oneMember('jwks_uri', [
+            ['id', signatureKey.id],
+            ['dwk', signatureKey.dwk],
+            ['kid', signatureKey.kid],
+        ])
     }
 
     // Note: x509 scheme not yet implemented
@@ -130,8 +193,17 @@ export function generateSignatureHeader(
     label: string,
     signature: Uint8Array,
 ): string {
-    const encoded = base64Encode(signature)
-    return `${label}=:${encoded}:`
+    return serializeDictionary(
+        new Map([
+            [
+                label,
+                [
+                    new ByteSequence(base64Encode(signature)),
+                    new Map() as Parameters,
+                ],
+            ],
+        ]) as Dictionary,
+    )
 }
 
 /**
@@ -159,52 +231,70 @@ export async function generateContentDigest(body: BodyInit): Promise<string> {
 }
 
 /**
- * Parse Signature-Input header
+ * Parse Signature-Input header: a Dictionary of Inner Lists with parameters.
+ *
+ * The Inner List is kept alongside the extracted component names, because
+ * `@signature-params` is the serialization of that Inner List and is covered
+ * by the signature. Re-deriving it from the extracted parts would risk
+ * dropping a parameter the signer included.
  */
 export function parseSignatureInput(header: string): ParsedSignatureInput[] {
+    let dictionary: Dictionary
+    try {
+        dictionary = parseDictionary(header)
+    } catch (error) {
+        throw parseFailure('Signature-Input', error)
+    }
+
     const results: ParsedSignatureInput[] = []
 
-    // Split by comma to handle multiple signatures
-    const parts = header.split(',').map((p) => p.trim())
-
-    for (const part of parts) {
-        // Format: label=(components);params
-        // Note: component list can be empty, so use * instead of +
-        const match = part.match(/^([^=]+)=\(([^)]*)\);(.+)$/)
-        if (!match) {
-            throw new Error(`Invalid Signature-Input format: ${part}`)
+    for (const [label, member] of dictionary) {
+        if (!isInnerList(member)) {
+            throw new Error(
+                `Invalid Signature-Input format: member "${label}" is not an Inner List of covered components`,
+            )
         }
 
-        const label = match[1].trim()
-        const componentsStr = match[2]
-        const paramsStr = match[3]
+        const [items, parameters] = member
 
-        // Parse components
-        const components = componentsStr
-            .split(/\s+/)
-            .map((c) => c.replace(/"/g, ''))
-            .filter((c) => c)
-
-        // Parse parameters
-        const params: any = {}
-        const paramPairs = paramsStr.split(';').map((p) => p.trim())
-
-        for (const pair of paramPairs) {
-            const [key, value] = pair.split('=').map((s) => s.trim())
-            if (key === 'created') {
-                params.created = parseInt(value, 10)
-            } else {
-                params[key] = value
+        const components: string[] = []
+        for (const [bareItem, itemParameters] of items) {
+            if (typeof bareItem !== 'string') {
+                throw new Error(
+                    'Invalid Signature-Input format: a covered component identifier must be a String',
+                )
             }
+            // Component parameters (;req, ;bs, ;sf, ;key, ;name) change what
+            // the component value is and how the signature base line is
+            // written. This implementation does not produce them, so rather
+            // than silently signing over a base that ignores them, refuse.
+            if (itemParameters.size > 0) {
+                throw new Error(
+                    `Unsupported component parameters on "${bareItem}" in Signature-Input`,
+                )
+            }
+            components.push(bareItem)
         }
 
-        if (!params.created) {
+        const params: Record<string, any> = {}
+        for (const [key, value] of parameters) {
+            params[key] = value
+        }
+
+        // `created` is an Integer. A signer that omits it, or sends it as a
+        // String, leaves the signature unbounded in time.
+        if (typeof params.created !== 'number') {
             throw new Error(
                 'Signature-Input missing required parameter: created',
             )
         }
 
-        results.push({ label, components, params })
+        results.push({
+            label,
+            components,
+            params: params as ParsedSignatureInput['params'],
+            signatureParams: member,
+        })
     }
 
     return results
@@ -223,49 +313,48 @@ export function parseSignatureInput(header: string): ParsedSignatureInput[] {
  * - The member key is the label
  */
 export function parseSignatureKey(header: string): ParsedSignatureKey[] {
-    const trimmed = header.trim()
+    const malformed = new Error(
+        'Invalid Signature-Key: must be RFC 8941 Dictionary with format label=scheme;params',
+    )
 
-    // Check for multiple members (commas outside of quoted strings indicate multiple dictionary members)
-    // Simple check: if there's a comma not inside quotes, reject
-    let inQuote = false
-    for (let i = 0; i < trimmed.length; i++) {
-        if (trimmed[i] === '"' && (i === 0 || trimmed[i - 1] !== '\\')) {
-            inQuote = !inQuote
-        } else if (trimmed[i] === ',' && !inQuote) {
-            throw new Error(
-                'Invalid Signature-Key: must have exactly one dictionary member',
-            )
-        }
+    let dictionary: Dictionary
+    try {
+        dictionary = parseDictionary(header)
+    } catch {
+        throw malformed
     }
 
-    // RFC 8941 Dictionary format: label=scheme;param1="value1";param2="value2"
-    // Match: label=token followed by optional parameters
-    // Note: [\w-]+ allows hyphens in labels and scheme names (e.g., sig-b26, jkt-jwt)
-    const match = trimmed.match(/^([\w-]+)=([\w-]+)(.*)$/)
-
-    if (!match) {
+    // Exactly one member: the label the Signature and Signature-Input entries
+    // are keyed by. More than one leaves which key signed the request
+    // undetermined.
+    if (dictionary.size !== 1) {
         throw new Error(
-            'Invalid Signature-Key: must be RFC 8941 Dictionary with format label=scheme;params',
+            'Invalid Signature-Key: must have exactly one dictionary member',
         )
     }
 
-    const label = match[1]
-    const scheme = match[2]
-    const paramsStr = match[3]
+    const [label, member] = [...dictionary][0]
 
-    // Parse parameters (semicolon-separated)
-    const params: any = {}
-    if (paramsStr) {
-        // Note: [\w-]+ allows hyphens in parameter names (e.g., jkt-jwt)
-        const paramMatches = paramsStr.matchAll(
-            /;([\w-]+)=(?:"([^"]*)"|(\w+))/g,
-        )
+    // The member is an Item whose bare value is the scheme Token. An Inner
+    // List, a String, a number, or a bare member (`sig` alone, meaning ?1) is
+    // not a Signature-Key.
+    if (isInnerList(member) || !(member[0] instanceof Token)) {
+        throw malformed
+    }
 
-        for (const paramMatch of paramMatches) {
-            const key = paramMatch[1]
-            const value =
-                paramMatch[2] !== undefined ? paramMatch[2] : paramMatch[3] // quoted or unquoted value
-            params[key] = value
+    const scheme = member[0].toString()
+
+    // Scheme parameters are Strings. A Token is accepted for the same value --
+    // a sender that omits the quotes around, say, `kty=EC` is unambiguous --
+    // but anything that is not text is a type confusion, not a value.
+    const params: Record<string, string> = {}
+    for (const [key, value] of member[1]) {
+        try {
+            params[key] = bareItemToString(value)
+        } catch {
+            throw invalidKey(
+                `Signature-Key ${key} parameter must be a String or Token`,
+            )
         }
     }
 
@@ -291,7 +380,9 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
             )
         }
 
-        return [{ label, type: 'hwk', value: params }]
+        // The hwk parameters are the JWK: alg and kty are checked present
+        // above, the rest are the key material for whichever kty it is.
+        return [{ label, type: 'hwk', value: params as unknown as HwkValue }]
     }
 
     if (scheme === 'jwt') {
@@ -364,31 +455,37 @@ export function parseSignatureKey(header: string): ParsedSignatureKey[] {
 export function generateSignatureErrorHeader(
     signatureError: SignatureError,
 ): string {
-    const parts: string[] = [`error=${signatureError.error}`]
+    const dictionary: Dictionary = new Map([
+        ['error', [new Token(signatureError.error), new Map()] as Item],
+    ])
 
     if (signatureError.required_input) {
-        const inputList = signatureError.required_input
-            .map((c) => `"${c}"`)
-            .join(' ')
-        parts.push(`required_input=(${inputList})`)
+        dictionary.set('required_input', [
+            signatureError.required_input.map((c) => [c, new Map()] as Item),
+            new Map(),
+        ])
     }
 
-    return parts.join(', ')
+    return serializeDictionary(dictionary)
 }
 
 /**
  * Parse Signature-Error header (RFC 8941 Dictionary)
  */
 export function parseSignatureError(header: string): SignatureError {
-    const trimmed = header.trim()
+    let dictionary: Dictionary
+    try {
+        dictionary = parseDictionary(header)
+    } catch (error) {
+        throw parseFailure('Signature-Error', error)
+    }
 
-    // Parse error token
-    const errorMatch = trimmed.match(/error=([\w]+)/)
-    if (!errorMatch) {
+    const errorMember = dictionary.get('error')
+    if (errorMember === undefined || isInnerList(errorMember)) {
         throw new Error('Invalid Signature-Error: missing error member')
     }
 
-    const error = errorMatch[1] as SignatureErrorCode
+    const error = bareItemToString(errorMember[0]) as SignatureErrorCode
     const validCodes: SignatureErrorCode[] = [
         'unsupported_algorithm',
         'unsupported_scheme',
@@ -409,12 +506,16 @@ export function parseSignatureError(header: string): SignatureError {
     const result: SignatureError = { error }
 
     // Parse required_input inner list
-    const inputMatch = trimmed.match(/required_input=\(([^)]*)\)/)
-    if (inputMatch) {
-        result.required_input = inputMatch[1]
-            .split(/\s+/)
-            .map((c) => c.replace(/"/g, ''))
-            .filter((c) => c)
+    const inputMember = dictionary.get('required_input')
+    if (inputMember !== undefined) {
+        if (!isInnerList(inputMember)) {
+            throw new Error(
+                'Invalid Signature-Error: required_input must be an Inner List',
+            )
+        }
+        result.required_input = inputMember[0].map(([component]) =>
+            bareItemToString(component),
+        )
     }
 
     return result
@@ -425,23 +526,24 @@ export function parseSignatureError(header: string): SignatureError {
  */
 function generateTokenList(values: string[]): string {
     for (const value of values) {
-        if (!/^[A-Za-z*][A-Za-z0-9!#$%&'*+\-.^_`|~:/]*$/.test(value)) {
+        if (!isValidTokenStr(value)) {
             throw new Error(
                 `Value is not a valid Structured Field Token: ${value}`,
             )
         }
     }
-    return values.join(', ')
+    return serializeList(values.map((value) => [new Token(value), new Map()]))
 }
 
 /**
  * Parse an RFC 8941 List of Tokens, ignoring entries that are not tokens.
  */
 function parseTokenList(header: string): string[] {
-    return header
-        .split(',')
-        .map((v) => v.trim())
-        .filter((v) => /^[A-Za-z*][A-Za-z0-9!#$%&'*+\-.^_`|~:/]*$/.test(v))
+    return parseList(header)
+        .filter((member): member is Item => !isInnerList(member))
+        .map(([bareItem]) => bareItem)
+        .filter((bareItem): bareItem is Token => bareItem instanceof Token)
+        .map((token) => token.toString())
 }
 
 /**
@@ -492,17 +594,21 @@ export function generateAcceptSignatureHeader(
     params: AcceptSignatureParams,
 ): string {
     const { label = 'sig', components, alg, tag } = params
-    const componentList = components.map((c) => `"${c}"`).join(' ')
-    let header = `${label}=(${componentList})`
 
+    const parameters: Parameters = new Map()
     if (alg) {
-        header += `;alg="${alg}"`
+        parameters.set('alg', alg)
     }
     if (tag) {
-        header += `;tag="${tag}"`
+        parameters.set('tag', tag)
     }
 
-    return header
+    const innerList: InnerList = [
+        components.map((c) => [c, new Map()] as Item),
+        parameters,
+    ]
+
+    return serializeDictionary(new Map([[label, innerList]]))
 }
 
 /**
@@ -510,37 +616,37 @@ export function generateAcceptSignatureHeader(
  * Format: label=("comp1" "comp2")[;alg="algo"][;tag="tag"]
  */
 export function parseAcceptSignature(header: string): AcceptSignatureParams {
-    const trimmed = header.trim()
+    const malformed = new Error('Invalid Accept-Signature format')
 
-    // Match: label=(components);params
-    const match = trimmed.match(/^([\w-]+)=\(([^)]*)\)(.*)$/)
-    if (!match) {
-        throw new Error('Invalid Accept-Signature format')
+    let dictionary: Dictionary
+    try {
+        dictionary = parseDictionary(header)
+    } catch {
+        throw malformed
     }
 
-    const label = match[1]
-    const componentsStr = match[2]
-    const paramsStr = match[3]
+    if (dictionary.size !== 1) {
+        throw malformed
+    }
 
-    const components = componentsStr
-        .split(/\s+/)
-        .map((c) => c.replace(/"/g, ''))
-        .filter((c) => c)
+    const [label, member] = [...dictionary][0]
+    if (!isInnerList(member)) {
+        throw malformed
+    }
 
-    const result: AcceptSignatureParams = { label, components }
+    const result: AcceptSignatureParams = {
+        label,
+        components: member[0].map(([component]) => bareItemToString(component)),
+    }
 
-    if (paramsStr) {
-        // Parse alg string parameter
-        const algMatch = paramsStr.match(/;alg="([^"]*)"/)
-        if (algMatch) {
-            result.alg = algMatch[1]
-        }
+    const alg = member[1].get('alg')
+    if (alg !== undefined) {
+        result.alg = bareItemToString(alg)
+    }
 
-        // Parse tag string parameter
-        const tagMatch = paramsStr.match(/;tag="([^"]*)"/)
-        if (tagMatch) {
-            result.tag = tagMatch[1]
-        }
+    const tag = member[1].get('tag')
+    if (tag !== undefined) {
+        result.tag = bareItemToString(tag)
     }
 
     return result
@@ -550,25 +656,24 @@ export function parseAcceptSignature(header: string): AcceptSignatureParams {
  * Parse Signature header
  */
 export function parseSignature(header: string): Map<string, Uint8Array> {
+    let dictionary: Dictionary
+    try {
+        dictionary = parseDictionary(header)
+    } catch (error) {
+        throw parseFailure('Signature', error)
+    }
+
     const results = new Map<string, Uint8Array>()
 
-    // Split by comma for multiple signatures
-    const entries = header.split(/,(?=\s*\w+=)/)
-
-    for (const entry of entries) {
-        const trimmed = entry.trim()
-
+    for (const [label, member] of dictionary) {
         // Format: label=:base64:
-        const match = trimmed.match(/^([^=]+)=:([^:]+):$/)
-        if (!match) {
-            throw new Error(`Invalid Signature format: ${trimmed}`)
+        if (isInnerList(member) || !isByteSequence(member[0])) {
+            throw new Error(
+                `Invalid Signature format: member "${label}" is not a Byte Sequence`,
+            )
         }
 
-        const label = match[1].trim()
-        const base64 = match[2]
-
-        const signature = Buffer.from(base64, 'base64')
-        results.set(label, new Uint8Array(signature))
+        results.set(label, base64Decode(member[0].toBase64()))
     }
 
     return results
