@@ -66,6 +66,24 @@ export interface HttpSigFetchOptions extends RequestInit {
     label?: string // Signature label (default: 'sig')
     components?: string[] // Override default components
 
+    /**
+     * Content-Digest coverage for requests with a body, per the AAuth HTTPSig
+     * profile (Section 10.3): a request carrying a body to a PS or AS
+     * endpoint MUST cover `content-digest` (RFC 9530).
+     *
+     * - `'auto'` (default): cover `content-digest` when the body's exact
+     *   bytes are available to hash here -- a string, Uint8Array,
+     *   ArrayBuffer, or Buffer. A body whose bytes are produced by the fetch
+     *   implementation (ReadableStream, FormData, Blob) is signed without it.
+     * - `'require'`: like `'auto'`, but throw on a body that cannot be
+     *   digested instead of silently dropping the component. PS and AS
+     *   callers use this: refusing to sign beats sending a request the
+     *   server must reject.
+     * - `'omit'`: never auto-append `content-digest` (the pre-2.2 behavior).
+     *   It is still covered when listed explicitly in `components`.
+     */
+    contentDigest?: 'auto' | 'require' | 'omit'
+
     // Testing mode
     dryRun?: boolean // Return headers without fetching (still returns Promise)
 
@@ -122,6 +140,17 @@ export interface VerifyOptions {
      * for example to accept Ed25519 only, or to refuse RSASSA-PKCS1-v1_5.
      */
     supportedAlgorithms?: SignatureAlgorithm[]
+
+    /**
+     * When true, a request with a body fails verification unless the
+     * signature covers `content-digest` (and the digest validates against
+     * the body). This is how a PS or AS enforces the AAuth HTTPSig profile
+     * (Section 10.3) -- without it the digest is validated only when the
+     * signer chose to cover it, which enforces nothing. Resources are exempt
+     * from the profile rule and declare their needs via
+     * `additional_signature_components` in resource metadata.
+     */
+    requireContentDigest?: boolean
 }
 
 // Note: the strictAAuth option was removed in 2.0. Covering `signature-key` is

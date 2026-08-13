@@ -221,8 +221,15 @@ export async function generateContentDigest(body: BodyInit): Promise<string> {
     } else if (Buffer.isBuffer(body)) {
         bytes = new Uint8Array(body)
     } else {
-        // For other types (ReadableStream, etc.), convert to string
-        bytes = new TextEncoder().encode(String(body))
+        // Refuse other types (ReadableStream, FormData, Blob, ...). Falling
+        // through to String(body) here produced a valid signature over the
+        // SHA-256 of literal text like "[object ReadableStream]" -- bytes
+        // that never go on the wire and that no verifier can reproduce.
+        throw new Error(
+            `Cannot generate content-digest for body type: ${
+                (body as any)?.constructor?.name ?? typeof body
+            }`,
+        )
     }
 
     const hash = await sha256(bytes)

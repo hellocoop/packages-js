@@ -62,6 +62,21 @@ function getContentTypeFromBody(body: any): string | null {
 }
 
 /**
+ * Whether generateContentDigest can hash this body: the digest must be
+ * computed over the exact bytes that go on the wire, so only bodies whose
+ * bytes are available here qualify. A ReadableStream, FormData, or Blob is
+ * serialized by the fetch implementation, not by us.
+ */
+function isDigestibleBody(body: any): boolean {
+    return (
+        typeof body === 'string' ||
+        body instanceof Uint8Array ||
+        body instanceof ArrayBuffer ||
+        Buffer.isBuffer(body)
+    )
+}
+
+/**
  * Validate component names
  */
 function validateComponents(components: string[], headers: Headers): void {
@@ -122,6 +137,7 @@ export async function fetch(
         signatureKey,
         label = 'sig',
         components: customComponents,
+        contentDigest = 'auto',
         dryRun = false,
         returnSent = false,
         method = 'GET',
@@ -173,6 +189,25 @@ export async function fetch(
         components = hasBody
             ? [...DEFAULT_COMPONENTS_BODY]
             : [...DEFAULT_COMPONENTS_GET]
+    }
+
+    // Per AAuth Section 10.3, a request carrying a body MUST cover
+    // content-digest. Cover it whenever the body's exact bytes are available
+    // to hash. 'require' refuses to sign a body that cannot be digested,
+    // rather than sending a request the server must reject; 'omit' restores
+    // the pre-2.2 behavior for callers that opt out.
+    if (body !== undefined && body !== null && contentDigest !== 'omit') {
+        const digestible = isDigestibleBody(body)
+        if (!digestible && contentDigest === 'require') {
+            throw new Error(
+                'contentDigest is "require" but the body cannot be digested: ' +
+                    'only string, Uint8Array, ArrayBuffer, and Buffer bodies ' +
+                    'have their exact bytes available to hash',
+            )
+        }
+        if (digestible && !components.includes('content-digest')) {
+            components.push('content-digest')
+        }
     }
 
     const componentValues = new Map<string, string>()
