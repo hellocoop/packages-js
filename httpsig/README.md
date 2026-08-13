@@ -119,6 +119,15 @@ interface HttpSigFetchOptions extends RequestInit {
     label?: string // Signature label (default: 'sig')
     components?: string[] // Override default components
 
+    // Content-Digest coverage for requests with a body (default: 'auto')
+    // 'auto'    - cover content-digest when the body's exact bytes are
+    //             available to hash (string, Uint8Array, ArrayBuffer, Buffer);
+    //             streaming bodies (ReadableStream, FormData, Blob) are
+    //             signed without it
+    // 'require' - like 'auto', but throw on a body that cannot be digested
+    // 'omit'    - never auto-append content-digest
+    contentDigest?: 'auto' | 'require' | 'omit'
+
     // Testing mode
     dryRun?: boolean // Return headers without fetching (still returns Promise)
 }
@@ -258,9 +267,13 @@ interface VerifyOptions {
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
 
-    // AAuth profile enforcement
-    strictAAuth?: boolean // Enforce AAuth profile requirements (default: true)
-    // When true, requires signature-key in covered components
+    // Algorithms this verifier accepts (default: SUPPORTED_ALGORITHMS)
+    supportedAlgorithms?: SignatureAlgorithm[]
+
+    // AAuth HTTPSig profile (Section 10.3) enforcement: when true, a request
+    // with a body fails verification unless the signature covers
+    // content-digest and the digest validates against the body
+    requireContentDigest?: boolean
 }
 ```
 
@@ -512,13 +525,22 @@ Signature-Input: sig=("@method" "@authority" "@path" "signature-key");created=17
 Signature-Input: sig=("@method" "@authority" "@path" "content-type" "signature-key");created=1730217600
 ```
 
-**Optional: Content-Digest**
+**Content-Digest (automatic since 2.2.0)**
 
-If you want body integrity verification, you can add `content-digest` to your components list. When included, the `content-digest` header is computed as:
+Per the AAuth HTTPSig profile (Section 10.3), a request carrying a body to a
+PS or AS endpoint MUST also cover `content-digest` (RFC 9530). `fetch()`
+appends `content-digest` to the covered components automatically whenever the
+body's exact bytes are available to hash — a string, Uint8Array, ArrayBuffer,
+or Buffer. A body serialized by the fetch implementation (ReadableStream,
+FormData, Blob) is signed without it; pass `contentDigest: 'require'` to
+throw instead, or `contentDigest: 'omit'` to never auto-append. The header is
+computed as:
 
 ```
 Content-Digest: sha-256=:BASE64(SHA256(body)):
 ```
+
+A verifier enforces coverage with `requireContentDigest: true`.
 
 ### Overriding Default Components
 
@@ -544,10 +566,10 @@ import {
 // ['@method', '@authority', '@path', 'content-type', 'signature-key']
 ```
 
-**Example - Adding content-digest for body integrity:**
+**Example - Custom components:**
 
 ```typescript
-// Add content-digest if you need body integrity verification
+// Add the date header to the covered components
 await fetch('https://api.example.com/data', {
     method: 'POST',
     headers: {
@@ -563,8 +585,8 @@ await fetch('https://api.example.com/data', {
         '@path',
         'date', // Include date header
         'content-type',
-        'content-digest', // Add for body integrity
         'signature-key',
+        // content-digest is appended automatically for a digestible body
     ],
 })
 ```

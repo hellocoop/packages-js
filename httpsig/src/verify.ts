@@ -423,6 +423,7 @@ export async function verify(
         maxClockSkew = 60,
         jwksCacheTtl = 3600000, // 1 hour
         supportedAlgorithms,
+        requireContentDigest = false,
     } = options
 
     // The set this verifier accepts. Reported in Accept-Signature-Alg on an
@@ -600,6 +601,29 @@ export async function verify(
         componentValues.set('@request-target', `${request.path}${queryString}`)
         componentValues.set('@path', request.path)
         componentValues.set('@query', request.query || '')
+
+        // Enforce the AAuth HTTPSig profile (Section 10.3): a request with a
+        // body must cover content-digest. Opt-in, because only a PS or AS is
+        // bound by the profile rule -- and without this check the digest
+        // below is validated only when the signer chose to cover it, which
+        // enforces nothing.
+        if (
+            requireContentDigest &&
+            request.body !== undefined &&
+            !components.includes('content-digest')
+        ) {
+            throw invalidInput(
+                'content-digest must be a covered component on a request with a body',
+                [
+                    '@method',
+                    '@authority',
+                    '@path',
+                    'content-digest',
+                    'content-type',
+                    'signature-key',
+                ],
+            )
+        }
 
         // Validate content-digest if body is present
         if (
