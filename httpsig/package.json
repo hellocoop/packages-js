@@ -7,16 +7,19 @@
         "url": "git+https://github.com/hellocoop/packages-js.git"
     },
     "homepage": "https://github.com/hellocoop/packages-js/tree/main/httpsig",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/types/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
         },
         "./structured-fields": {
-            "types": "./dist/structured-fields.d.ts",
-            "default": "./dist/structured-fields.js"
+            "types": "./dist/types/structured-fields.d.ts",
+            "import": "./dist/esm/structured-fields.js",
+            "require": "./dist/cjs/structured-fields.js"
         }
     },
     "files": [
@@ -43,10 +46,14 @@
     "bugs": {
         "url": "https://github.com/hellocoop/packages-js/issues"
     },
+    "type": "module",
     "scripts": {
         "watch": "tsc --watch",
         "prebuild": "rimraf dist dist-test",
-        "build": "tsc",
+        "build": "npm run build:cjs && npm run build:esm && npm run build:types",
+        "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/fixup-dist.cjs",
+        "build:esm": "tsc -p tsconfig.esm.json",
+        "build:types": "tsc -p tsconfig.types.json",
         "pretest": "tsc -p tsconfig.test.json",
         "test": "node --test --test-concurrency=1 dist-test/tests/test-*.js",
         "test:watch": "tsc -p tsconfig.test.json --watch & node --test --watch dist-test/tests/test-*.js"
