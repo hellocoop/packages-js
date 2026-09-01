@@ -12,9 +12,9 @@
     "types": "./dist/types/index.d.ts",
     "exports": {
         ".": {
+            "types": "./dist/types/index.d.ts",
             "import": "./dist/esm/index.js",
-            "require": "./dist/cjs/index.js",
-            "types": "./dist/types/index.d.ts"
+            "require": "./dist/cjs/index.js"
         }
     },
     "bin": {
@@ -50,7 +50,7 @@
         "test:watch": "vitest --watch",
         "build": "npm run build:clean && npm run build:cjs && npm run build:esm && npm run build:types",
         "build:clean": "rimraf dist",
-        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/fixup-dist.cjs",
         "build:esm": "tsc -p tsconfig.esm.json",
         "build:types": "tsc -p tsconfig.types.json",
         "watch": "tsc --watch",
