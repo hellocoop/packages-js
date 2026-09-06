@@ -32,14 +32,15 @@
     },
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist node_modules",
+        "prebuild": "rm -rf dist node_modules",
         "build": "tsc --declaration"
     },
     "engines": {
         "node": ">=18"
     },
+    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8",
     "devDependencies": {
-        "rimraf": "^6.1.3"
-    },
-    "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
+        "@tsconfig/node18": "^18.2.7",
+        "typescript": "^6.0.3"
+    }
 }

@@ -1,8 +1,8 @@
 // next.js quickstart
 
-import { statSync, appendFileSync } from 'fs'
+import { statSync, appendFileSync, mkdirSync, writeFileSync } from 'fs'
+import { dirname } from 'path'
 import chalk from 'chalk'
-import fs from 'fs-extra'
 import quickstart from './index.js'
 import { randomBytes } from 'crypto'
 
@@ -43,7 +43,8 @@ const config = {
 }
 module.exports = config
 `
-    fs.outputFileSync(filePath, config)
+    mkdirSync(dirname(filePath), { recursive: true })
+    writeFileSync(filePath, config)
     console.log(
         `${chalk.greenBright('✓')} Created ${HELLO_CONFIG_FILE} with client_id ${chalk.blueBright(client_id)}`,
     )
@@ -82,7 +83,8 @@ import config from '../../../hello.config'
 import { appAuth } from '@hellocoop/nextjs'
 export const { GET } = appAuth(config)
 `
-    fs.outputFileSync(filePath, content)
+    mkdirSync(dirname(filePath), { recursive: true })
+    writeFileSync(filePath, content)
     console.log(`${chalk.greenBright('✓')} Created ${HELLO_COOP_FILE}`)
 }
 

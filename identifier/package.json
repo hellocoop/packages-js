@@ -19,7 +19,7 @@
     },
     "types": "./dist/identifier.d.ts",
     "scripts": {
-        "prebuild": "rimraf dist node_modules",
+        "prebuild": "rm -rf dist node_modules",
         "build": "node src/build.js",
         "test": "mocha test/**/*"
     },

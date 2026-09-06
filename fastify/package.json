@@ -35,7 +35,7 @@
     },
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist node_modules",
+        "prebuild": "rm -rf dist node_modules",
         "build": "tsc --declaration",
         "test": "npm run build && docker compose -f ./spec/docker-compose.yml up --build --abort-on-container-exit",
         "test:debug": "npm run build && docker compose -f ./spec/docker-compose.yml -f ./spec/docker-compose.debug.yml up --build --abort-on-container-exit",
@@ -48,7 +48,6 @@
     "devDependencies": {
         "@tsconfig/node18": "^18.2.7",
         "fastify": "^5.12.3",
-        "rimraf": "^6.1.3",
         "typescript": "^6.0.3"
     },
     "engines": {
@@ -57,7 +56,8 @@
     "dependencies": {
         "@fastify/formbody": "^9.0.0",
         "@hellocoop/api": "^2.6.0",
-        "dotenv": "^17.4.2",
+        "@hellocoop/definitions": "^1.0.13",
+        "cookie": "^1.1.1",
         "fastify-plugin": "^6.0.0"
     },
     "gitHead": "2708ae6a0cf0cb970bed968ab62955e639c9e897"
