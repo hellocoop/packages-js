@@ -43,7 +43,7 @@
         "url": "https://github.com/hellocoop/packages-js/issues"
     },
     "scripts": {
-        "test": "vitest --run",
+        "test": "NODE_OPTIONS=--expose-gc vitest --run",
         "test:watch": "vitest --watch",
         "build": "npm run build:clean && npm run build:cjs && npm run build:esm && npm run build:types",
         "build:clean": "rm -rf dist",
