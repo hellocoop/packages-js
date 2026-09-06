@@ -32,7 +32,7 @@
     },
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist/",
+        "prebuild": "rm -rf dist/",
         "build": "tsc --declaration"
     },
     "peerDependencies": {
@@ -40,18 +40,17 @@
         "react-dom": ">=17"
     },
     "devDependencies": {
-        "@types/react": "^18.2.21",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "rimraf": "^5.0.1",
-        "typescript": "^5.2.2"
+        "@tsconfig/node18": "^18.2.7",
+        "@types/react": "^19.2.18",
+        "react": "^19.2.8",
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"
     },
     "dependencies": {
         "@hellocoop/definitions": "^1.0.13",
-        "swr": "^2.2.2"
+        "swr": "^2.5.1"
     },
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8"
 }

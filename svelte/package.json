@@ -9,7 +9,7 @@
     "homepage": "https://www.hello.dev/docs/sdks/svelte",
     "scripts": {
         "build": "svelte-kit sync && svelte-package && publint",
-        "prebuild": "rimraf dist node_modules"
+        "prebuild": "rm -rf dist node_modules"
     },
     "exports": {
         ".": {
@@ -44,16 +44,14 @@
         "svelte": ">=4.0.0"
     },
     "devDependencies": {
-        "@sveltejs/adapter-auto": "^3.3.1",
-        "@sveltejs/kit": "^2.9.1",
-        "@sveltejs/package": "^2.3.7",
-        "@sveltejs/vite-plugin-svelte": "^6.0.0",
-        "publint": "^0.2.12",
-        "svelte": "^5.10.0",
-        "svelte-check": "^4.1.1",
-        "tslib": "^2.8.1",
-        "typescript": "^5.7.2",
-        "vite": "^7.0.0"
+        "@sveltejs/adapter-auto": "^7.0.1",
+        "@sveltejs/kit": "^2.70.3",
+        "@sveltejs/package": "^2.5.8",
+        "@sveltejs/vite-plugin-svelte": "^7.3.0",
+        "publint": "^0.3.24",
+        "svelte": "^5.57.0",
+        "typescript": "^6.0.3",
+        "vite": "^8.2.2"
     },
     "svelte": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -61,6 +59,6 @@
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8",
     "dependencies": {
         "@hellocoop/definitions": "^1.0.13",
-        "sswr": "^2.1.0"
+        "sswr": "^2.2.0"
     }
 }

@@ -11,7 +11,7 @@
     ],
     "scripts": {
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist",
+        "prebuild": "rm -rf dist",
         "build": "tsc --declaration",
         "test": "node --test"
     },
@@ -38,8 +38,9 @@
     },
     "homepage": "https://www.hello.dev/docs/sdks/helper/",
     "devDependencies": {
-        "@types/node": "*",
-        "typescript": "^5.2.2"
+        "@tsconfig/node18": "^18.2.7",
+        "@types/node": "^24.0.0",
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"

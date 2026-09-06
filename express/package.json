@@ -36,21 +36,20 @@
     "scripts": {
         "test": "npm run build && npx playwright test --reporter=line",
         "watch": "tsc --watch --declaration",
-        "prebuild": "rimraf dist node_modules",
+        "prebuild": "rm -rf dist node_modules",
         "build": "tsc --declaration"
     },
     "peerDependencies": {
         "express": "^4 ||^5"
     },
     "devDependencies": {
-        "@playwright/test": "^1.42.1",
-        "@tsconfig/node18": "^18.2.2",
-        "@types/cookie": "^0.6.0",
-        "@types/express": "^5.0.1",
-        "@types/node": "*",
-        "express": "^5.1.0",
-        "rimraf": "^5.0.1",
-        "typescript": "^5.2.2"
+        "@playwright/test": "^1.63.0",
+        "@tsconfig/node18": "^18.2.7",
+        "@types/express": "^5.0.6",
+        "@types/node": "^24.0.0",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"
@@ -58,10 +57,7 @@
     "dependencies": {
         "@hellocoop/api": "^2.6.0",
         "@hellocoop/definitions": "^1.0.13",
-        "@hellocoop/helper-server": "^2.2.5",
-        "cookie": "^1.0.1",
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1"
+        "cookie": "^1.1.1"
     },
     "gitHead": "2708ae6a0cf0cb970bed968ab62955e639c9e897"
 }

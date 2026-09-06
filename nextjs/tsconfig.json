@@ -4,6 +4,7 @@
     "exclude": ["node_modules", "./**/dist"],
     "compilerOptions": {
         "resolveJsonModule": true,
+        "types": ["node"],
         "declarationMap": true,
         "declaration": true,
         "rootDir": "./src",

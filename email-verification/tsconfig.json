@@ -2,8 +2,8 @@
     "extends": "@tsconfig/node18/tsconfig.json",
     "compilerOptions": {
         "target": "ES2022",
-        "module": "ESNext",
-        "moduleResolution": "node",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
@@ -14,6 +14,7 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
+        "types": ["node"],
         "allowSyntheticDefaultImports": true
     },
     "include": ["src/**/*"],

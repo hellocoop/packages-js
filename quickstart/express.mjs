@@ -1,8 +1,8 @@
 // express quickstart
 
-import { statSync, appendFileSync } from 'fs'
+import { statSync, appendFileSync, mkdirSync, writeFileSync } from 'fs'
+import { dirname } from 'path'
 import chalk from 'chalk'
-import fs from 'fs-extra'
 import quickstart from './index.js'
 import { randomBytes } from 'crypto'
 
@@ -42,7 +42,8 @@ const config = {
 }
 module.exports = config
 `
-    fs.outputFileSync(filePath, config)
+    mkdirSync(dirname(filePath), { recursive: true })
+    writeFileSync(filePath, config)
     console.log(
         `${chalk.greenBright('✓')} Created ${HELLO_CONFIG_FILE} with client_id ${chalk.blueBright(client_id)}`,
     )
@@ -76,7 +77,7 @@ const defaultOptions = {
     provider_hint: 'google github gitlab apple-- email--',
 }
 const express = async (options, name = 'express') => {
-    dotenv.config()
+    dotenv.config({ quiet: true })
     options = { ...defaultOptions, ...options }
     try {
         await writeConfig(options, name)

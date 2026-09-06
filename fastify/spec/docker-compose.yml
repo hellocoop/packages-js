@@ -20,7 +20,7 @@ services:
             ISSUER: 'http://mockin:3333'
 
     fastify-client:
-        image: node:18-alpine
+        image: node:24-alpine
         depends_on:
             - mockin
         networks:

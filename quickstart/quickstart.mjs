@@ -105,7 +105,7 @@ if (wildcard_domain) options.wildcard_domain = wildcard_domain
 
     // direct invocation
 
-    dotenv.config() // .env
+    dotenv.config({ quiet: true }) // .env
 
     const client_id = await quickstart(options)
     console.log(`client_id=${client_id}`)

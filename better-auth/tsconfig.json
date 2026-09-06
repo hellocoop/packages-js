@@ -14,10 +14,11 @@
         "declaration": true,
         "rootDir": "./src",
         "target": "ES2022",
-        "strict": true,
-        "outDir": "./dist",
         "module": "CommonJS",
         "moduleResolution": "node",
+        "ignoreDeprecations": "6.0",
+        "strict": true,
+        "outDir": "./dist",
         "jsx": "react",
         "lib": ["ES2022", "DOM"]
     }

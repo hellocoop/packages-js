@@ -16,7 +16,7 @@ const config: UserConfig = {
             name: '@hellocoop/vue',
             fileName: 'index',
         },
-        rollupOptions: {
+        rolldownOptions: {
             // make sure to externalize deps that shouldn't be bundled
             // into your library
             external: ['vue'],

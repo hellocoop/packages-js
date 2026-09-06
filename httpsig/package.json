@@ -49,7 +49,7 @@
     "type": "module",
     "scripts": {
         "watch": "tsc --watch",
-        "prebuild": "rimraf dist dist-test",
+        "prebuild": "rm -rf dist dist-test",
         "build": "npm run build:cjs && npm run build:esm && npm run build:types",
         "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/fixup-dist.cjs",
         "build:esm": "tsc -p tsconfig.esm.json",
@@ -59,10 +59,9 @@
         "test:watch": "tsc -p tsconfig.test.json --watch & node --test --watch dist-test/tests/test-*.js"
     },
     "devDependencies": {
-        "@misskey-dev/node-http-message-signatures": "^0.0.10",
-        "@tsconfig/node18": "^18.2.2",
-        "rimraf": "^5.0.1",
-        "typescript": "^5.2.2"
+        "@tsconfig/node18": "^18.2.7",
+        "@types/node": "^24.0.0",
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"

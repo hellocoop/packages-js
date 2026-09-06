@@ -31,7 +31,7 @@
         "release": "./scripts/release.sh",
         "publish:canary": "npm run build && lerna publish --canary --yes --no-private",
         "format": "prettier --write .",
-        "lint": "prettier --check . && eslint --flag unstable_config_lookup_from_file . --fix",
+        "lint": "prettier --check . && eslint --flag v10_config_lookup_from_file . --fix",
         "check": "npm run format && npm run lint",
         "prepare": "husky"
     },
@@ -45,27 +45,26 @@
     },
     "homepage": "https://github.com/hellocoop/packages#readme",
     "license": "MIT",
-    "devDependencies": {
-        "chai": "^5.1.1",
-        "eslint": "^9.23.0",
-        "eslint-config-prettier": "^10.1.1",
-        "eslint-plugin-react": "^7.37.4",
-        "eslint-plugin-svelte": "^3.3.3",
-        "eslint-plugin-vue": "^10.0.0",
-        "esm": "^3.2.25",
-        "husky": "^9.1.7",
-        "lerna": "^8.1.8",
-        "mocha": "^10.6.0",
-        "npm-run-all": "^4.1.5",
-        "prettier": "^3.4.2",
-        "prettier-plugin-svelte": "^3.3.3",
-        "rimraf": "^5.0.5",
-        "svelte-eslint-parser": "^1.1.0",
-        "typescript-eslint": "^8.27.0",
-        "wait-on": "^8.0.1"
+    "engines": {
+        "node": ">=24"
     },
-    "private": true,
-    "dependencies": {
-        "next": "^16.0.7"
-    }
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "chai": "^6.2.2",
+        "eslint": "^9.39.5",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-svelte": "^3.23.0",
+        "eslint-plugin-vue": "^10.11.0",
+        "globals": "^17.12.0",
+        "husky": "^9.1.7",
+        "lerna": "^10.0.1",
+        "mocha": "^12.0.0",
+        "prettier": "~3.4.2",
+        "prettier-plugin-svelte": "^4.1.1",
+        "svelte-eslint-parser": "^1.8.1",
+        "typescript-eslint": "^8.69.0",
+        "wait-on": "^9.1.0"
+    },
+    "private": true
 }

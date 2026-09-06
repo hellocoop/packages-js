@@ -6,7 +6,8 @@
         "lib": ["dom"],
         "declarationMap": true,
         "declaration": true,
-        "baseUrl": "../",
+        "rootDir": "../src",
+        "types": ["node"],
         "target": "es2019",
         "strict": true,
         "outDir": "./dist"
