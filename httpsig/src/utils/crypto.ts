@@ -282,7 +282,11 @@ export async function sign(
     privateKey: CryptoKey,
     algorithm: AlgorithmParams,
 ): Promise<Uint8Array> {
-    const signature = await crypto.subtle.sign(algorithm, privateKey, data)
+    const signature = await crypto.subtle.sign(
+        algorithm,
+        privateKey,
+        data as BufferSource,
+    )
 
     return new Uint8Array(signature)
 }
@@ -296,7 +300,12 @@ export async function verify(
     publicKey: CryptoKey,
     algorithm: AlgorithmParams,
 ): Promise<boolean> {
-    return await crypto.subtle.verify(algorithm, publicKey, signature, data)
+    return await crypto.subtle.verify(
+        algorithm,
+        publicKey,
+        signature as BufferSource,
+        data as BufferSource,
+    )
 }
 
 /**

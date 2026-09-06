@@ -10,7 +10,6 @@
         "target": "ES2022",
         "strict": true,
         "outDir": "./dist",
-        "module": "CommonJS", // Use CommonJS for module system
-        "moduleResolution": "node" // Set moduleResolution to "node" for compatibility with Node.js 18
+        "types": ["node"]
     }
 }

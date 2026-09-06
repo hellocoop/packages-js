@@ -4,6 +4,7 @@
     "include": ["src/**/*.ts"],
     "compilerOptions": {
         "forceConsistentCasingInFileNames": true,
+        "types": ["node"],
         "resolveJsonModule": true,
         "declarationMap": true,
         "declaration": true,

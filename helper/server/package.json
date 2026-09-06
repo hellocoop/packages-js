@@ -38,8 +38,8 @@
     },
     "homepage": "https://www.hello.dev/docs/sdks/helper/",
     "devDependencies": {
-        "@types/node": "*",
-        "typescript": "^5.2.2"
+        "@types/node": "^24.0.0",
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"

@@ -5,7 +5,7 @@
     "compilerOptions": {
         "lib": ["dom"],
         "declaration": true,
-        "baseUrl": "../",
+        "rootDir": "../src",
         "target": "es2019",
         "strict": true,
         "outDir": "./dist"

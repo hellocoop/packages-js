@@ -115,7 +115,7 @@ const defaultOptions = {
 }
 
 const next = async (options, pagesRouter) => {
-    dotenv.config({ path: './.env.local' })
+    dotenv.config({ path: './.env.local', quiet: true })
     options = { ...defaultOptions, ...options }
     try {
         await writeConfig(options)

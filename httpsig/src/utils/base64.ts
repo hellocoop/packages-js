@@ -78,7 +78,10 @@ export async function sha256(data: string | Uint8Array): Promise<Uint8Array> {
     const bytes =
         typeof data === 'string' ? new TextEncoder().encode(data) : data
 
-    const hashBuffer = await crypto.subtle.digest('SHA-256', bytes)
+    const hashBuffer = await crypto.subtle.digest(
+        'SHA-256',
+        bytes as BufferSource,
+    )
     return new Uint8Array(hashBuffer)
 }
 
@@ -89,6 +92,9 @@ export async function sha512(data: string | Uint8Array): Promise<Uint8Array> {
     const bytes =
         typeof data === 'string' ? new TextEncoder().encode(data) : data
 
-    const hashBuffer = await crypto.subtle.digest('SHA-512', bytes)
+    const hashBuffer = await crypto.subtle.digest(
+        'SHA-512',
+        bytes as BufferSource,
+    )
     return new Uint8Array(hashBuffer)
 }

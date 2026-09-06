@@ -44,13 +44,14 @@
         "prebuild": "rimraf dist node_modules"
     },
     "devDependencies": {
-        "typescript": "^5.7.2",
-        "vite-plugin-dts": "^4.3.0"
+        "@vue/language-core": "^3.3.11",
+        "typescript": "^6.0.3",
+        "vite-plugin-dts": "^5.1.0"
     },
     "gitHead": "96cc2f3fa1a3724a4a96b19cc7c5d97f04cc49f8",
     "dependencies": {
-        "@vitejs/plugin-vue": "^5.2.1",
-        "swrv": "^1.0.4",
-        "vue": "^3.5.13"
+        "@vitejs/plugin-vue": "^6.0.8",
+        "swrv": "^1.2.0",
+        "vue": "^3.5.42"
     }
 }

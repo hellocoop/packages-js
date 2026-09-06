@@ -5,7 +5,7 @@
     "compilerOptions": {
         "declarationMap": true,
         "declaration": true,
-        "baseUrl": "./src/",
+        "rootDir": "./src",
         "lib": ["dom", "dom.iterable", "esnext"],
         "target": "es2019",
         "jsx": "react",

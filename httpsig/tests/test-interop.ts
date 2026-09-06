@@ -63,7 +63,8 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
         .replace(/-----BEGIN .*-----/, '')
         .replace(/-----END .*-----/, '')
         .replace(/\s/g, '')
-    return Buffer.from(base64, 'base64')
+    // copy into a fresh ArrayBuffer: Buffer.from may return a slice of a shared pool
+    return new Uint8Array(Buffer.from(base64, 'base64')).buffer
 }
 
 test('Key format conversion: JWK <-> SPKI round-trip', async () => {

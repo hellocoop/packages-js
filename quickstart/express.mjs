@@ -76,7 +76,7 @@ const defaultOptions = {
     provider_hint: 'google github gitlab apple-- email--',
 }
 const express = async (options, name = 'express') => {
-    dotenv.config()
+    dotenv.config({ quiet: true })
     options = { ...defaultOptions, ...options }
     try {
         await writeConfig(options, name)
