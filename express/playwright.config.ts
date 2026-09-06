@@ -41,7 +41,7 @@ export default defineConfig({
     /* Run your local dev server before starting the tests */
     webServer: [
         {
-            command: 'cd app && node express.js',
+            command: 'cd app && node express.mjs',
             url: 'http://127.0.0.1:3000',
             // stdout: 'pipe',
             timeout: 10000,

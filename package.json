@@ -31,7 +31,7 @@
         "release": "./scripts/release.sh",
         "publish:canary": "npm run build && lerna publish --canary --yes --no-private",
         "format": "prettier --write .",
-        "lint": "prettier --check . && eslint --flag unstable_config_lookup_from_file . --fix",
+        "lint": "prettier --check . && eslint --flag v10_config_lookup_from_file . --fix",
         "check": "npm run format && npm run lint",
         "prepare": "husky"
     },
@@ -45,6 +45,9 @@
     },
     "homepage": "https://github.com/hellocoop/packages#readme",
     "license": "MIT",
+    "engines": {
+        "node": ">=24"
+    },
     "devDependencies": {
         "chai": "^5.1.1",
         "eslint": "^9.23.0",
