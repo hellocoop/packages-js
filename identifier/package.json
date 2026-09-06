@@ -13,6 +13,7 @@
     "module": "./dist/identifier.mjs",
     "type": "module",
     "exports": {
+        "types": "./dist/identifier.d.ts",
         "require": "./dist/identifier.cjs",
         "import": "./dist/identifier.mjs"
     },
