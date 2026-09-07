@@ -503,6 +503,7 @@ export function parseSignatureError(header: string): SignatureError {
         'unknown_key',
         'invalid_jwt',
         'expired_jwt',
+        'revoked_jwt',
         'issuer_missing',
         'issuer_mismatch',
     ]

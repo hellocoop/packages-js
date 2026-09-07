@@ -698,6 +698,12 @@ signature checks out. Contrast `jkt-jwt`, which carries its identity key in
 the header and so verifies its own signature before reading any claim — it
 does check `exp`, and reports `expired_jwt`.
 
+A server that holds a revocation for a JWT that verifies and is unexpired
+answers `revoked_jwt` (added in 2.5.0). The check is the caller's, after
+`verifyToken`: this library never sees revocation state. It is a distinct
+code because nothing about the assertion is malformed or timed out, so a
+client told only `invalid_jwt` would have no reason not to present it again.
+
 > **Changed in 2.4.0.** Earlier versions checked `exp` and `iat` at this
 > layer and returned `expired_jwt` for a stale one. Since the payload is
 > not authenticated here, that check bounded honest callers only: anyone

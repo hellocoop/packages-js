@@ -268,6 +268,7 @@ export type SignatureErrorCode =
     | 'unknown_key'
     | 'invalid_jwt'
     | 'expired_jwt'
+    | 'revoked_jwt'
     | 'issuer_missing'
     | 'issuer_mismatch'
 

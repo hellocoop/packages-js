@@ -24,6 +24,19 @@ test('Signature-Error: generate unsupported_scheme', () => {
     assert.strictEqual(header, 'error=unsupported_scheme')
 })
 
+test('Signature-Error: generate revoked_jwt', () => {
+    // A JWT that verifies and is unexpired but that the server holds a
+    // revocation for: distinct from invalid_jwt and expired_jwt, because
+    // nothing about the assertion is malformed or timed out, and recovery
+    // runs through the issuer that withdrew it.
+    const error: SignatureError = { error: 'revoked_jwt' }
+    const header = generateSignatureErrorHeader(error)
+    assert.strictEqual(header, 'error=revoked_jwt')
+    assert.deepStrictEqual(parseSignatureError(header), {
+        error: 'revoked_jwt',
+    })
+})
+
 test('Signature-Error: generate invalid_signature', () => {
     const error: SignatureError = { error: 'invalid_signature' }
     const header = generateSignatureErrorHeader(error)
