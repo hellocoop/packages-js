@@ -674,6 +674,39 @@ The JWT must contain:
 - Delegation scenarios
 - Short-lived credentials for horizontal scaling
 
+#### The caller authenticates the JWT
+
+This library does **not** verify the issuer's signature over the JWT, and
+cannot: the issuer's keys live at `{iss}/.well-known/{dwk}`, and resolving
+that is application-layer work. What it does is read `cnf.jwk` out of the
+payload and verify the HTTP message signature against that key.
+
+So a `verify()` that returns `verified: true` for a `jwt`-scheme request
+establishes that whoever sent it holds the private half of the `cnf.jwk`
+inside the JWT. It establishes nothing about who issued the JWT, and
+nothing about any other claim in it.
+
+**The caller MUST verify the issuer's signature over `result.jwt.raw`
+before acting on any claim in `result.jwt.payload`, `exp` included.** In
+AAuth that is `verifyToken` from `@aauth/resource`.
+
+Because the payload is unauthenticated at this layer, no claim in it is
+judged here beyond the structure needed to reach the key: `cnf.jwk` must be
+present, and `exp` must be present and numeric. Whether the time `exp`
+names has already passed is the caller's judgement, made after the
+signature checks out. Contrast `jkt-jwt`, which carries its identity key in
+the header and so verifies its own signature before reading any claim — it
+does check `exp`, and reports `expired_jwt`.
+
+> **Changed in 2.4.0.** Earlier versions checked `exp` and `iat` at this
+> layer and returned `expired_jwt` for a stale one. Since the payload is
+> not authenticated here, that check bounded honest callers only: anyone
+> presenting a forged JWT could produce `expired_jwt` by writing a past
+> `exp` into it, and a caller reading that code refreshes its token when it
+> should be refusing a forgery. A caller that relied on this library to
+> reject expired JWTs was relying on a check an attacker controlled, and
+> must now check `exp` itself after verifying the issuer's signature.
+
 ### jwks_uri (JWKS URI Discovery)
 
 Key discovery via HTTPS URLs with automatic caching.

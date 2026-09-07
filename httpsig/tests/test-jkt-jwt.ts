@@ -340,6 +340,12 @@ test('jkt-jwt: Should fail with expired JWT', async () => {
         verifyResult.error?.includes('expired'),
         `Expected expired error, got: ${verifyResult.error}`,
     )
+    // The contrast with the jwt scheme, which does not judge exp at all: a
+    // jkt-jwt carries its identity key in the header and `iss` is that key's
+    // thumbprint, so the assertion's own signature is verified before any
+    // claim in it is read. `expired_jwt` here is an authenticated statement,
+    // and it is raised structurally rather than matched out of a message.
+    assert.strictEqual(verifyResult.signatureError?.error, 'expired_jwt')
 })
 
 test('jkt-jwt: Should fail with future iat', async () => {

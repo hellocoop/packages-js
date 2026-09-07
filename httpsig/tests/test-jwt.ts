@@ -246,3 +246,123 @@ test('jwt: Custom label should work', async () => {
     assert.strictEqual(verifyResult.label, 'custom')
     assert.strictEqual(verifyResult.keyType, 'jwt')
 })
+
+/**
+ * Regression tests for the jwt scheme's claim handling.
+ *
+ * The jwt scheme's assertion is signed by an issuer whose keys are at
+ * `{iss}/.well-known/{dwk}`. This library does not resolve that, so it cannot
+ * authenticate the payload — it only reads `cnf.jwk` out of it to verify the
+ * HTTP signature. Judging `exp` here therefore judged bytes the presenter
+ * chose, and reported `expired_jwt`, a code whose registry meaning is that
+ * the named issuer minted the assertion and its lifetime ran out.
+ *
+ * The consequence was that any forgery could be made to report `expired_jwt`
+ * by writing a past `exp` into it, so a caller could not tell "refresh your
+ * token" from "this was not issued by anyone". Expiry is now the caller's
+ * judgement, made after it verifies the issuer's signature.
+ */
+
+function createMockJWTWithClaims(
+    publicJwk: JsonWebKey,
+    claims: Record<string, unknown>,
+): string {
+    const header = { alg: 'EdDSA', typ: 'agent+jwt', kid: 'test-key-1' }
+    const now = Math.floor(Date.now() / 1000)
+    const payload = {
+        iss: 'https://issuer.example',
+        sub: 'agent-instance-123',
+        iat: now,
+        exp: now + 3600,
+        cnf: { jwk: publicJwk },
+        ...claims,
+    }
+    return [
+        base64urlEncode(JSON.stringify(header)),
+        base64urlEncode(JSON.stringify(payload)),
+        base64urlEncode('fake-signature-for-testing'),
+    ].join('.')
+}
+
+async function verifySignedWith(jwt: string, privateJwk: JsonWebKey) {
+    const { headers } = (await fetch('https://api.example.com/data', {
+        method: 'GET',
+        signingKey: privateJwk,
+        signatureKey: { type: 'jwt', jwt },
+        dryRun: true,
+    })) as { headers: Headers }
+
+    return verify({
+        method: 'GET',
+        path: '/data',
+        authority: 'api.example.com',
+        headers,
+    })
+}
+
+test('jwt: a past exp is not judged here, and never reports expired_jwt', async () => {
+    const { privateJwk, publicJwk } = await generateEd25519KeyPair()
+    const now = Math.floor(Date.now() / 1000)
+
+    // Two hours stale — well past any clock skew tolerance.
+    const jwt = createMockJWTWithClaims(publicJwk, {
+        iat: now - 7200,
+        exp: now - 7200,
+    })
+
+    const result = await verifySignedWith(jwt, privateJwk)
+
+    assert.strictEqual(
+        result.signatureError?.error,
+        undefined,
+        'expiry of an unauthenticated payload is not this layer’s call',
+    )
+    assert.strictEqual(
+        result.verified,
+        true,
+        'the HTTP signature verifies against cnf.jwk regardless of exp',
+    )
+    assert.strictEqual(
+        (result.jwt?.payload as any).exp,
+        now - 7200,
+        'the caller gets exp back and judges it after verifying the issuer',
+    )
+})
+
+test('jwt: a future iat is not judged here either', async () => {
+    const { privateJwk, publicJwk } = await generateEd25519KeyPair()
+    const now = Math.floor(Date.now() / 1000)
+
+    const jwt = createMockJWTWithClaims(publicJwk, {
+        iat: now + 7200,
+        exp: now + 10800,
+    })
+
+    const result = await verifySignedWith(jwt, privateJwk)
+
+    assert.strictEqual(result.signatureError?.error, undefined)
+    assert.strictEqual(result.verified, true)
+})
+
+test('jwt: a missing exp is still invalid_jwt', async () => {
+    const { privateJwk, publicJwk } = await generateEd25519KeyPair()
+
+    // An assertion that never expires is malformed, and saying so needs no
+    // authentication — it is a structural judgement, not a temporal one.
+    const jwt = createMockJWTWithClaims(publicJwk, { exp: undefined })
+
+    const result = await verifySignedWith(jwt, privateJwk)
+
+    assert.strictEqual(result.verified, false)
+    assert.strictEqual(result.signatureError?.error, 'invalid_jwt')
+})
+
+test('jwt: a missing cnf.jwk is still invalid_jwt', async () => {
+    const { privateJwk, publicJwk } = await generateEd25519KeyPair()
+    const jwt = createMockJWTWithClaims(publicJwk, { cnf: undefined })
+
+    const result = await verifySignedWith(jwt, privateJwk)
+
+    assert.strictEqual(result.verified, false)
+    assert.strictEqual(result.signatureError?.error, 'invalid_jwt')
+})

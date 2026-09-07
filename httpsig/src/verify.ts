@@ -112,9 +112,6 @@ function mapToSignatureError(errorMessage: string): SignatureError {
     ) {
         return { error: 'unknown_key' }
     }
-    if (errorMessage.includes('jkt-jwt: JWT expired')) {
-        return { error: 'expired_jwt' }
-    }
     if (
         errorMessage.includes('jkt-jwt:') ||
         errorMessage.includes('Invalid JWT') ||
@@ -231,15 +228,33 @@ async function getPublicKeyFromJWKS(
 /**
  * Decode a jwt-scheme assertion and extract its cnf.jwk confirmation key.
  *
- * The issuer's signature over the assertion is NOT checked here -- the caller
- * validates the issuer -- but `exp` is, because `exp` is what bounds how long
- * the confirmation key the assertion carries remains acceptable. An assertion
- * without `exp` would leave that key acceptable indefinitely.
+ * Nothing here is authenticated. The assertion is signed by an issuer whose
+ * keys live at `{iss}/.well-known/{dwk}`, and resolving that is the caller's
+ * job, not this library's -- so every member read below comes out of bytes
+ * the presenter chose.
+ *
+ * That is why no claim is judged here beyond the structure needed to get the
+ * confirmation key out. Earlier versions checked `exp` and `iat` at this
+ * point and reported `expired_jwt` on a stale one. The reasoning was that
+ * `exp` bounds how long the confirmation key stays acceptable, which is true
+ * of an assertion someone verified and false of this one: a presenter who
+ * edits the payload sets `exp` to whatever it likes, so the check bounded
+ * honest callers only. What it did reliably was mislabel -- any forged
+ * assertion could be made to report `expired_jwt`, a code whose registry
+ * meaning is that the named issuer minted this and its lifetime ran out.
+ * A caller reading that code refreshes a token when it should be refusing a
+ * forgery.
+ *
+ * Compare `verifyJktJwt` below, which checks `exp` and is right to: a
+ * jkt-jwt carries its identity key in the header and `iss` is that key's
+ * thumbprint, so it verifies its own signature first (step 6) and judges
+ * claims afterwards (step 7). Same order, different reach.
+ *
+ * The caller gets `payload` back and MUST verify the issuer's signature over
+ * the assertion before acting on anything in it, `exp` included. In AAuth
+ * that is `verifyToken` in `@aauth/resource`.
  */
-function decodeJWT(
-    jwt: string,
-    maxClockSkew: number,
-): {
+function decodeJWT(jwt: string): {
     header: any
     payload: any
     publicKey: JsonWebKey
@@ -260,27 +275,17 @@ function decodeJWT(
         throw invalidJwt('Invalid JWT: header or payload is not valid JSON')
     }
 
-    // Extract cnf.jwk
+    // Extract cnf.jwk. This is the one member this layer needs, and the only
+    // reason the payload is parsed at all.
     if (!payload.cnf || !payload.cnf.jwk) {
         throw invalidJwt('JWT missing cnf.jwk claim')
     }
 
-    const now = Math.floor(Date.now() / 1000)
-
+    // `exp` must be present -- an assertion that never expires is malformed,
+    // and that judgement needs no authentication. Whether the time it names
+    // has passed is a question for whoever verified the signature.
     if (typeof payload.exp !== 'number') {
         throw invalidJwt('JWT missing required exp claim')
-    }
-    if (payload.exp + maxClockSkew < now) {
-        throw expiredJwt('JWT expired')
-    }
-
-    if (payload.iat !== undefined) {
-        if (typeof payload.iat !== 'number') {
-            throw invalidJwt('JWT iat claim is not a number')
-        }
-        if (payload.iat - maxClockSkew > now) {
-            throw invalidJwt('JWT iat is in the future')
-        }
     }
 
     return {
@@ -388,7 +393,11 @@ async function verifyJktJwt(
         throw new Error('jkt-jwt: JWT missing exp claim')
     }
     if (payload.exp + maxClockSkew < now) {
-        throw new Error('jkt-jwt: JWT expired')
+        // Raised structurally rather than as a string the caller pattern
+        // matches. This one is an authenticated statement: the signature over
+        // this assertion was checked at step 6, above, before any claim in it
+        // was read.
+        throw expiredJwt('jkt-jwt: JWT expired')
     }
 
     if (!payload.iat || typeof payload.iat !== 'number') {
@@ -504,10 +513,7 @@ export async function verify(
             publicJwk = signatureKey.value as JsonWebKey
         } else if (signatureKey.type === 'jwt') {
             const jwtValue = signatureKey.value as { jwt: string }
-            const { header, payload, publicKey } = decodeJWT(
-                jwtValue.jwt,
-                maxClockSkew,
-            )
+            const { header, payload, publicKey } = decodeJWT(jwtValue.jwt)
             publicJwk = publicKey
             jwtData = {
                 header,
