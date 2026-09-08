@@ -33,6 +33,7 @@ import {
     unsupportedAlgorithm,
     issuerMissing,
     issuerMismatch,
+    clockSkew,
 } from './errors.js'
 
 // JWKS cache. Bounded: the cache key is a URL derived from the request being
@@ -392,19 +393,26 @@ async function verifyJktJwt(
     if (!payload.exp || typeof payload.exp !== 'number') {
         throw new Error('jkt-jwt: JWT missing exp claim')
     }
-    if (payload.exp + maxClockSkew < now) {
+    if (payload.exp < now) {
         // Raised structurally rather than as a string the caller pattern
         // matches. This one is an authenticated statement: the signature over
         // this assertion was checked at step 6, above, before any claim in it
-        // was read.
+        // was read. Judged against this verifier's clock with no tolerance:
+        // the sender is expected to refresh before expiry, not the verifier
+        // to allow for it.
         throw expiredJwt('jkt-jwt: JWT expired')
     }
 
     if (!payload.iat || typeof payload.iat !== 'number') {
         throw new Error('jkt-jwt: JWT missing iat claim')
     }
-    if (payload.iat - maxClockSkew > now) {
-        throw new Error('jkt-jwt: JWT iat is in the future')
+    if (payload.iat > now + maxClockSkew) {
+        // The issuer's clock is ahead of ours by more than the window. Not a
+        // defect in the assertion: clock_skew, so the sender knows a fresh
+        // assertion would not help and can wait the difference out instead.
+        throw clockSkew(
+            `jkt-jwt: JWT iat is ${payload.iat - now}s ahead of the verifier's clock (window ${maxClockSkew}s)`,
+        )
     }
 
     // 8. Extract ephemeral key from cnf.jwk
@@ -485,13 +493,19 @@ export async function verify(
             ])
         }
 
-        // Validate timestamp
+        // Validate timestamp. A `created` older than the window is a stale
+        // or replayed signature (invalid_signature); one further ahead of
+        // our clock than the window is two clocks disagreeing (clock_skew),
+        // which signing again would not fix.
         const now = Math.floor(Date.now() / 1000)
-        const skew = Math.abs(now - params.created)
-
-        if (skew > maxClockSkew) {
+        if (params.created > now + maxClockSkew) {
+            throw clockSkew(
+                `Signature created is ${params.created - now}s ahead of the verifier's clock (window ${maxClockSkew}s)`,
+            )
+        }
+        if (now - params.created > maxClockSkew) {
             throw new Error(
-                `Signature timestamp out of acceptable range (skew: ${skew}s)`,
+                `Signature timestamp out of acceptable range (skew: ${now - params.created}s)`,
             )
         }
 
