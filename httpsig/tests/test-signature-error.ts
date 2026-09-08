@@ -37,6 +37,19 @@ test('Signature-Error: generate revoked_jwt', () => {
     })
 })
 
+test('Signature-Error: generate clock_skew', () => {
+    // created or iat further ahead of the verifier's clock than its window:
+    // nothing malformed or timed out, so neither invalid_signature nor
+    // expired_jwt fits — those say sign or refresh again, which would carry
+    // the same skew. The sender waits the difference out instead.
+    const error: SignatureError = { error: 'clock_skew' }
+    const header = generateSignatureErrorHeader(error)
+    assert.strictEqual(header, 'error=clock_skew')
+    assert.deepStrictEqual(parseSignatureError(header), {
+        error: 'clock_skew',
+    })
+})
+
 test('Signature-Error: generate invalid_signature', () => {
     const error: SignatureError = { error: 'invalid_signature' }
     const header = generateSignatureErrorHeader(error)
@@ -68,6 +81,7 @@ test('Signature-Error: generate all simple error codes', () => {
         'unknown_key',
         'invalid_jwt',
         'expired_jwt',
+        'clock_skew',
     ] as const
 
     for (const code of codes) {
@@ -133,6 +147,7 @@ test('Signature-Error: roundtrip all error types', () => {
         { error: 'unknown_key' },
         { error: 'invalid_jwt' },
         { error: 'expired_jwt' },
+        { error: 'clock_skew' },
     ]
 
     for (const error of errors) {

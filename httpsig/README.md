@@ -262,7 +262,7 @@ interface VerifyRequest {
 ```typescript
 interface VerifyOptions {
     // Timestamp validation
-    maxClockSkew?: number // Max clock skew in seconds (default: 60)
+    maxClockSkew?: number // Window for created / jkt-jwt iat (default: 60)
 
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
@@ -704,6 +704,17 @@ answers `revoked_jwt` (added in 2.5.0). The check is the caller's, after
 code because nothing about the assertion is malformed or timed out, so a
 client told only `invalid_jwt` would have no reason not to present it again.
 
+A signature whose `created`, or a `jkt-jwt` whose `iat`, is further ahead
+of the verifier's clock than `maxClockSkew` answers `clock_skew` (added in
+2.6.0). Nothing is malformed or timed out — two clocks disagree — and a
+fresh signature or assertion from the same clock carries the same skew, so
+a client reading `clock_skew` waits the difference out rather than
+refreshing; the response `Date` header is the verifier's clock. A `created`
+older than the window is a stale or replayed signature and stays
+`invalid_signature`. `exp` on a `jkt-jwt` is judged with no tolerance
+(changed in 2.6.0; it used to allow `maxClockSkew`): a sender refreshes
+before expiry, the verifier does not allow for it.
+
 > **Changed in 2.4.0.** Earlier versions checked `exp` and `iat` at this
 > layer and returned `expired_jwt` for a stale one. Since the payload is
 > not authenticated here, that check bounded honest callers only: anyone
@@ -854,7 +865,7 @@ dependencies by design. See `src/vendor/structured-headers/README.md`.
 ### Timestamp Validation
 
 - Signatures must have a `created` timestamp
-- Timestamp must be within ±60 seconds (configurable via `maxClockSkew`)
+- `created` must be within 60 seconds of the verifier's clock (configurable via `maxClockSkew`): older is `invalid_signature`, further ahead is `clock_skew`
 - Prevents replay attacks
 
 ### JWT Handling

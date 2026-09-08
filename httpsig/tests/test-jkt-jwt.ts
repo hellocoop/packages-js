@@ -376,9 +376,119 @@ test('jkt-jwt: Should fail with future iat', async () => {
 
     assert.strictEqual(verifyResult.verified, false)
     assert.ok(
-        verifyResult.error?.includes('future'),
-        `Expected future error, got: ${verifyResult.error}`,
+        verifyResult.error?.includes('ahead of the verifier'),
+        `Expected clock skew error, got: ${verifyResult.error}`,
     )
+    // Two clocks disagreeing, not a defect in the assertion: the sender
+    // waits the difference out rather than refreshing (signature-key
+    // draft, clock_skew).
+    assert.strictEqual(verifyResult.signatureError?.error, 'clock_skew')
+})
+
+test('jkt-jwt: iat within the window is not skew', async () => {
+    const identity = await generateEd25519KeyPair()
+    const ephemeral = await generateEd25519KeyPair()
+    const jwt = await createJktJwt({
+        identityPrivateJwk: identity.privateJwk,
+        identityPublicJwk: identity.publicJwk,
+        ephemeralPublicJwk: ephemeral.publicJwk,
+        iatOffset: 30, // inside the default 60s window
+        expOffset: 3600,
+    })
+    const result = (await fetch('https://api.example.com/data', {
+        method: 'GET',
+        signingKey: ephemeral.privateJwk,
+        signatureKey: { type: 'jkt_jwt', jwt },
+        dryRun: true,
+    })) as { headers: Headers }
+    const verifyResult = await verify({
+        method: 'GET',
+        path: '/data',
+        authority: 'api.example.com',
+        headers: result.headers,
+    })
+    assert.strictEqual(verifyResult.verified, true, verifyResult.error)
+})
+
+test('jkt-jwt: exp is judged with no tolerance', async () => {
+    const identity = await generateEd25519KeyPair()
+    const ephemeral = await generateEd25519KeyPair()
+    const jwt = await createJktJwt({
+        identityPrivateJwk: identity.privateJwk,
+        identityPublicJwk: identity.publicJwk,
+        ephemeralPublicJwk: ephemeral.publicJwk,
+        iatOffset: -3600,
+        expOffset: -5, // five seconds past — would have passed a 60s tolerance
+    })
+    const result = (await fetch('https://api.example.com/data', {
+        method: 'GET',
+        signingKey: ephemeral.privateJwk,
+        signatureKey: { type: 'jkt_jwt', jwt },
+        dryRun: true,
+    })) as { headers: Headers }
+    const verifyResult = await verify({
+        method: 'GET',
+        path: '/data',
+        authority: 'api.example.com',
+        headers: result.headers,
+    })
+    assert.strictEqual(verifyResult.verified, false)
+    assert.strictEqual(verifyResult.signatureError?.error, 'expired_jwt')
+})
+
+test('created ahead of the verifier clock by more than the window is clock_skew', async () => {
+    const ephemeral = await generateEd25519KeyPair()
+    // Sign with a clock 5 minutes fast, verify with the real one.
+    const realNow = Date.now
+    Date.now = () => realNow() + 300_000
+    let result: { headers: Headers }
+    try {
+        result = (await fetch('https://api.example.com/data', {
+            method: 'GET',
+            signingKey: ephemeral.privateJwk,
+            signatureKey: { type: 'hwk' },
+            dryRun: true,
+        })) as { headers: Headers }
+    } finally {
+        Date.now = realNow
+    }
+    const verifyResult = await verify({
+        method: 'GET',
+        path: '/data',
+        authority: 'api.example.com',
+        headers: result.headers,
+    })
+    assert.strictEqual(verifyResult.verified, false)
+    assert.strictEqual(verifyResult.signatureError?.error, 'clock_skew')
+    assert.ok(
+        verifyResult.error?.includes('ahead of the verifier'),
+        verifyResult.error,
+    )
+})
+
+test('created older than the window is invalid_signature, not clock_skew', async () => {
+    const ephemeral = await generateEd25519KeyPair()
+    const realNow = Date.now
+    Date.now = () => realNow() - 300_000
+    let result: { headers: Headers }
+    try {
+        result = (await fetch('https://api.example.com/data', {
+            method: 'GET',
+            signingKey: ephemeral.privateJwk,
+            signatureKey: { type: 'hwk' },
+            dryRun: true,
+        })) as { headers: Headers }
+    } finally {
+        Date.now = realNow
+    }
+    const verifyResult = await verify({
+        method: 'GET',
+        path: '/data',
+        authority: 'api.example.com',
+        headers: result.headers,
+    })
+    assert.strictEqual(verifyResult.verified, false)
+    assert.strictEqual(verifyResult.signatureError?.error, 'invalid_signature')
 })
 
 test('jkt-jwt: Should fail with tampered iss (wrong thumbprint)', async () => {

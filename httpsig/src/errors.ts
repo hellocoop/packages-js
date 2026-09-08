@@ -84,6 +84,17 @@ export function expiredJwt(message: string): SignatureVerificationError {
     return new SignatureVerificationError('expired_jwt', message)
 }
 
+/**
+ * The signature's `created`, or the assertion's `iat`, is further ahead of
+ * this verifier's clock than it allows. Nothing is malformed or timed out:
+ * two clocks disagree. A fresh signature or assertion from the same clock
+ * carries the same skew, so the sender waits rather than refreshes; the
+ * response `Date` header is this verifier's clock.
+ */
+export function clockSkew(message: string): SignatureVerificationError {
+    return new SignatureVerificationError('clock_skew', message)
+}
+
 /** The covered components are missing something the verifier requires. */
 export function invalidInput(
     message: string,

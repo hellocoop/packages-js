@@ -124,7 +124,11 @@ export interface VerifyRequest {
 
 export interface VerifyOptions {
     // Timestamp validation
-    maxClockSkew?: number // Max clock skew in seconds (default: 60)
+    // How far `created` (and a jkt-jwt `iat`) may be ahead of this
+    // verifier's clock, and how old `created` may be, in seconds (default:
+    // 60). Ahead of the clock by more than this is `clock_skew`; older is
+    // `invalid_signature`. `exp` gets no tolerance.
+    maxClockSkew?: number
 
     // JWKS caching
     jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
@@ -269,6 +273,7 @@ export type SignatureErrorCode =
     | 'invalid_jwt'
     | 'expired_jwt'
     | 'revoked_jwt'
+    | 'clock_skew'
     | 'issuer_missing'
     | 'issuer_mismatch'
 

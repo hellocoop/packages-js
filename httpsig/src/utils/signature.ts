@@ -504,6 +504,7 @@ export function parseSignatureError(header: string): SignatureError {
         'invalid_jwt',
         'expired_jwt',
         'revoked_jwt',
+        'clock_skew',
         'issuer_missing',
         'issuer_mismatch',
     ]
