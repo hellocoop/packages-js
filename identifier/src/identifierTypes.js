@@ -19,6 +19,9 @@ const identifierTypeDescriptions = {
     usr: 'Hellō internal user identifier',
     // Admin internal
     pub: 'Hellō publisher identifier',
+    // AAuth
+    agt: 'Hellō agent install identifier - `agt` in an MCP OAuth access token, identifies one install of an MCP client',
+    msg: "Hellō message identifier - a message between a person's agents",
     // Deprecated
     org: 'Hellō organization identifier',
 }

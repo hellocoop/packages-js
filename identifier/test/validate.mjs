@@ -9,6 +9,15 @@ describe('Identifiers Module', function () {
         const validId = identifiers.app()
         expect(identifiers.validate(validId)).to.be.true
     })
+    ;['agt', 'msg'].forEach((type) => {
+        it(`should generate and validate a ${type} identifier`, async function () {
+            await new Promise((resolve) => setTimeout(resolve, 100))
+            const id = identifiers[type]()
+            expect(id.startsWith(`${type}_`)).to.be.true
+            expect(identifiers.validate(id)).to.be.true
+            expect(identifiers.types).to.include(type)
+        })
+    })
 
     const invalidIds = [
         'app_invalididentifier_000', // Invalid format (too short)
