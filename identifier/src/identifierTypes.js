@@ -13,6 +13,7 @@ const identifierTypeDescriptions = {
     con: 'Hellō connection identifier',
     dvc: 'Hellō device cookie identifier',
     inv: 'Hellō invitation identifier',
+    msg: 'Message identifier (secret.agent.coop)',
     pky: 'Hellō passkey identifier',
     req: 'Internal HTTP request identifier',
     ses: 'Hellō session identifier',
