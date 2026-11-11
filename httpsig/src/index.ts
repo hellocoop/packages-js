@@ -77,6 +77,34 @@ export type {
 
 export { SignatureVerificationError } from './errors.js'
 
+/**
+ * Key discovery: `{id}/.well-known/{dwk}` -> `jwks_uri` -> JWKS -> `kid`.
+ *
+ * `verify()` uses a resolver for the jwks_uri scheme. Exported so that a
+ * caller authenticating the issuer of a jwt-scheme assertion performs the
+ * same lookup through the same cache, under the same fetch policy.
+ */
+export {
+    createKeyResolver,
+    metadataUrlFor,
+    DEFAULT_KEY_FETCH_TIMEOUT_MS,
+    DEFAULT_MAX_RESPONSE_BYTES,
+    DEFAULT_MAX_TTL_MS,
+    DEFAULT_MIN_REFETCH_INTERVAL_MS,
+} from './key-resolver.js'
+export type {
+    KeyResolver,
+    KeyResolverOptions,
+    KeyLookupOptions,
+    KeyQuery,
+    KeyStore,
+    KeyStoreEntry,
+    KeyFetch,
+    KeyFetchEvent,
+    KeyFetchReason,
+} from './key-resolver.js'
+export { BoundedTtlCache } from './utils/cache.js'
+
 export { calculateThumbprint } from './utils/thumbprint.js'
 
 export type {
