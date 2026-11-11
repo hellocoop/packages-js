@@ -3,6 +3,7 @@
  */
 
 import type { InnerList } from './structured-fields.js'
+import type { KeyResolver } from './key-resolver.js'
 
 /**
  * Valid derived components from RFC 9421 Section 2.2
@@ -130,8 +131,30 @@ export interface VerifyOptions {
     // `invalid_signature`. `exp` gets no tolerance.
     maxClockSkew?: number
 
-    // JWKS caching
-    jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
+    /**
+     * Longest a fetched metadata document or JWKS is treated as fresh, in ms
+     * (default: 3600000). A shorter `Cache-Control: max-age` on the response
+     * is honored, down to the one-minute refetch floor. Ignored when
+     * `keyResolver` is given -- set `maxTtlMs` on the resolver instead.
+     */
+    jwksCacheTtl?: number
+
+    /**
+     * Key discovery for the jwks_uri scheme. Create one with
+     * `createKeyResolver()` to supply the cache store, the fetch, a timeout,
+     * and an `onFetch` hook for logging, and share it across requests.
+     * Defaults to a built-in resolver on a bounded in-memory store using
+     * `globalThis.fetch`.
+     */
+    keyResolver?: KeyResolver
+
+    /**
+     * When a jwks_uri signature fails to verify, fetch the signer's keys
+     * again (subject to the resolver's refetch floor) and verify once more if
+     * the key under that `kid` changed. Covers a signer that replaced key
+     * material without changing the `kid`. Default: false.
+     */
+    refreshOnVerifyFailure?: boolean
 
     /**
      * The algorithms this verifier accepts. A key whose `alg` falls outside

@@ -264,8 +264,17 @@ interface VerifyOptions {
     // Timestamp validation
     maxClockSkew?: number // Window for created / jkt-jwt iat (default: 60)
 
-    // JWKS caching
-    jwksCacheTtl?: number // JWKS cache TTL in ms (default: 3600000)
+    // Longest a fetched metadata document or JWKS is treated as fresh, in ms
+    // (default: 3600000). Ignored when keyResolver is given.
+    jwksCacheTtl?: number
+
+    // Key discovery for the jwks_uri scheme: cache store, fetch, timeout,
+    // logging hook. See "Key resolver" below. Default: built-in, in memory.
+    keyResolver?: KeyResolver
+
+    // On a failed jwks_uri signature, fetch the signer's keys again and
+    // verify once more if the key under that kid changed (default: false)
+    refreshOnVerifyFailure?: boolean
 
     // Algorithms this verifier accepts (default: SUPPORTED_ALGORITHMS)
     supportedAlgorithms?: SignatureAlgorithm[]
@@ -877,12 +886,84 @@ When verifying `jwt` signature-key types:
 - **JWT validation is NOT performed** - the raw JWT is returned to the caller
 - Caller is responsible for validating JWT signature, issuer, expiration, etc.
 
-### JWKS Caching
+### Key resolver
 
-- JWKS responses are cached to prevent excessive fetches
-- Default TTL: 1 hour (configurable)
-- Cache respects HTTP `Cache-Control` headers
-- Cache keyed by JWKS URL
+For the `jwks_uri` scheme `verify()` fetches two documents: the signer's
+metadata at `{id}/.well-known/{dwk}`, then the JWKS at its `jwks_uri`. A key
+resolver does that lookup. By default `verify()` uses a built-in one on a
+bounded in-memory store. Create your own to supply the store, the fetch, and
+a logging hook, and share it across requests:
+
+```typescript
+import { createKeyResolver, verify } from '@hellocoop/httpsig'
+
+const keyResolver = createKeyResolver({
+    store, // where documents are cached (default: in memory, 100 entries)
+    fetch: guardedFetch, // egress admission belongs here
+    timeoutMs: 5000,
+    onFetch: (event) => log.info(event, 'key discovery fetch'),
+})
+
+const result = await verify(request, { keyResolver })
+```
+
+**What the resolver enforces:**
+
+- The metadata `issuer` must equal `id` (`issuer_missing`, `issuer_mismatch`)
+- A URL is not fetched again within `minRefetchIntervalMs` (default 1 minute)
+  of the previous attempt, successful or not. A failed fetch is stored, so a
+  signer whose documents cannot be fetched is not retried on every request
+- An unknown `kid` fetches the documents again once, subject to that floor,
+  before failing with `unknown_key`
+- `Cache-Control: max-age` is honored down to the floor and capped at
+  `maxTtlMs` (default 1 hour), which is also the TTL when the header is absent
+- Fetches time out (`timeoutMs`, default 5 s), refuse redirects, refuse
+  non-HTTPS URLs (`requireHttps`), and refuse a body over `maxResponseBytes`
+  (default 1 MiB)
+- Concurrent lookups of one URL share one fetch
+
+**Options:**
+
+| Option                   | Default            | Meaning                                                              |
+| ------------------------ | ------------------ | -------------------------------------------------------------------- |
+| `store`                  | in-memory LRU      | `{ get(url), set(url, entry, ttlMs) }`, sync or async                |
+| `fetch`                  | `globalThis.fetch` | Called with `redirect: 'error'` and an abort signal                  |
+| `timeoutMs`              | `5000`             | Fetch timeout, covering the body                                     |
+| `maxResponseBytes`       | `1048576`          | Largest response body accepted                                       |
+| `maxTtlMs`               | `3600000`          | Cap on freshness, and the TTL when no `max-age` is sent              |
+| `minRefetchIntervalMs`   | `60000`            | The refetch floor                                                    |
+| `staleIfErrorMs`         | `0`                | How long past its TTL a document may be used when the refetch fails  |
+| `staleWhileRevalidateMs` | `0`                | How long past its TTL a document is served while refetched behind it |
+| `waitUntil`              | none               | Receives the background refetch promise (Workers: `ctx.waitUntil`)   |
+| `requireHttps`           | `true`             | Refuse any URL that is not `https:`                                  |
+| `onFetch`                | none               | Called after every outbound fetch                                    |
+
+**`onFetch` event:** `url`, `doc` (`metadata` or `jwks`), `id`, `dwk`, `kid`,
+`reason` (`cold`, `expired`, `unknown_kid`, `verify_failed`), `ok`, `status`,
+`duration_ms`, `error` (`timeout` on a timeout), `ttl_ms`, `served_stale`.
+
+**Supplying a store.** Entries are created by unauthenticated callers: the URL
+comes from the request being verified. A store MUST bound how many entries it
+holds. With a store shared across instances the refetch floor holds across
+them too; with the in-memory default it holds per instance.
+
+**Egress admission.** The resolver cannot see the network. Filtering private,
+loopback and link-local addresses, and pinning the resolved address against
+DNS rebinding, have to be done in the `fetch` you supply.
+
+**Other lookups.** The resolver is also the lookup for the issuer of a
+`jwt`-scheme assertion (`iss` + `dwk` + `kid`), which `verify()` leaves to the
+caller. Use the same resolver so both share one cache:
+
+```typescript
+const key = await keyResolver.resolveKey({ id: iss, dwk, kid })
+const jwks = await keyResolver.getJwks(iss, dwk)
+const metadata = await keyResolver.getMetadata(iss, dwk)
+```
+
+`requireIssuer: false` skips the issuer check and `allowInlineJwks: true`
+accepts a JWKS embedded in the metadata as `jwks`, for metadata formats that
+differ from the `jwks_uri` scheme's.
 
 ### Key Validation
 

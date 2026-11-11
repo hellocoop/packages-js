@@ -26,20 +26,38 @@ import { base64urlDecode } from './utils/base64.js'
 import { calculateThumbprint } from './utils/thumbprint.js'
 import { BoundedTtlCache } from './utils/cache.js'
 import {
+    createKeyResolver,
+    KeyResolver,
+    KeyStoreEntry,
+} from './key-resolver.js'
+import {
     SignatureVerificationError,
     invalidInput,
     invalidJwt,
     expiredJwt,
     unsupportedAlgorithm,
-    issuerMissing,
-    issuerMismatch,
     clockSkew,
 } from './errors.js'
 
-// JWKS cache. Bounded: the cache key is a URL derived from the request being
-// verified, so an unauthenticated signer would otherwise be able to grow this
-// without limit by varying the id/dwk it presents.
-const jwksCache = new BoundedTtlCache<any>()
+// The store behind verify() when the caller passes no keyResolver. Bounded:
+// the cache key is a URL derived from the request being verified, so an
+// unauthenticated signer would otherwise be able to grow this without limit
+// by varying the id/dwk it presents.
+const defaultKeyStore = new BoundedTtlCache<KeyStoreEntry>()
+
+// One default resolver per jwksCacheTtl, all on the shared store. A resolver
+// holds the in-flight table, so it has to outlive the call.
+const defaultResolvers = new Map<number, KeyResolver>()
+
+function defaultKeyResolver(maxTtlMs: number): KeyResolver {
+    let resolver = defaultResolvers.get(maxTtlMs)
+    if (!resolver) {
+        if (defaultResolvers.size >= 8) defaultResolvers.clear()
+        resolver = createKeyResolver({ store: defaultKeyStore, maxTtlMs })
+        defaultResolvers.set(maxTtlMs, resolver)
+    }
+    return resolver
+}
 
 /**
  * Map a thrown error to a structured SignatureError.
@@ -143,87 +161,6 @@ function normalizeHeaders(
     }
 
     return result
-}
-
-/**
- * Fetch JWKS from URL
- */
-async function fetchJWKS(url: string, cacheTtl: number): Promise<any> {
-    // Check cache
-    const cached = jwksCache.get(url)
-    if (cached !== undefined) {
-        return cached
-    }
-
-    // Fetch JWKS
-    const response = await globalThis.fetch(url)
-    if (!response.ok) {
-        throw new Error(
-            `Failed to fetch JWKS from ${url}: ${response.statusText}`,
-        )
-    }
-
-    const jwks = await response.json()
-
-    // Cache the result
-    jwksCache.set(url, jwks, cacheTtl)
-
-    return jwks
-}
-
-/**
- * Get public key from JWKS via metadata document
- */
-async function getPublicKeyFromJWKS(
-    id: string,
-    kid: string,
-    dwk: string,
-    cacheTtl: number,
-): Promise<JsonWebKey> {
-    // Fetch metadata document first
-    const metadataUrl = `${id}/.well-known/${dwk}`
-    const metadata = await fetchJWKS(metadataUrl, cacheTtl)
-
-    // Bind the metadata document to the identity it was fetched under. Without
-    // this, a document served at {id}/.well-known/{dwk} -- via misconfigured
-    // shared hosting or a subdomain takeover -- could point jwks_uri at keys
-    // that do not belong to id, and the verifier would attribute the request
-    // accordingly. Same check as RFC 8414 Section 3.3.
-    if (metadata.issuer === undefined) {
-        throw issuerMissing(`Metadata document missing issuer: ${metadataUrl}`)
-    }
-
-    // Byte equality as presented, matching the identifier-comparison rule the
-    // draft uses for the jwks url. No normalization.
-    if (metadata.issuer !== id) {
-        throw issuerMismatch(
-            `Metadata issuer "${metadata.issuer}" does not match id "${id}"`,
-        )
-    }
-
-    if (!metadata.jwks_uri) {
-        throw new Error(`Metadata document missing jwks_uri: ${metadataUrl}`)
-    }
-
-    const jwksUrl = metadata.jwks_uri
-
-    // Fetch JWKS
-    const jwks = await fetchJWKS(jwksUrl, cacheTtl)
-
-    if (!jwks.keys || !Array.isArray(jwks.keys)) {
-        throw new Error(`Invalid JWKS format from ${jwksUrl}`)
-    }
-
-    // Find key with matching kid
-    const key = jwks.keys.find((k: any) => k.kid === kid)
-
-    if (!key) {
-        throw new Error(
-            `Key with kid="${kid}" not found in JWKS from ${jwksUrl}`,
-        )
-    }
-
-    return key
 }
 
 /**
@@ -441,7 +378,12 @@ export async function verify(
         jwksCacheTtl = 3600000, // 1 hour
         supportedAlgorithms,
         requireContentDigest = false,
+        refreshOnVerifyFailure = false,
     } = options
+
+    // Key discovery for the jwks_uri scheme. The caller's resolver when one
+    // is given; otherwise the built-in one on the in-memory store.
+    const keyResolver = options.keyResolver ?? defaultKeyResolver(jwksCacheTtl)
 
     // The set this verifier accepts. Reported in Accept-Signature-Alg on an
     // unsupported_algorithm rejection, so a client learns what would work.
@@ -558,7 +500,7 @@ export async function verify(
                 dwk: string
             }
             const { id, kid, dwk } = jwksUriValue
-            publicJwk = await getPublicKeyFromJWKS(id, kid, dwk, jwksCacheTtl)
+            publicJwk = await keyResolver.resolveKey({ id, dwk, kid })
             jwksUriData = { id, kid, dwk }
         } else {
             // Note: x509 scheme not yet implemented
@@ -716,17 +658,47 @@ export async function verify(
         const signatureBaseBytes = new TextEncoder().encode(signatureBase)
 
         // Calculate JWK thumbprint (stable identifier for the public key)
-        const thumbprint = await calculateThumbprint(publicJwk)
+        let thumbprint = await calculateThumbprint(publicJwk)
 
         // Import public key and verify
         const publicKey = await importPublicKey(publicJwk)
         const algorithm = getAlgorithmFromJwk(publicJwk)
-        const isValid = await cryptoVerify(
+        let isValid = await cryptoVerify(
             signatureBaseBytes,
             signature,
             publicKey,
             algorithm,
         )
+
+        // A signer that replaced key material under the same kid looks like a
+        // bad signature. Opt-in: fetch the signer's keys again (the resolver
+        // holds the refetch floor) and verify once more if the key changed.
+        // Off by default because any caller can provoke it with a garbage
+        // signature.
+        if (!isValid && refreshOnVerifyFailure && jwksUriData) {
+            const refreshed = await keyResolver
+                .resolveKey({ ...jwksUriData, refresh: 'verify_failed' })
+                .catch(() => undefined)
+            if (refreshed) {
+                validateJwk(refreshed)
+                const refreshedThumbprint = await calculateThumbprint(refreshed)
+                if (
+                    refreshedThumbprint !== thumbprint &&
+                    accepted.includes(refreshed.alg as string)
+                ) {
+                    isValid = await cryptoVerify(
+                        signatureBaseBytes,
+                        signature,
+                        await importPublicKey(refreshed),
+                        getAlgorithmFromJwk(refreshed),
+                    )
+                    if (isValid) {
+                        publicJwk = refreshed
+                        thumbprint = refreshedThumbprint
+                    }
+                }
+            }
+        }
 
         const result: VerificationResult = {
             verified: isValid,
