@@ -418,8 +418,10 @@ export function createKeyResolver(
             }
             try {
                 const { body, ttlMs, status } = await fetchDocument(url)
-                // Validated before it is stored: a document that fails its
-                // checks never becomes a cached body.
+                // Shape checked before it is stored: a document that is not
+                // the right kind of JSON never becomes a cached body.
+                // Lookup-dependent checks (the metadata issuer) are made by
+                // each lookup on the body it gets back.
                 validate?.(body)
                 const now = Date.now()
                 await store.set(
@@ -567,6 +569,12 @@ export function createKeyResolver(
     ): Promise<Record<string, unknown>> {
         const url = metadataUrlFor(id, dwk)
         const requireIssuer = lookup.requireIssuer ?? true
+        // The issuer check depends on the lookup, so it is not applied
+        // when the document is fetched and stored: a strict lookup that
+        // fails it must not leave a failure that a lenient lookup of the
+        // same URL then hits for the refetch floor. Every lookup checks
+        // the body it gets back. (fetchDocument has already refused a
+        // body that is not a JSON object.)
         const validate = (body: unknown) => {
             if (!requireIssuer) return
             const issuer = (body as Record<string, unknown>).issuer
@@ -589,10 +597,7 @@ export function createKeyResolver(
             url,
             { doc: 'metadata', id, dwk, kid: lookup.kid },
             lookup.refresh,
-            validate,
         )
-        // A stored body was validated when it was fetched, but possibly
-        // under a lookup that did not require an issuer.
         validate(body)
         return body as Record<string, unknown>
     }

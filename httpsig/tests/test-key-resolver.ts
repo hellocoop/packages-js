@@ -463,13 +463,12 @@ test('refuses a response larger than maxResponseBytes', async () => {
     )
 })
 
-test('issuer mismatch keeps its code, and is not stored as a document', async () => {
+test('issuer mismatch keeps its code on every lookup, from one fetch', async () => {
     const o = origin({
         metadata: { issuer: 'https://other.example', jwks_uri: JWKS_URL },
         jwks: { keys: [] },
     })
-    const { store, entries } = mapStore()
-    const resolver = createKeyResolver({ fetch: o.fetch, store })
+    const resolver = createKeyResolver({ fetch: o.fetch })
 
     for (let i = 0; i < 2; i++) {
         await assert.rejects(
@@ -479,7 +478,51 @@ test('issuer mismatch keeps its code, and is not stored as a document', async ()
                 error.code === 'issuer_mismatch',
         )
     }
-    assert.strictEqual(o.calls.length, 1, 'the failure holds the floor')
+    assert.deepStrictEqual(o.calls, [METADATA_URL], 'fetched once')
+})
+
+test('a strict lookup that fails the issuer check does not block a lenient one', async () => {
+    // httpsig verify() looks metadata up with requireIssuer: true;
+    // @aauth/resource verifyToken() with requireIssuer: false. A failed
+    // strict lookup must not store a failure the lenient one then hits.
+    const { publicJwk } = await generateKey('key-1')
+    const o = origin({
+        metadata: { jwks_uri: JWKS_URL },
+        jwks: { keys: [publicJwk] },
+    })
+    const events: KeyFetchEvent[] = []
+    const resolver = createKeyResolver({
+        fetch: o.fetch,
+        onFetch: (e) => events.push(e),
+    })
+
+    await assert.rejects(
+        resolver.getJwks(ID, DWK),
+        (error: unknown) =>
+            error instanceof SignatureVerificationError &&
+            error.code === 'issuer_missing',
+    )
+    const jwks = await resolver.getJwks(ID, DWK, { requireIssuer: false })
+    assert.deepStrictEqual(jwks.keys, [publicJwk])
+    assert.deepStrictEqual(o.calls, [METADATA_URL, JWKS_URL])
+    assert.deepStrictEqual(
+        events.map((e) => [e.doc, e.ok]),
+        [
+            ['metadata', true],
+            ['jwks', true],
+        ],
+    )
+})
+
+test('a metadata body that is not a JSON object is refused and not stored', async () => {
+    const o = origin({ metadata: ['not', 'an', 'object'], jwks: { keys: [] } })
+    const { store, entries } = mapStore()
+    const resolver = createKeyResolver({ fetch: o.fetch, store })
+
+    await assert.rejects(
+        resolver.getMetadata(ID, DWK, { requireIssuer: false }),
+        /is not a JSON object/,
+    )
     assert.strictEqual(entries.get(METADATA_URL)?.body, null)
 })
 
