@@ -106,14 +106,53 @@ test('resolves a key and serves the next lookup from the store', async () => {
     assert.ok(events[0].duration_ms >= 0)
 })
 
-test('fetches with redirect refused and an abort signal', async () => {
+test('fetches with redirect manual and an abort signal', async () => {
+    // 'manual', not 'error': Cloudflare Workers rejects redirect 'error'.
     const { publicJwk } = await generateKey('key-1')
     const o = origin({ metadata, jwks: { keys: [publicJwk] } })
     const resolver = createKeyResolver({ fetch: o.fetch })
 
     await resolver.resolveKey({ id: ID, dwk: DWK, kid: 'key-1' })
-    assert.strictEqual(o.inits[0]?.redirect, 'error')
+    assert.strictEqual(o.inits[0]?.redirect, 'manual')
     assert.ok(o.inits[0]?.signal instanceof AbortSignal)
+})
+
+test('refuses a redirect response', async () => {
+    const events: KeyFetchEvent[] = []
+    const fetch = async () =>
+        new Response(null, {
+            status: 302,
+            headers: { location: 'https://elsewhere.example/doc' },
+        })
+    const resolver = createKeyResolver({
+        fetch,
+        onFetch: (e) => events.push(e),
+    })
+
+    await assert.rejects(
+        resolver.resolveKey({ id: ID, dwk: DWK, kid: 'key-1' }),
+        /Refusing redirect from .*HTTP 302/,
+    )
+    assert.strictEqual(events.length, 1)
+    assert.strictEqual(events[0].ok, false)
+    assert.strictEqual(events[0].status, 302)
+})
+
+test('refuses an opaque redirect (browser fetch with redirect manual)', async () => {
+    const fetch = async () =>
+        ({
+            type: 'opaqueredirect',
+            status: 0,
+            ok: false,
+            headers: new Headers(),
+            body: null,
+        }) as unknown as Response
+    const resolver = createKeyResolver({ fetch })
+
+    await assert.rejects(
+        resolver.resolveKey({ id: ID, dwk: DWK, kid: 'key-1' }),
+        /Refusing redirect from .*HTTP 0/,
+    )
 })
 
 test('unknown kid: refetches once and finds a rotated key', async () => {

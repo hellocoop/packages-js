@@ -106,7 +106,9 @@ export interface KeyResolverOptions {
 
     /**
      * The fetch used for metadata and JWKS. Default: `globalThis.fetch`.
-     * Called with `redirect: 'error'` and an abort signal for `timeoutMs`.
+     * Called with `redirect: 'manual'` and an abort signal for `timeoutMs`;
+     * the resolver refuses any redirect response itself. (`'error'` is not
+     * accepted by Cloudflare Workers.)
      */
     fetch?: KeyFetch
 
@@ -337,9 +339,22 @@ export function createKeyResolver(
 
         const response = await doFetch(url, {
             headers: { accept: 'application/json' },
-            redirect: 'error',
+            // Not 'error': Cloudflare Workers rejects it. With 'manual' the
+            // redirect comes back as a 3xx (or, in browsers, an
+            // 'opaqueredirect' with status 0) and is refused here.
+            redirect: 'manual',
             signal: AbortSignal.timeout(timeoutMs),
         })
+        if (
+            response.type === 'opaqueredirect' ||
+            (response.status >= 300 && response.status < 400)
+        ) {
+            const error = new Error(
+                `Refusing redirect from ${url}: HTTP ${response.status}`,
+            ) as Error & { status?: number }
+            error.status = response.status
+            throw error
+        }
         if (!response.ok) {
             const error = new Error(
                 `Failed to fetch ${url}: HTTP ${response.status}`,
