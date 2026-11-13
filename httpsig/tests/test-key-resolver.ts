@@ -138,6 +138,32 @@ test('refuses a redirect response', async () => {
     assert.strictEqual(events[0].status, 302)
 })
 
+test('cancels the body of a refused response', async () => {
+    // An unread body holds the connection open until GC on Node.
+    for (const status of [302, 404]) {
+        let cancelled = false
+        const body = new ReadableStream({
+            cancel() {
+                cancelled = true
+            },
+        })
+        const fetch = async () =>
+            new Response(body, {
+                status,
+                headers: { location: 'https://elsewhere.example/doc' },
+            })
+        const resolver = createKeyResolver({ fetch })
+
+        await assert.rejects(
+            resolver.resolveKey({ id: ID, dwk: DWK, kid: 'key-1' }),
+            status === 302
+                ? /Refusing redirect from .*HTTP 302 to https:\/\/elsewhere\.example\/doc/
+                : /Failed to fetch .*HTTP 404/,
+        )
+        assert.strictEqual(cancelled, true, `body cancelled on ${status}`)
+    }
+})
+
 test('refuses an opaque redirect (browser fetch with redirect manual)', async () => {
     const fetch = async () =>
         ({

@@ -241,6 +241,14 @@ function maxAgeMs(cacheControl: string | null | undefined): number | undefined {
     return result
 }
 
+/**
+ * Release a response whose body will not be read. An unread body holds its
+ * connection open (until GC on Node), so a refused response is cancelled.
+ */
+async function discard(response: Response): Promise<void> {
+    await response.body?.cancel?.().catch(() => {})
+}
+
 /** Read a response body as text, refusing one larger than `limit` bytes. */
 async function readBounded(response: Response, limit: number): Promise<string> {
     const declared = Number(response.headers?.get?.('content-length'))
@@ -349,13 +357,17 @@ export function createKeyResolver(
             response.type === 'opaqueredirect' ||
             (response.status >= 300 && response.status < 400)
         ) {
+            await discard(response)
+            const location = response.headers?.get?.('location')
             const error = new Error(
-                `Refusing redirect from ${url}: HTTP ${response.status}`,
+                `Refusing redirect from ${url}: HTTP ${response.status}` +
+                    (location ? ` to ${location}` : ''),
             ) as Error & { status?: number }
             error.status = response.status
             throw error
         }
         if (!response.ok) {
+            await discard(response)
             const error = new Error(
                 `Failed to fetch ${url}: HTTP ${response.status}`,
             ) as Error & { status?: number }
