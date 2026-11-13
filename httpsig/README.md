@@ -927,7 +927,7 @@ const result = await verify(request, { keyResolver })
 | Option                   | Default            | Meaning                                                              |
 | ------------------------ | ------------------ | -------------------------------------------------------------------- |
 | `store`                  | in-memory LRU      | `{ get(url), set(url, entry, ttlMs) }`, sync or async                |
-| `fetch`                  | `globalThis.fetch` | Called with `redirect: 'error'` and an abort signal                  |
+| `fetch`                  | `globalThis.fetch` | Called with `redirect: 'manual'` and an abort signal; 3xx is refused |
 | `timeoutMs`              | `5000`             | Fetch timeout, covering the body                                     |
 | `maxResponseBytes`       | `1048576`          | Largest response body accepted                                       |
 | `maxTtlMs`               | `3600000`          | Cap on freshness, and the TTL when no `max-age` is sent              |

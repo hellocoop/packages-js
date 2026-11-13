@@ -106,7 +106,9 @@ export interface KeyResolverOptions {
 
     /**
      * The fetch used for metadata and JWKS. Default: `globalThis.fetch`.
-     * Called with `redirect: 'error'` and an abort signal for `timeoutMs`.
+     * Called with `redirect: 'manual'` and an abort signal for `timeoutMs`;
+     * the resolver refuses any redirect response itself. (`'error'` is not
+     * accepted by Cloudflare Workers.)
      */
     fetch?: KeyFetch
 
@@ -239,6 +241,14 @@ function maxAgeMs(cacheControl: string | null | undefined): number | undefined {
     return result
 }
 
+/**
+ * Release a response whose body will not be read. An unread body holds its
+ * connection open (until GC on Node), so a refused response is cancelled.
+ */
+async function discard(response: Response): Promise<void> {
+    await response.body?.cancel?.().catch(() => {})
+}
+
 /** Read a response body as text, refusing one larger than `limit` bytes. */
 async function readBounded(response: Response, limit: number): Promise<string> {
     const declared = Number(response.headers?.get?.('content-length'))
@@ -337,10 +347,27 @@ export function createKeyResolver(
 
         const response = await doFetch(url, {
             headers: { accept: 'application/json' },
-            redirect: 'error',
+            // Not 'error': Cloudflare Workers rejects it. With 'manual' the
+            // redirect comes back as a 3xx (or, in browsers, an
+            // 'opaqueredirect' with status 0) and is refused here.
+            redirect: 'manual',
             signal: AbortSignal.timeout(timeoutMs),
         })
+        if (
+            response.type === 'opaqueredirect' ||
+            (response.status >= 300 && response.status < 400)
+        ) {
+            await discard(response)
+            const location = response.headers?.get?.('location')
+            const error = new Error(
+                `Refusing redirect from ${url}: HTTP ${response.status}` +
+                    (location ? ` to ${location}` : ''),
+            ) as Error & { status?: number }
+            error.status = response.status
+            throw error
+        }
         if (!response.ok) {
+            await discard(response)
             const error = new Error(
                 `Failed to fetch ${url}: HTTP ${response.status}`,
             ) as Error & { status?: number }
@@ -403,8 +430,10 @@ export function createKeyResolver(
             }
             try {
                 const { body, ttlMs, status } = await fetchDocument(url)
-                // Validated before it is stored: a document that fails its
-                // checks never becomes a cached body.
+                // Shape checked before it is stored: a document that is not
+                // the right kind of JSON never becomes a cached body.
+                // Lookup-dependent checks (the metadata issuer) are made by
+                // each lookup on the body it gets back.
                 validate?.(body)
                 const now = Date.now()
                 await store.set(
@@ -552,6 +581,12 @@ export function createKeyResolver(
     ): Promise<Record<string, unknown>> {
         const url = metadataUrlFor(id, dwk)
         const requireIssuer = lookup.requireIssuer ?? true
+        // The issuer check depends on the lookup, so it is not applied
+        // when the document is fetched and stored: a strict lookup that
+        // fails it must not leave a failure that a lenient lookup of the
+        // same URL then hits for the refetch floor. Every lookup checks
+        // the body it gets back. (fetchDocument has already refused a
+        // body that is not a JSON object.)
         const validate = (body: unknown) => {
             if (!requireIssuer) return
             const issuer = (body as Record<string, unknown>).issuer
@@ -574,10 +609,7 @@ export function createKeyResolver(
             url,
             { doc: 'metadata', id, dwk, kid: lookup.kid },
             lookup.refresh,
-            validate,
         )
-        // A stored body was validated when it was fetched, but possibly
-        // under a lookup that did not require an issuer.
         validate(body)
         return body as Record<string, unknown>
     }
